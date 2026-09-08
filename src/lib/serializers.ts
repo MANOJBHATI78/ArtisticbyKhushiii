@@ -209,6 +209,7 @@ export function toPublicBlogPost(p: PrismaBlogPost): PublicBlogPost {
     tags: p.tags,
     featured: p.featured,
     status: p.status,
+    publishAt: p.publishAt ? p.publishAt.toISOString() : null,
     publishedAt: p.publishedAt ? p.publishedAt.toISOString() : null,
     blogCategoryName: p.blogCategory?.name ?? null,
     blogCategorySlug: p.blogCategory?.slug ?? null,

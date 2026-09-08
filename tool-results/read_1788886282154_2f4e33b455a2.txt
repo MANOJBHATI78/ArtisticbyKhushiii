@@ -1,0 +1,968 @@
+     1→     1→"use client";
+     2→     2→
+     3→     3→import { useEffect, useMemo, useRef, useState } from "react";
+     4→     4→import { useQueryClient } from "@tanstack/react-query";
+     5→     5→import { api } from "@/lib/api-client";
+     6→     6→import { useToast } from "@/hooks/use-toast";
+     7→     7→import type { Paginated, ProductImage, PublicProduct } from "@/lib/types";
+     8→     8→import { Button } from "@/components/ui/button";
+     9→     9→import { Input } from "@/components/ui/input";
+    10→    10→import { Switch } from "@/components/ui/switch";
+    11→    11→import { Textarea } from "@/components/ui/textarea";
+    12→    12→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+    13→    13→import { Skeleton } from "@/components/ui/skeleton";
+    14→    14→import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+    15→    15→import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+    16→    16→import { Checkbox } from "@/components/ui/checkbox";
+    17→    17→import { Card, CardContent } from "@/components/ui/card";
+    18→    18→import { Badge } from "@/components/ui/badge";
+    19→    19→import {
+    20→    20→  ArrowLeft,
+    21→    21→  ArrowDown,
+    22→    22→  ArrowUp,
+    23→    23→  Eye,
+    24→    24→  ImagePlus,
+    25→    25→  Package,
+    26→    26→  Pencil,
+    27→    27→  Plus,
+    28→    28→  Save,
+    29→    29→  Search,
+    30→    30→  Star,
+    31→    31→  Trash2,
+    32→    32→  X,
+    33→    33→} from "lucide-react";
+    34→    34→import { useAdminCategories, useAdminFaqs, useAdminProduct, useAdminProducts } from "./useAdminData";
+    35→    35→import { PUBLIC_CACHE_KEYS } from "./useAdminData";
+    36→    36→import { CharCount, ConfirmDialog, EmptyState, Field, GooglePreview, ImageThumb, PaginationBar, PublishedBadge, SlugInput, Spinner } from "./shared";
+    37→    37→import { RichTextEditor } from "./rich-text-editor";
+    38→    38→import { MediaPickerDialog } from "./media-picker";
+    39→    39→import { errMsg, timeAgo, useDebounced } from "./admin-utils";
+    40→    40→
+    41→    41→// ============================================================
+    42→    42→// Products module — list + full editor form.
+    43→    43→// ============================================================
+    44→    44→
+    45→    45→type ImageRow = Omit<ProductImage, "id"> & { id?: string };
+    46→    46→type FaqRow = { id?: string; question: string; answer: string };
+    47→    47→
+    48→    48→interface ProductFormState {
+    49→    49→  name: string;
+    50→    50→  slug: string;
+    51→    51→  sku: string;
+    52→    52→  categoryId: string;
+    53→    53→  subcategory: string;
+    54→    54→  shortDescription: string;
+    55→    55→  longDescription: string;
+    56→    56→  highlights: string;
+    57→    57→  customizationOptions: string;
+    58→    58→  tags: string;
+    59→    59→  images: ImageRow[];
+    60→    60→  size: string;
+    61→    61→  material: string;
+    62→    62→  colour: string;
+    63→    63→  occasion: string;
+    64→    64→  careInstructions: string;
+    65→    65→  seoTitle: string;
+    66→    66→  metaDescription: string;
+    67→    67→  focusKeyword: string;
+    68→    68→  secondaryKeywords: string;
+    69→    69→  ogTitle: string;
+    70→    70→  ogDescription: string;
+    71→    71→  canonicalUrl: string;
+    72→    72→  faqs: FaqRow[];
+    73→    73→  published: boolean;
+    74→    74→  featured: boolean;
+    75→    75→  displayOrder: number;
+    76→    76→  relatedProductIds: string[];
+    77→    77→}
+    78→    78→
+    79→    79→const EMPTY_FORM: ProductFormState = {
+    80→    80→  name: "",
+    81→    81→  slug: "",
+    82→    82→  sku: "",
+    83→    83→  categoryId: "",
+    84→    84→  subcategory: "",
+    85→    85→  shortDescription: "",
+    86→    86→  longDescription: "",
+    87→    87→  highlights: "",
+    88→    88→  customizationOptions: "",
+    89→    89→  tags: "",
+    90→    90→  images: [],
+    91→    91→  size: "",
+    92→    92→  material: "",
+    93→    93→  colour: "",
+    94→    94→  occasion: "",
+    95→    95→  careInstructions: "",
+    96→    96→  seoTitle: "",
+    97→    97→  metaDescription: "",
+    98→    98→  focusKeyword: "",
+    99→    99→  secondaryKeywords: "",
+   100→   100→  ogTitle: "",
+   101→   101→  ogDescription: "",
+   102→   102→  canonicalUrl: "",
+   103→   103→  faqs: [],
+   104→   104→  published: true,
+   105→   105→  featured: false,
+   106→   106→  displayOrder: 0,
+   107→   107→  relatedProductIds: [],
+   108→   108→};
+   109→   109→
+   110→   110→export function ProductsManager({
+   111→   111→  jump,
+   112→   112→  createSignal,
+   113→   113→  editId,
+   114→   114→}: {
+   115→   115→  jump?: { q: string; n: number };
+   116→   116→  createSignal?: number;
+   117→   117→  editId?: string;
+   118→   118→}) {
+   119→   119→  // NOTE: the parent remounts this component (via key) whenever a signal
+   120→   120→  // changes, so initialising state from the props below is safe.
+   121→   121→  const [view, setView] = useState<"list" | "form">(createSignal ? "form" : "list");
+   122→   122→  const [editingId, setEditingId] = useState<string | null>(createSignal ? null : (editId ?? null));
+   123→   123→
+   124→   124→  // toolbar state
+   125→   125→  const [q, setQ] = useState(jump?.q ?? "");
+   126→   126→  const [category, setCategory] = useState("all");
+   127→   127→  const [status, setStatus] = useState("all");
+   128→   128→  const [page, setPage] = useState(1);
+   129→   129→  const pageSize = 20;
+   130→   130→  const debouncedQ = useDebounced(q);
+   131→   131→
+   132→   132→  const params = { page, pageSize, q: debouncedQ, category, status };
+   133→   133→  const { data, isLoading, isFetching } = useAdminProducts(params);
+   134→   134→  const { data: categories } = useAdminCategories();
+   135→   135→  const qc = useQueryClient();
+   136→   136→  const { toast } = useToast();
+   137→   137→
+   138→   138→  const productsKey = ["admin", "products", page, pageSize, debouncedQ, category, status] as const;
+   139→   139→
+   140→   140→  // ---------- optimistic toggles ----------
+   141→   141→  function toggleField(product: PublicProduct, field: "published" | "featured") {
+   142→   142→    const prev = qc.getQueryData<Paginated<PublicProduct>>(productsKey);
+   143→   143→    if (prev) {
+   144→   144→      qc.setQueryData(productsKey, {
+   145→   145→        ...prev,
+   146→   146→        items: prev.items.map((p) => (p.id === product.id ? { ...p, [field]: !p[field] } : p)),
+   147→   147→      });
+   148→   148→    }
+   149→   149→    const nextVal = !product[field];
+   150→   150→    api
+   151→   151→      .put(`/api/admin/products/${product.id}`, { [field]: nextVal })
+   152→   152→      .then(() => {
+   153→   153→        toast({
+   154→   154→          title: field === "published" ? (nextVal ? "Product published" : "Moved to drafts") : nextVal ? "Marked as featured" : "Removed from featured",
+   155→   155→          description: product.name,
+   156→   156→        });
+   157→   157→        void qc.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+   158→   158→        for (const key of PUBLIC_CACHE_KEYS) void qc.invalidateQueries({ queryKey: key });
+   159→   159→      })
+   160→   160→      .catch((e) => {
+   161→   161→        if (prev) qc.setQueryData(productsKey, prev);
+   162→   162→        toast({ title: "Update failed", description: errMsg(e), variant: "destructive" });
+   163→   163→      });
+   164→   164→  }
+   165→   165→
+   166→   166→  // ---------- delete ----------
+   167→   167→  const [toDelete, setToDelete] = useState<PublicProduct | null>(null);
+   168→   168→  const [deleting, setDeleting] = useState(false);
+   169→   169→
+   170→   170→  function confirmDelete() {
+   171→   171→    if (!toDelete) return;
+   172→   172→    setDeleting(true);
+   173→   173→    api
+   174→   174→      .delete(`/api/admin/products/${toDelete.id}`)
+   175→   175→      .then(() => {
+   176→   176→        toast({ title: "Product deleted", description: `${toDelete.name} and its images were permanently removed.` });
+   177→   177→        setToDelete(null);
+   178→   178→        void qc.invalidateQueries({ queryKey: ["admin", "products"] });
+   179→   179→        void qc.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+   180→   180→        for (const key of PUBLIC_CACHE_KEYS) void qc.invalidateQueries({ queryKey: key });
+   181→   181→      })
+   182→   182→      .catch((e) => toast({ title: "Delete failed", description: errMsg(e), variant: "destructive" }))
+   183→   183→      .finally(() => setDeleting(false));
+   184→   184→  }
+   185→   185→
+   186→   186→  if (view === "form") {
+   187→   187→    return (
+   188→   188→      <ProductForm
+   189→   189→        id={editingId}
+   190→   190→        onBack={() => {
+   191→   191→          setView("list");
+   192→   192→          setEditingId(null);
+   193→   193→          void qc.invalidateQueries({ queryKey: ["admin", "products"] });
+   194→   194→        }}
+   195→   195→      />
+   196→   196→    );
+   197→   197→  }
+   198→   198→
+   199→   199→  const items = data?.items ?? [];
+   200→   200→
+   201→   201→  return (
+   202→   202→    <div className="space-y-4">
+   203→   203→      {/* toolbar */}
+   204→   204→      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+   205→   205→        <div className="relative flex-1">
+   206→   206→          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+   207→   207→          <Input value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="Search by name, SKU…" className="pl-8" aria-label="Search products" />
+   208→   208→        </div>
+   209→   209→        <Select value={category} onValueChange={(v) => { setCategory(v); setPage(1); }}>
+   210→   210→          <SelectTrigger className="w-full sm:w-44" aria-label="Filter by category">
+   211→   211→            <SelectValue placeholder="All categories" />
+   212→   212→          </SelectTrigger>
+   213→   213→          <SelectContent>
+   214→   214→            <SelectItem value="all">All categories</SelectItem>
+   215→   215→            {(categories ?? []).map((c) => (
+   216→   216→              <SelectItem key={c.id} value={c.slug}>
+   217→   217→                {c.name}
+   218→   218→              </SelectItem>
+   219→   219→            ))}
+   220→   220→          </SelectContent>
+   221→   221→        </Select>
+   222→   222→        <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1); }}>
+   223→   223→          <SelectTrigger className="w-full sm:w-36" aria-label="Filter by status">
+   224→   224→            <SelectValue placeholder="All statuses" />
+   225→   225→          </SelectTrigger>
+   226→   226→          <SelectContent>
+   227→   227→            <SelectItem value="all">All statuses</SelectItem>
+   228→   228→            <SelectItem value="published">Published</SelectItem>
+   229→   229→            <SelectItem value="draft">Drafts</SelectItem>
+   230→   230→            <SelectItem value="featured">Featured</SelectItem>
+   231→   231→          </SelectContent>
+   232→   232→        </Select>
+   233→   233→        <Button onClick={() => { setEditingId(null); setView("form"); }}>
+   234→   234→          <Plus className="mr-1 h-4 w-4" /> Add Product
+   235→   235→        </Button>
+   236→   236→      </div>
+   237→   237→
+   238→   238→      {isLoading ? (
+   239→   239→        <div className="space-y-2">
+   240→   240→          {Array.from({ length: 6 }).map((_, i) => (
+   241→   241→            <Skeleton key={i} className="h-16 rounded-lg" />
+   242→   242→          ))}
+   243→   243→        </div>
+   244→   244→      ) : items.length === 0 ? (
+   245→   245→        <EmptyState
+   246→   246→          icon={<Package className="h-8 w-8 text-muted-foreground/50" />}
+   247→   247→          title="No products found"
+   248→   248→          hint={debouncedQ || category !== "all" || status !== "all" ? "Try changing the search or filters." : "Create your first product to start the catalogue."}
+   249→   249→          action={
+   250→   250→            <Button className="mt-2" onClick={() => { setEditingId(null); setView("form"); }}>
+   251→   251→              <Plus className="mr-1 h-4 w-4" /> Add Product
+   252→   252→            </Button>
+   253→   253→          }
+   254→   254→        />
+   255→   255→      ) : (
+   256→   256→        <>
+   257→   257→          {/* Desktop table */}
+   258→   258→          <div className="hidden max-h-[70vh] overflow-auto custom-scroll rounded-lg border md:block">
+   259→   259→            <Table>
+   260→   260→              <TableHeader className="sticky top-0 z-10 bg-background">
+   261→   261→                <TableRow>
+   262→   262→                  <TableHead className="w-16">Image</TableHead>
+   263→   263→                  <TableHead>Product</TableHead>
+   264→   264→                  <TableHead>Category</TableHead>
+   265→   265→                  <TableHead className="w-24">Published</TableHead>
+   266→   266→                  <TableHead className="w-20">Featured</TableHead>
+   267→   267→                  <TableHead className="w-16 text-center">Order</TableHead>
+   268→   268→                  <TableHead className="w-32">Updated</TableHead>
+   269→   269→                  <TableHead className="w-28 text-right">Actions</TableHead>
+   270→   270→                </TableRow>
+   271→   271→              </TableHeader>
+   272→   272→              <TableBody>
+   273→   273→                {items.map((p) => (
+   274→   274→                  <TableRow key={p.id} className={isFetching ? "opacity-60" : ""}>
+   275→   275→                    <TableCell>
+   276→   276→                      <ImageThumb src={p.featuredImageUrl} alt={p.featuredImageAlt} size={44} />
+   277→   277→                    </TableCell>
+   278→   278→                    <TableCell>
+   279→   279→                      <button type="button" className="text-left" onClick={() => { setEditingId(p.id); setView("form"); }}>
+   280→   280→                        <p className="font-medium hover:text-primary">{p.name}</p>
+   281→   281→                        <p className="text-xs text-muted-foreground">{p.sku ? `SKU ${p.sku}` : "no SKU"}</p>
+   282→   282→                      </button>
+   283→   283→                    </TableCell>
+   284→   284→                    <TableCell>
+   285→   285→                      <Badge variant="secondary" className="max-w-36 truncate">{p.categoryName}</Badge>
+   286→   286→                    </TableCell>
+   287→   287→                    <TableCell>
+   288→   288→                      <div className="flex items-center gap-2">
+   289→   289→                        <Switch checked={p.published} onCheckedChange={() => toggleField(p, "published")} aria-label={`Toggle published for ${p.name}`} />
+   290→   290→                        <span className="text-[11px] text-muted-foreground">{p.published ? "Live" : "Draft"}</span>
+   291→   291→                      </div>
+   292→   292→                    </TableCell>
+   293→   293→                    <TableCell>
+   294→   294→                      <button
+   295→   295→                        type="button"
+   296→   296→                        onClick={() => toggleField(p, "featured")}
+   297→   297→                        className="rounded p-1 hover:bg-secondary"
+   298→   298→                        aria-label={`Toggle featured for ${p.name}`}
+   299→   299→                        aria-pressed={p.featured}
+   300→   300→                      >
+   301→   301→                        <Star className={`h-4 w-4 ${p.featured ? "text-gold" : "text-muted-foreground/40"}`} fill={p.featured ? "currentColor" : "none"} />
+   302→   302→                      </button>
+   303→   303→                    </TableCell>
+   304→   304→                    <TableCell className="text-center text-sm text-muted-foreground">{p.displayOrder}</TableCell>
+   305→   305→                    <TableCell className="text-xs text-muted-foreground">{timeAgo(p.updatedAt)}</TableCell>
+   306→   306→                    <TableCell className="text-right">
+   307→   307→                      <div className="flex items-center justify-end gap-0.5">
+   308→   308→                        <Button variant="ghost" size="icon" className="h-8 w-8" title="Edit" onClick={() => { setEditingId(p.id); setView("form"); }}>
+   309→   309→                          <Pencil className="h-4 w-4" />
+   310→   310→                        </Button>
+   311→   311→                        <a
+   312→   312→                          href={`#/product/${p.slug}`}
+   313→   313→                          target="_blank"
+   314→   314→                          rel="noreferrer"
+   315→   315→                          className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-secondary"
+   316→   316→                          title="Preview on site"
+   317→   317→                          aria-label={`Preview ${p.name}`}
+   318→   318→                        >
+   319→   319→                          <Eye className="h-4 w-4" />
+   320→   320→                        </a>
+   321→   321→                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" title="Delete" onClick={() => setToDelete(p)}>
+   322→   322→                          <Trash2 className="h-4 w-4" />
+   323→   323→                        </Button>
+   324→   324→                      </div>
+   325→   325→                    </TableCell>
+   326→   326→                  </TableRow>
+   327→   327→                ))}
+   328→   328→              </TableBody>
+   329→   329→            </Table>
+   330→   330→          </div>
+   331→   331→
+   332→   332→          {/* Mobile cards */}
+   333→   333→          <div className="space-y-2 md:hidden">
+   334→   334→            {items.map((p) => (
+   335→   335→              <Card key={p.id}>
+   336→   336→                <CardContent className="flex gap-3 p-3">
+   337→   337→                  <ImageThumb src={p.featuredImageUrl} alt={p.featuredImageAlt} size={56} />
+   338→   338→                  <div className="min-w-0 flex-1">
+   339→   339→                    <div className="flex items-start justify-between gap-2">
+   340→   340→                      <button type="button" className="text-left min-w-0" onClick={() => { setEditingId(p.id); setView("form"); }}>
+   341→   341→                        <p className="truncate font-medium">{p.name}</p>
+   342→   342→                        <p className="text-xs text-muted-foreground">{p.sku ? `SKU ${p.sku}` : "no SKU"}</p>
+   343→   343→                      </button>
+   344→   344→                      <PublishedBadge published={p.published} />
+   345→   345→                    </div>
+   346→   346→                    <div className="mt-1 flex flex-wrap items-center gap-2">
+   347→   347→                      <Badge variant="secondary" className="max-w-36 truncate">{p.categoryName}</Badge>
+   348→   348→                      <button type="button" onClick={() => toggleField(p, "featured")} aria-label="Toggle featured">
+   349→   349→                        <Star className={`h-4 w-4 ${p.featured ? "text-gold" : "text-muted-foreground/40"}`} fill={p.featured ? "currentColor" : "none"} />
+   350→   350→                      </button>
+   351→   351→                      <span className="text-[11px] text-muted-foreground">{timeAgo(p.updatedAt)}</span>
+   352→   352→                    </div>
+   353→   353→                    <div className="mt-2 flex items-center gap-1">
+   354→   354→                      <Switch checked={p.published} onCheckedChange={() => toggleField(p, "published")} aria-label="Toggle published" />
+   355→   355→                      <span className="text-[11px] text-muted-foreground">{p.published ? "Published" : "Draft"}</span>
+   356→   356→                      <span className="flex-1" />
+   357→   357→                      <a href={`#/product/${p.slug}`} target="_blank" rel="noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-secondary" aria-label="Preview">
+   358→   358→                        <Eye className="h-4 w-4" />
+   359→   359→                      </a>
+   360→   360→                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setToDelete(p)} aria-label="Delete">
+   361→   361→                        <Trash2 className="h-4 w-4" />
+   362→   362→                      </Button>
+   363→   363→                    </div>
+   364→   364→                  </div>
+   365→   365→                </CardContent>
+   366→   366→              </Card>
+   367→   367→            ))}
+   368→   368→          </div>
+   369→   369→
+   370→   370→          <PaginationBar page={data?.page ?? 1} totalPages={data?.totalPages ?? 1} total={data?.total ?? 0} onPage={setPage} />
+   371→   371→        </>
+   372→   372→      )}
+   373→   373→
+   374→   374→      <ConfirmDialog
+   375→   375→        open={!!toDelete}
+   376→   376→        onOpenChange={(o) => !o && setToDelete(null)}
+   377→   377→        title={`Delete “${toDelete?.name ?? ""}”?`}
+   378→   378→        description="This permanently deletes the product and its images. This cannot be undone."
+   379→   379→        confirmLabel="Delete product"
+   380→   380→        onConfirm={confirmDelete}
+   381→   381→        pending={deleting}
+   382→   382→      />
+   383→   383→    </div>
+   384→   384→  );
+   385→   385→}
+   386→   386→
+   387→   387→// ============================================================
+   388→   388→// Product form — tabbed full editor.
+   389→   389→// ============================================================
+   390→   390→
+   391→   391→function ProductForm({ id, onBack }: { id: string | null; onBack: () => void }) {
+   392→   392→  const [currentId, setCurrentId] = useState<string | null>(id);
+   393→   393→  const isNew = !currentId;
+   394→   394→  const { data: product, isLoading } = useAdminProduct(currentId);
+   395→   395→  const { data: categories } = useAdminCategories();
+   396→   396→  const [form, setForm] = useState<ProductFormState>(EMPTY_FORM);
+   397→   397→  const [initialFaqIds, setInitialFaqIds] = useState<string[]>([]);
+   398→   398→  const [submitted, setSubmitted] = useState(false);
+   399→   399→  const [saving, setSaving] = useState(false);
+   400→   400→  const [tab, setTab] = useState("basics");
+   401→   401→  const [pickerOpen, setPickerOpen] = useState(false);
+   402→   402→  const [relatedQ, setRelatedQ] = useState("");
+   403→   403→  const initRef = useRef<string | null>(null);
+   404→   404→  const { toast } = useToast();
+   405→   405→  const qc = useQueryClient();
+   406→   406→
+   407→   407→  // FAQ list for this product (to diff on save)
+   408→   408→  const { data: productFaqs } = useAdminFaqs("");
+   409→   409→  const productFaqList = useMemo(
+   410→   410→    () => (productFaqs ?? []).filter((f) => f.entityType === "PRODUCT" && f.entityId === currentId),
+   411→   411→    [productFaqs, currentId],
+   412→   412→  );
+   413→   413→
+   414→   414→  // load existing product into form once
+   415→   415→  useEffect(() => {
+   416→   416→    if (!product || initRef.current === product.id) return;
+   417→   417→    initRef.current = product.id;
+   418→   418→    const faqs = (productFaqs ?? [])
+   419→   419→      .filter((f) => f.entityType === "PRODUCT" && f.entityId === product.id)
+   420→   420→      .map((f) => ({ id: f.id, question: f.question, answer: f.answer }));
+   421→   421→    setInitialFaqIds((productFaqs ?? []).filter((f) => f.entityType === "PRODUCT" && f.entityId === product.id).map((f) => f.id));
+   422→   422→    setForm({
+   423→   423→      name: product.name,
+   424→   424→      slug: product.slug,
+   425→   425→      sku: product.sku,
+   426→   426→      categoryId: product.categoryId,
+   427→   427→      subcategory: product.subcategory,
+   428→   428→      shortDescription: product.shortDescription,
+   429→   429→      longDescription: product.longDescription,
+   430→   430→      highlights: product.highlights,
+   431→   431→      customizationOptions: product.customizationOptions,
+   432→   432→      tags: product.tags,
+   433→   433→      images: product.gallery.map((g) => ({ ...g })),
+   434→   434→      size: product.size,
+   435→   435→      material: product.material,
+   436→   436→      colour: product.colour,
+   437→   437→      occasion: product.occasion,
+   438→   438→      careInstructions: product.careInstructions,
+   439→   439→      seoTitle: product.seoTitle,
+   440→   440→      metaDescription: product.metaDescription,
+   441→   441→      focusKeyword: product.focusKeyword,
+   442→   442→      secondaryKeywords: product.secondaryKeywords,
+   443→   443→      ogTitle: product.ogTitle,
+   444→   444→      ogDescription: product.ogDescription,
+   445→   445→      canonicalUrl: product.canonicalUrl,
+   446→   446→      faqs,
+   447→   447→      published: product.published,
+   448→   448→      featured: product.featured,
+   449→   449→      displayOrder: product.displayOrder,
+   450→   450→      relatedProductIds: safeParseIds(product.relatedProductIds),
+   451→   451→    });
+   452→   452→  }, [product, productFaqs]);
+   453→   453→
+   454→   454→  function set<K extends keyof ProductFormState>(key: K, value: ProductFormState[K]) {
+   455→   455→    setForm((f) => ({ ...f, [key]: value }));
+   456→   456→  }
+   457→   457→
+   458→   458→  // all products for related picker
+   459→   459→  const { data: allProducts } = useAdminProducts({ page: 1, pageSize: 200, q: "", category: "", status: "all" });
+   460→   460→  const relatedOptions = useMemo(() => {
+   461→   461→    const list = (allProducts?.items ?? []).filter((p) => p.id !== currentId);
+   462→   462→    const needle = relatedQ.trim().toLowerCase();
+   463→   463→    return needle ? list.filter((p) => p.name.toLowerCase().includes(needle) || p.sku.toLowerCase().includes(needle)) : list;
+   464→   464→  }, [allProducts, currentId, relatedQ]);
+   465→   465→
+   466→   466→  const nameError = submitted && !form.name.trim() ? "Product name is required." : undefined;
+   467→   467→  const categoryError = submitted && !form.categoryId ? "Please choose a category." : undefined;
+   468→   468→
+   469→   469→  // ---------- images ----------
+   470→   470→  function addImage(url: string, alt: string) {
+   471→   471→    setForm((f) => ({
+   472→   472→      ...f,
+   473→   473→      images: [
+   474→   474→        ...f.images,
+   475→   475→        { id: undefined, url, alt, caption: "", isFeatured: f.images.length === 0, displayOrder: f.images.length },
+   476→   476→      ],
+   477→   477→    }));
+   478→   478→  }
+   479→   479→
+   480→   480→  function updateImage(idx: number, patch: Partial<ImageRow>) {
+   481→   481→    setForm((f) => ({ ...f, images: f.images.map((img, i) => (i === idx ? { ...img, ...patch } : img)) }));
+   482→   482→  }
+   483→   483→
+   484→   484→  function removeImage(idx: number) {
+   485→   485→    setForm((f) => {
+   486→   486→      const images = f.images.filter((_, i) => i !== idx);
+   487→   487→      if (images.length > 0 && !images.some((i) => i.isFeatured)) images[0].isFeatured = true;
+   488→   488→      return { ...f, images };
+   489→   489→    });
+   490→   490→  }
+   491→   491→
+   492→   492→  function moveImage(idx: number, dir: -1 | 1) {
+   493→   493→    setForm((f) => {
+   494→   494→      const images = [...f.images];
+   495→   495→      const target = idx + dir;
+   496→   496→      if (target < 0 || target >= images.length) return f;
+   497→   497→      [images[idx], images[target]] = [images[target], images[idx]];
+   498→   498→      images.forEach((img, i) => (img.displayOrder = i));
+   499→   499→      return { ...f, images };
+   500→   500→    });
+   501→   501→  }
+   502→   502→
+   503→   503→  function setFeaturedImage(idx: number) {
+   504→   504→    setForm((f) => ({ ...f, images: f.images.map((img, i) => ({ ...img, isFeatured: i === idx })) }));
+   505→   505→  }
+   506→   506→
+   507→   507→  // ---------- faqs ----------
+   508→   508→  function addFaqRow() {
+   509→   509→    set("faqs", [...form.faqs, { question: "", answer: "" }]);
+   510→   510→  }
+   511→   511→  function updateFaqRow(idx: number, patch: Partial<FaqRow>) {
+   512→   512→    set("faqs", form.faqs.map((f, i) => (i === idx ? { ...f, ...patch } : f)));
+   513→   513→  }
+   514→   514→  function removeFaqRow(idx: number) {
+   515→   515→    set("faqs", form.faqs.filter((_, i) => i !== idx));
+   516→   516→  }
+   517→   517→
+   518→   518→  // ---------- SEO defaults ----------
+   519→   519→  function generateSeoDefaults() {
+   520→   520→    setForm((f) => ({
+   521→   521→      ...f,
+   522→   522→      seoTitle: f.seoTitle || `${f.name || "Product"} | Artistic by Khushi`,
+   523→   523→      metaDescription: f.metaDescription || f.shortDescription.slice(0, 155),
+   524→   524→      ogTitle: f.ogTitle || `${f.name} | Artistic by Khushi`,
+   525→   525→      ogDescription: f.ogDescription || f.shortDescription.slice(0, 155),
+   526→   526→    }));
+   527→   527→    toast({ title: "SEO defaults filled", description: "Empty SEO fields were auto-filled from the product name and short description." });
+   528→   528→  }
+   529→   529→
+   530→   530→  // ---------- save ----------
+   531→   531→  async function save() {
+   532→   532→    setSubmitted(true);
+   533→   533→    if (!form.name.trim() || !form.categoryId) {
+   534→   534→      setTab("basics");
+   535→   535→      toast({ title: "Please fill the required fields", description: "Product name and category are required.", variant: "destructive" });
+   536→   536→      return;
+   537→   537→    }
+   538→   538→
+   539→   539→    setSaving(true);
+   540→   540→    try {
+   541→   541→      // 1. save product
+   542→   542→      const body = {
+   543→   543→        name: form.name.trim(),
+   544→   544→        slug: form.slug,
+   545→   545→        sku: form.sku,
+   546→   546→        categoryId: form.categoryId,
+   547→   547→        subcategory: form.subcategory,
+   548→   548→        shortDescription: form.shortDescription,
+   549→   549→        longDescription: form.longDescription,
+   550→   550→        highlights: form.highlights,
+   551→   551→        customizationOptions: form.customizationOptions,
+   552→   552→        tags: form.tags,
+   553→   553→        images: form.images.map((img) => ({
+   554→   554→          ...(img.id ? { id: img.id } : {}),
+   555→   555→          url: img.url,
+   556→   556→          alt: img.alt,
+   557→   557→          caption: img.caption,
+   558→   558→          isFeatured: img.isFeatured,
+   559→   559→          displayOrder: img.displayOrder,
+   560→   560→        })),
+   561→   561→        size: form.size,
+   562→   562→        material: form.material,
+   563→   563→        colour: form.colour,
+   564→   564→        occasion: form.occasion,
+   565→   565→        careInstructions: form.careInstructions,
+   566→   566→        seoTitle: form.seoTitle,
+   567→   567→        metaDescription: form.metaDescription,
+   568→   568→        focusKeyword: form.focusKeyword,
+   569→   569→        secondaryKeywords: form.secondaryKeywords,
+   570→   570→        ogTitle: form.ogTitle,
+   571→   571→        ogDescription: form.ogDescription,
+   572→   572→        canonicalUrl: form.canonicalUrl,
+   573→   573→        published: form.published,
+   574→   574→        featured: form.featured,
+   575→   575→        displayOrder: form.displayOrder,
+   576→   576→        relatedProductIds: JSON.stringify(form.relatedProductIds),
+   577→   577→      };
+   578→   578→      let productId: string;
+   579→   579→      if (isNew) {
+   580→   580→        const res = await api.post<{ product: PublicProduct }>("/api/admin/products", body);
+   581→   581→        productId = res.product.id;
+   582→   582→      } else {
+   583→   583→        const res = await api.put<{ product: PublicProduct }>(`/api/admin/products/${currentId}`, body);
+   584→   584→        productId = res.product.id;
+   585→   585→      }
+   586→   586→
+   587→   587→      // 2. sync FAQs (diff by id)
+   588→   588→      const keptIds = new Set(form.faqs.filter((f) => f.id).map((f) => f.id as string));
+   589→   589→      for (const faqId of initialFaqIds) {
+   590→   590→        if (!keptIds.has(faqId)) await api.delete(`/api/admin/faqs/${faqId}`);
+   591→   591→      }
+   592→   592→      for (const faq of form.faqs) {
+   593→   593→        if (!faq.question.trim() || !faq.answer.trim()) continue;
+   594→   594→        if (faq.id) {
+   595→   595→          await api.put(`/api/admin/faqs/${faq.id}`, { question: faq.question, answer: faq.answer });
+   596→   596→        } else {
+   597→   597→          await api.post("/api/admin/faqs", {
+   598→   598→            question: faq.question,
+   599→   599→            answer: faq.answer,
+   600→   600→            entityType: "PRODUCT",
+   601→   601→            entityId: productId,
+   602→   602→            displayOrder: 0,
+   603→   603→            published: true,
+   604→   604→          });
+   605→   605→        }
+   606→   606→      }
+   607→   607→
+   608→   608→      toast({ title: "Product saved", description: form.name });
+   609→   609→      for (const key of PUBLIC_CACHE_KEYS) void qc.invalidateQueries({ queryKey: key });
+   610→   610→      void qc.invalidateQueries({ queryKey: ["admin", "products"] });
+   611→   611→      void qc.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+   612→   612→      void qc.invalidateQueries({ queryKey: ["admin", "faqs"] });
+   613→   613→      setInitialFaqIds(form.faqs.filter((f) => f.id).map((f) => f.id as string));
+   614→   614→
+   615→   615→      if (isNew) {
+   616→   616→        // stay on the form with the new id for further edits
+   617→   617→        setCurrentId(productId);
+   618→   618→      }
+   619→   619→    } catch (e) {
+   620→   620→      toast({ title: "Save failed", description: errMsg(e), variant: "destructive" });
+   621→   621→    } finally {
+   622→   622→      setSaving(false);
+   623→   623→    }
+   624→   624→  }
+   625→   625→
+   626→   626→  if (!isNew && isLoading) {
+   627→   627→    return (
+   628→   628→      <div className="space-y-4">
+   629→   629→        <Skeleton className="h-10 w-64" />
+   630→   630→        <Skeleton className="h-96 rounded-xl" />
+   631→   631→      </div>
+   632→   632→    );
+   633→   633→  }
+   634→   634→
+   635→   635→  return (
+   636→   636→    <div className="space-y-4">
+   637→   637→      {/* header */}
+   638→   638→      <div className="flex flex-wrap items-center gap-2">
+   639→   639→        <Button variant="ghost" size="sm" onClick={onBack}>
+   640→   640→          <ArrowLeft className="mr-1 h-4 w-4" /> All products
+   641→   641→        </Button>
+   642→   642→        <h2 className="font-display text-lg font-semibold">
+   643→   643→          {isNew ? "New Product" : `Edit: ${form.name || product?.name || ""}`}
+   644→   644→        </h2>
+   645→   645→        {isNew ? <Badge variant="secondary">Not saved yet</Badge> : <PublishedBadge published={form.published} />}
+   646→   646→      </div>
+   647→   647→
+   648→   648→      <Tabs value={tab} onValueChange={setTab}>
+   649→   649→        <TabsList className="flex-wrap h-auto">
+   650→   650→          <TabsTrigger value="basics">Basics</TabsTrigger>
+   651→   651→          <TabsTrigger value="images">Images {form.images.length ? `(${form.images.length})` : ""}</TabsTrigger>
+   652→   652→          <TabsTrigger value="specs">Specifications</TabsTrigger>
+   653→   653→          <TabsTrigger value="seo">SEO</TabsTrigger>
+   654→   654→          <TabsTrigger value="faqs">FAQs {form.faqs.length ? `(${form.faqs.length})` : ""}</TabsTrigger>
+   655→   655→          <TabsTrigger value="publish">Publish</TabsTrigger>
+   656→   656→        </TabsList>
+   657→   657→
+   658→   658→        {/* -------- Basics -------- */}
+   659→   659→        <TabsContent value="basics" className="mt-4 space-y-4">
+   660→   660→          <div className="grid gap-4 md:grid-cols-2">
+   661→   661→            <Field label="Product name" required error={nameError}>
+   662→   662→              <Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="e.g. Personalized Resin Nameplate" aria-required />
+   663→   663→            </Field>
+   664→   664→            <Field label="SKU" hint="Stock keeping unit — your internal product code">
+   665→   665→              <Input value={form.sku} onChange={(e) => set("sku", e.target.value)} placeholder="ABK-NP-001" />
+   666→   666→            </Field>
+   667→   667→          </div>
+   668→   668→          <div className="grid gap-4 md:grid-cols-2">
+   669→   669→            <SlugInput value={form.slug} onChange={(v) => set("slug", v)} from={form.name} />
+   670→   670→            <Field label="Category" required error={categoryError}>
+   671→   671→              <Select value={form.categoryId} onValueChange={(v) => set("categoryId", v)}>
+   672→   672→                <SelectTrigger aria-required>
+   673→   673→                  <SelectValue placeholder="Choose a category" />
+   674→   674→                </SelectTrigger>
+   675→   675→                <SelectContent>
+   676→   676→                  {(categories ?? []).map((c) => (
+   677→   677→                    <SelectItem key={c.id} value={c.id}>
+   678→   678→                      {c.name}
+   679→   679→                    </SelectItem>
+   680→   680→                  ))}
+   681→   681→                </SelectContent>
+   682→   682→              </Select>
+   683→   683→            </Field>
+   684→   684→          </div>
+   685→   685→          <Field label="Subcategory" hint="Optional — e.g. “Wall Décor” within Nameplates">
+   686→   686→            <Input value={form.subcategory} onChange={(e) => set("subcategory", e.target.value)} />
+   687→   687→          </Field>
+   688→   688→          <Field
+   689→   689→            label="Short description"
+   690→   690→            counter={<CharCount text={form.shortDescription} target={160} />}
+   691→   691→            hint="One or two lines shown in listings and search results. Aim for ≤160 characters."
+   692→   692→          >
+   693→   693→            <Textarea rows={2} value={form.shortDescription} onChange={(e) => set("shortDescription", e.target.value)} placeholder="A handcrafted resin nameplate personalised with your family name…" />
+   694→   694→          </Field>
+   695→   695→          <Field label="Long description" hint="Full story shown on the product page.">
+   696→   696→            <RichTextEditor value={form.longDescription} onChange={(v) => set("longDescription", v)} rows={10} />
+   697→   697→          </Field>
+   698→   698→          <div className="grid gap-4 md:grid-cols-2">
+   699→   699→            <Field label="Highlights" hint="One per line — shown as bullet points.">
+   700→   700→              <Textarea rows={4} value={form.highlights} onChange={(e) => set("highlights", e.target.value)} placeholder={"Hand-poured resin\nCustom names & colours\nReady to hang"} />
+   701→   701→            </Field>
+   702→   702→            <Field label="Customization options" hint="One per line — choices offered to buyers.">
+   703→   703→              <Textarea rows={4} value={form.customizationOptions} onChange={(e) => set("customizationOptions", e.target.value)} placeholder={"Name / text to embed\nBase colour\nFinish — glossy / matte"} />
+   704→   704→            </Field>
+   705→   705→          </div>
+   706→   706→          <Field label="Tags" hint="Comma separated — used for search & related content.">
+   707→   707→            <Input value={form.tags} onChange={(e) => set("tags", e.target.value)} placeholder="resin, nameplate, personalized, gift" />
+   708→   708→          </Field>
+   709→   709→        </TabsContent>
+   710→   710→
+   711→   711→        {/* -------- Images -------- */}
+   712→   712→        <TabsContent value="images" className="mt-4 space-y-4">
+   713→   713→          <div className="flex flex-wrap items-center gap-2">
+   714→   714→            <Button type="button" variant="outline" onClick={() => setPickerOpen(true)}>
+   715→   715→              <ImagePlus className="mr-1 h-4 w-4" /> Add from Media Library
+   716→   716→            </Button>
+   717→   717→            <Button
+   718→   718→              type="button"
+   719→   719→              variant="outline"
+   720→   720→              onClick={() => {
+   721→   721→                const url = window.prompt("Paste the image URL:");
+   722→   722→                if (url && url.trim()) addImage(url.trim(), "");
+   723→   723→              }}
+   724→   724→            >
+   725→   725→              + Paste URL
+   726→   726→            </Button>
+   727→   727→            <p className="text-xs text-muted-foreground">The first image is used as the featured photo if none is marked.</p>
+   728→   728→          </div>
+   729→   729→
+   730→   730→          {form.images.length === 0 ? (
+   731→   731→            <EmptyState icon={<ImagePlus className="h-8 w-8 text-muted-foreground/50" />} title="No images yet" hint="Add at least one photo — listings look much better with images." />
+   732→   732→          ) : (
+   733→   733→            <ul className="space-y-2" role="list">
+   734→   734→              {form.images.map((img, idx) => (
+   735→   735→                <li key={idx} className="rounded-lg border p-3">
+   736→   736→                  <div className="flex flex-wrap items-start gap-3">
+   737→   737→                    <ImageThumb src={img.url} alt={img.alt} size={64} />
+   738→   738→                    <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-2">
+   739→   739→                      <Field label="Image URL">
+   740→   740→                        <Input value={img.url} onChange={(e) => updateImage(idx, { url: e.target.value })} className="text-xs" />
+   741→   741→                      </Field>
+   742→   742→                      <Field label="Alt text" hint="Describe the photo for SEO & accessibility">
+   743→   743→                        <Input value={img.alt} onChange={(e) => updateImage(idx, { alt: e.target.value })} />
+   744→   744→                      </Field>
+   745→   745→                      <Field label="Caption">
+   746→   746→                        <Input value={img.caption} onChange={(e) => updateImage(idx, { caption: e.target.value })} />
+   747→   747→                      </Field>
+   748→   748→                      <Field label="Order">
+   749→   749→                        <Input type="number" value={img.displayOrder} onChange={(e) => updateImage(idx, { displayOrder: Number(e.target.value) || 0 })} className="w-24" />
+   750→   750→                      </Field>
+   751→   751→                    </div>
+   752→   752→                    <div className="flex flex-col items-center gap-1">
+   753→   753→                      <label className="flex cursor-pointer items-center gap-1.5 text-xs">
+   754→   754→                        <input
+   755→   755→                          type="radio"
+   756→   756→                          name="featured-image"
+   757→   757→                          checked={img.isFeatured}
+   758→   758→                          onChange={() => setFeaturedImage(idx)}
+   759→   759→                          className="accent-[var(--primary)]"
+   760→   760→                          aria-label={`Set image ${idx + 1} as featured`}
+   761→   761→                        />
+   762→   762→                        Featured
+   763→   763→                      </label>
+   764→   764→                      <div className="flex gap-0.5">
+   765→   765→                        <Button type="button" variant="outline" size="icon" className="h-7 w-7" disabled={idx === 0} onClick={() => moveImage(idx, -1)} aria-label="Move image up">
+   766→   766→                          <ArrowUp className="h-3.5 w-3.5" />
+   767→   767→                        </Button>
+   768→   768→                        <Button type="button" variant="outline" size="icon" className="h-7 w-7" disabled={idx === form.images.length - 1} onClick={() => moveImage(idx, 1)} aria-label="Move image down">
+   769→   769→                          <ArrowDown className="h-3.5 w-3.5" />
+   770→   770→                        </Button>
+   771→   771→                        <Button type="button" variant="outline" size="icon" className="h-7 w-7 text-destructive" onClick={() => removeImage(idx)} aria-label="Remove image">
+   772→   772→                          <Trash2 className="h-3.5 w-3.5" />
+   773→   773→                        </Button>
+   774→   774→                      </div>
+   775→   775→                    </div>
+   776→   776→                  </div>
+   777→   777→                </li>
+   778→   778→              ))}
+   779→   779→            </ul>
+   780→   780→          )}
+   781→   781→
+   782→   782→          <MediaPickerDialog
+   783→   783→            open={pickerOpen}
+   784→   784→            onOpenChange={setPickerOpen}
+   785→   785→            title="Add a product image"
+   786→   786→            onSelect={(pick) => addImage(pick.url, pick.alt)}
+   787→   787→          />
+   788→   788→        </TabsContent>
+   789→   789→
+   790→   790→        {/* -------- Specifications -------- */}
+   791→   791→        <TabsContent value="specs" className="mt-4">
+   792→   792→          <div className="grid gap-4 md:grid-cols-2">
+   793→   793→            <Field label="Size" hint="e.g. 12 × 8 inches">
+   794→   794→              <Input value={form.size} onChange={(e) => set("size", e.target.value)} />
+   795→   795→            </Field>
+   796→   796→            <Field label="Material" hint="e.g. Epoxy resin, MDF base">
+   797→   797→              <Input value={form.material} onChange={(e) => set("material", e.target.value)} />
+   798→   798→            </Field>
+   799→   799→            <Field label="Colour">
+   800→   800→              <Input value={form.colour} onChange={(e) => set("colour", e.target.value)} />
+   801→   801→            </Field>
+   802→   802→            <Field label="Occasion" hint="e.g. Housewarming, Anniversary">
+   803→   803→              <Input value={form.occasion} onChange={(e) => set("occasion", e.target.value)} />
+   804→   804→            </Field>
+   805→   805→            <Field label="Care instructions">
+   806→   806→              <Textarea rows={3} value={form.careInstructions} onChange={(e) => set("careInstructions", e.target.value)} placeholder="Wipe with a soft dry cloth. Keep away from direct sunlight." />
+   807→   807→            </Field>
+   808→   808→          </div>
+   809→   809→        </TabsContent>
+   810→   810→
+   811→   811→        {/* -------- SEO -------- */}
+   812→   812→        <TabsContent value="seo" className="mt-4 space-y-4">
+   813→   813→          <div className="flex items-center justify-between gap-2">
+   814→   814→            <p className="text-sm text-muted-foreground">How this product appears on Google and social shares.</p>
+   815→   815→            <Button type="button" variant="outline" size="sm" onClick={generateSeoDefaults}>
+   816→   816→              ✨ Generate defaults
+   817→   817→            </Button>
+   818→   818→          </div>
+   819→   819→          <GooglePreview
+   820→   820→            title={form.seoTitle || form.name || "Product title"}
+   821→   821→            url={`artisticbykhushi.com/product/${form.slug || "your-slug"}`}
+   822→   822→            description={form.metaDescription || form.shortDescription}
+   823→   823→          />
+   824→   824→          <div className="grid gap-4 md:grid-cols-2">
+   825→   825→            <Field label="SEO title" counter={<CharCount text={form.seoTitle} target={60} />}>
+   826→   826→              <Input value={form.seoTitle} onChange={(e) => set("seoTitle", e.target.value)} />
+   827→   827→            </Field>
+   828→   828→            <Field label="Focus keyword" hint="Main search phrase this page should rank for">
+   829→   829→              <Input value={form.focusKeyword} onChange={(e) => set("focusKeyword", e.target.value)} placeholder="resin nameplate" />
+   830→   830→            </Field>
+   831→   831→          </div>
+   832→   832→          <Field label="Meta description" counter={<CharCount text={form.metaDescription} target={160} />}>
+   833→   833→            <Textarea rows={2} value={form.metaDescription} onChange={(e) => set("metaDescription", e.target.value)} />
+   834→   834→          </Field>
+   835→   835→          <Field label="Secondary keywords" hint="Comma separated">
+   836→   836→            <Input value={form.secondaryKeywords} onChange={(e) => set("secondaryKeywords", e.target.value)} placeholder="custom nameplate, personalized door sign" />
+   837→   837→          </Field>
+   838→   838→          <div className="grid gap-4 md:grid-cols-2">
+   839→   839→            <Field label="OG title" hint="Title when shared on WhatsApp / Facebook">
+   840→   840→              <Input value={form.ogTitle} onChange={(e) => set("ogTitle", e.target.value)} />
+   841→   841→            </Field>
+   842→   842→            <Field label="Canonical URL" hint="Leave empty unless this page lives at another URL">
+   843→   843→              <Input value={form.canonicalUrl} onChange={(e) => set("canonicalUrl", e.target.value)} placeholder="https://…" />
+   844→   844→            </Field>
+   845→   845→          </div>
+   846→   846→          <Field label="OG description">
+   847→   847→            <Textarea rows={2} value={form.ogDescription} onChange={(e) => set("ogDescription", e.target.value)} />
+   848→   848→          </Field>
+   849→   849→        </TabsContent>
+   850→   850→
+   851→   851→        {/* -------- FAQs -------- */}
+   852→   852→        <TabsContent value="faqs" className="mt-4 space-y-3">
+   853→   853→          <p className="text-sm text-muted-foreground">Questions shown on this product page. Saved together with the product.</p>
+   854→   854→          {form.faqs.length === 0 ? (
+   855→   855→            <EmptyState title="No product FAQs" hint="Add answers buyers usually ask — shipping time, personalisation, care." />
+   856→   856→          ) : null}
+   857→   857→          {form.faqs.map((faq, idx) => (
+   858→   858→            <div key={idx} className="rounded-lg border p-3 space-y-2">
+   859→   859→              <div className="flex items-start gap-2">
+   860→   860→                <Field label={`Question ${idx + 1}`} className="flex-1" error={submitted && !faq.question.trim() ? "Question is required" : undefined}>
+   861→   861→                  <Input value={faq.question} onChange={(e) => updateFaqRow(idx, { question: e.target.value })} placeholder="How long does it take to make?" />
+   862→   862→                </Field>
+   863→   863→                <Button type="button" variant="ghost" size="icon" className="mt-6 text-destructive" onClick={() => removeFaqRow(idx)} aria-label="Remove FAQ">
+   864→   864→                  <X className="h-4 w-4" />
+   865→   865→                </Button>
+   866→   866→              </div>
+   867→   867→              <Field label="Answer" error={submitted && !faq.answer.trim() ? "Answer is required" : undefined}>
+   868→   868→                <Textarea rows={2} value={faq.answer} onChange={(e) => updateFaqRow(idx, { answer: e.target.value })} placeholder="Each piece is made to order and takes 5–7 days…" />
+   869→   869→              </Field>
+   870→   870→            </div>
+   871→   871→          ))}
+   872→   872→          <Button type="button" variant="outline" onClick={addFaqRow}>
+   873→   873→            <Plus className="mr-1 h-4 w-4" /> Add FAQ
+   874→   874→          </Button>
+   875→   875→          {productFaqList.length > 0 ? (
+   876→   876→            <p className="text-xs text-muted-foreground">
+   877→   877→              {productFaqList.length} FAQ{productFaqList.length === 1 ? "" : "s"} currently live on this product page.
+   878→   878→            </p>
+   879→   879→          ) : null}
+   880→   880→        </TabsContent>
+   881→   881→
+   882→   882→        {/* -------- Publish -------- */}
+   883→   883→        <TabsContent value="publish" className="mt-4 space-y-4">
+   884→   884→          <Card>
+   885→   885→            <CardContent className="p-4 space-y-4">
+   886→   886→              <div className="flex items-center justify-between gap-4">
+   887→   887→                <div>
+   888→   888→                  <p className="font-medium">Published</p>
+   889→   889→                  <p className="text-xs text-muted-foreground">Visible on the public website.</p>
+   890→   890→                </div>
+   891→   891→                <Switch checked={form.published} onCheckedChange={(v) => set("published", v)} aria-label="Toggle published" />
+   892→   892→              </div>
+   893→   893→              <div className="flex items-center justify-between gap-4">
+   894→   894→                <div>
+   895→   895→                  <p className="font-medium">Featured</p>
+   896→   896→                  <p className="text-xs text-muted-foreground">Highlighted on the homepage & listings.</p>
+   897→   897→                </div>
+   898→   898→                <Switch checked={form.featured} onCheckedChange={(v) => set("featured", v)} aria-label="Toggle featured" />
+   899→   899→              </div>
+   900→   900→              <Field label="Display order" hint="Lower numbers appear first in listings.">
+   901→   901→                <Input type="number" value={form.displayOrder} onChange={(e) => set("displayOrder", Number(e.target.value) || 0)} className="w-28" />
+   902→   902→              </Field>
+   903→   903→            </CardContent>
+   904→   904→          </Card>
+   905→   905→
+   906→   906→          <Field label="Related products" hint="Shown in “You may also like” on the product page.">
+   907→   907→            <div className="rounded-lg border">
+   908→   908→              <div className="border-b p-2">
+   909→   909→                <Input value={relatedQ} onChange={(e) => setRelatedQ(e.target.value)} placeholder="Filter products…" className="h-8" />
+   910→   910→              </div>
+   911→   911→              <div className="max-h-64 overflow-y-auto custom-scroll p-2 space-y-1">
+   912→   912→                {relatedOptions.length === 0 ? (
+   913→   913→                  <p className="p-2 text-sm text-muted-foreground">No products to relate.</p>
+   914→   914→                ) : (
+   915→   915→                  relatedOptions.map((p) => (
+   916→   916→                    <label key={p.id} className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-secondary">
+   917→   917→                      <Checkbox
+   918→   918→                        checked={form.relatedProductIds.includes(p.id)}
+   919→   919→                        onCheckedChange={(checked) =>
+   920→   920→                          set(
+   921→   921→                            "relatedProductIds",
+   922→   922→                            checked
+   923→   923→                              ? [...form.relatedProductIds, p.id]
+   924→   924→                              : form.relatedProductIds.filter((rid) => rid !== p.id),
+   925→   925→                          )
+   926→   926→                        }
+   927→   927→                      />
+   928→   928→                      <ImageThumb src={p.featuredImageUrl} alt="" size={24} />
+   929→   929→                      <span className="truncate">{p.name}</span>
+   930→   930→                    </label>
+   931→   931→                  ))
+   932→   932→                )}
+   933→   933→              </div>
+   934→   934→            </div>
+   935→   935→          </Field>
+   936→   936→        </TabsContent>
+   937→   937→      </Tabs>
+   938→   938→
+   939→   939→      {/* sticky save bar */}
+   940→   940→      <div className="sticky bottom-16 z-20 mt-6 rounded-xl border bg-card/95 p-3 shadow-lg backdrop-blur md:bottom-4">
+   941→   941→        <div className="flex items-center justify-between gap-2">
+   942→   942→          <p className="text-xs text-muted-foreground">
+   943→   943→            {isNew ? "New product — not saved yet" : `Editing “${form.name}”`}
+   944→   944→          </p>
+   945→   945→          <div className="flex gap-2">
+   946→   946→            <Button variant="outline" onClick={onBack} disabled={saving}>
+   947→   947→              Cancel
+   948→   948→            </Button>
+   949→   949→            <Button onClick={save} disabled={saving}>
+   950→   950→              {saving ? <Spinner className="mr-1" /> : <Save className="mr-1 h-4 w-4" />}
+   951→   951→              {saving ? "Saving…" : "Save product"}
+   952→   952→            </Button>
+   953→   953→          </div>
+   954→   954→        </div>
+   955→   955→      </div>
+   956→   956→    </div>
+   957→   957→  );
+   958→   958→}
+   959→   959→
+   960→   960→function safeParseIds(raw: string): string[] {
+   961→   961→  try {
+   962→   962→    const arr = JSON.parse(raw || "[]");
+   963→   963→    return Array.isArray(arr) ? arr.map(String) : [];
+   964→   964→  } catch {
+   965→   965→    return [];
+   966→   966→  }
+   967→   967→}
+   968→   968→

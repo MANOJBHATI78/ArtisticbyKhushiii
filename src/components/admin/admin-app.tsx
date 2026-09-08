@@ -1,33 +1,170 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Providers } from "@/components/providers";
+import { Loader2 } from "lucide-react";
+import { useAdminMe } from "./useAdminData";
+import { useAdminAuth } from "./useAdminAuth";
+import AdminLogin from "./AdminLogin";
+import { AdminLayout } from "./AdminLayout";
+import { Dashboard } from "./Dashboard";
+import { ProductsManager } from "./ProductsManager";
+import { CategoriesManager } from "./CategoriesManager";
+import { BlogsManager } from "./BlogsManager";
+import { PagesManager } from "./PagesManager";
+import { FaqsManager } from "./FaqsManager";
+import { LeadsManager } from "./LeadsManager";
+import { MediaLibrary } from "./MediaLibrary";
+import { HomepageManager } from "./HomepageManager";
+import { SettingsManager } from "./SettingsManager";
+import type { AdminModuleKey } from "./admin-utils";
 
 /**
  * Admin panel application — rendered for #/admin* routes.
- * Owns login, dashboard and all CRUD modules. Built by Task 3-b.
+ * Auth gate + shell + module routing (state-based).
  */
 export default function AdminApp() {
-  const [booting, setBooting] = useState(true);
+  return (
+    <Providers>
+      <AdminGate />
+    </Providers>
+  );
+}
 
-  useEffect(() => {
-    const t = setTimeout(() => setBooting(false), 300);
-    return () => clearTimeout(t);
-  }, []);
+interface JumpSignal {
+  module: AdminModuleKey;
+  q: string;
+  n: number;
+}
+interface CreateSignal {
+  module: AdminModuleKey;
+  n: number;
+}
+interface EditSignal {
+  module: AdminModuleKey;
+  id: string;
+  n: number;
+}
 
-  if (booting) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="font-display text-xl text-primary">Artistic by Khushi — Studio Console</p>
-      </div>
-    );
+function AdminGate() {
+  const me = useAdminMe();
+  const { logout } = useAdminAuth();
+
+  const [module, setModule] = useState<AdminModuleKey>(() => {
+    if (typeof window === "undefined") return "dashboard";
+    const saved = window.sessionStorage.getItem("abk_admin_module");
+    const keys: AdminModuleKey[] = ["dashboard", "products", "categories", "blogs", "pages", "faqs", "leads", "media", "homepage", "settings"];
+    return keys.includes(saved as AdminModuleKey) ? (saved as AdminModuleKey) : "dashboard";
+  });
+  const [jump, setJump] = useState<JumpSignal | undefined>();
+  const [createSig, setCreateSig] = useState<CreateSignal | undefined>();
+  const [editSig, setEditSig] = useState<EditSignal | undefined>();
+  const [sigCount, setSigCount] = useState(0);
+
+  function nextN() {
+    setSigCount((c) => c + 1);
+    return sigCount + 1;
   }
 
+  function navigate(m: AdminModuleKey) {
+    if (m !== module) {
+      setJump(undefined);
+      setCreateSig(undefined);
+      setEditSig(undefined);
+    }
+    setModule(m);
+    try {
+      window.sessionStorage.setItem("abk_admin_module", m);
+    } catch {
+      // sessionStorage unavailable — module simply won't persist across reloads
+    }
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+
+  function quickAdd(m: AdminModuleKey) {
+    setCreateSig({ module: m, n: nextN() });
+    setModule(m);
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+
+  function search(m: AdminModuleKey, q: string) {
+    setJump({ module: m, q, n: nextN() });
+    setModule(m);
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+
+  function editEntity(m: AdminModuleKey, id: string) {
+    setEditSig({ module: m, id, n: nextN() });
+    setModule(m);
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+
+  // ---- splash while checking session ----
+  if (me.isPending && !me.data) return <SplashScreen />;
+
+  // ---- 401 / logged out ----
+  if (me.isError || !me.data) return <AdminLogin />;
+
+  const user = me.data;
+
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <p className="font-display text-xl text-primary">Studio Console</p>
-        <p className="text-sm text-muted-foreground mt-2">Admin panel is being assembled (Task 3-b).</p>
+    <AdminLayout user={user} active={module} onNavigate={navigate} onQuickAdd={quickAdd} onSearch={search} onLogout={() => void logout()}>
+      {module === "dashboard" ? (
+        <Dashboard onNavigate={navigate} onQuickAdd={quickAdd} onEditProduct={(id) => editEntity("products", id)} onEditBlog={(id) => editEntity("blogs", id)} />
+      ) : null}
+
+      {module === "products" ? (
+        <ProductsManager
+          key={`products|c${createSig?.module === "products" ? createSig.n : 0}|j${jump?.module === "products" ? jump.n : 0}|e${editSig?.module === "products" ? editSig.n : 0}`}
+          jump={jump?.module === "products" ? jump : undefined}
+          createSignal={createSig?.module === "products" ? createSig.n : 0}
+          editId={editSig?.module === "products" ? editSig.id : undefined}
+        />
+      ) : null}
+
+      {module === "categories" ? (
+        <CategoriesManager
+          key={`categories|c${createSig?.module === "categories" ? createSig.n : 0}`}
+          createSignal={createSig?.module === "categories" ? createSig.n : 0}
+        />
+      ) : null}
+
+      {module === "blogs" ? (
+        <BlogsManager
+          key={`blogs|c${createSig?.module === "blogs" ? createSig.n : 0}|j${jump?.module === "blogs" ? jump.n : 0}|e${editSig?.module === "blogs" ? editSig.n : 0}`}
+          jump={jump?.module === "blogs" ? jump : undefined}
+          createSignal={createSig?.module === "blogs" ? createSig.n : 0}
+          editId={editSig?.module === "blogs" ? editSig.id : undefined}
+        />
+      ) : null}
+
+      {module === "pages" ? (
+        <PagesManager key={`pages|c${createSig?.module === "pages" ? createSig.n : 0}`} createSignal={createSig?.module === "pages" ? createSig.n : 0} />
+      ) : null}
+
+      {module === "faqs" ? (
+        <FaqsManager key={`faqs|c${createSig?.module === "faqs" ? createSig.n : 0}`} createSignal={createSig?.module === "faqs" ? createSig.n : 0} />
+      ) : null}
+
+      {module === "leads" ? (
+        <LeadsManager key={`leads|j${jump?.module === "leads" ? jump.n : 0}`} jump={jump?.module === "leads" ? jump : undefined} />
+      ) : null}
+
+      {module === "media" ? <MediaLibrary /> : null}
+      {module === "homepage" ? <HomepageManager /> : null}
+      {module === "settings" ? <SettingsManager /> : null}
+    </AdminLayout>
+  );
+}
+
+function SplashScreen() {
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background">
+      { }
+      <img src="/images/logo.png" alt="Artistic by Khushi" width={72} height={72} className="rounded-2xl border border-gold/40 animate-fade-up" />
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <Loader2 className="h-4 w-4 animate-spin" />
+        <span className="font-display text-lg text-primary">Studio Console</span>
       </div>
     </div>
   );

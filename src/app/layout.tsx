@@ -27,10 +27,14 @@ export const metadata: Metadata = {
     "resin gifts", "handcrafted resin art", "Lippan art", "custom resin art", "resin coasters", "resin tray",
   ],
   authors: [{ name: "Khushi" }],
+  icons: {
+    icon: "/images/logo.png",
+    apple: "/images/logo.png",
+  },
   openGraph: {
     title: "Artistic by Khushi | Handcrafted Personalized Resin Art & Gifts",
     description:
-      "Premium handcrafted resin art — personalized nameplates, décor, memory keepsakes and custom gifts, made to order with love.",
+      "Premium handcrafted resin art — personalized nameplates, décor, memory keepsakes and custom gifts, made to order with love. Surat studio, pan-India delivery & worldwide shipping.",
     siteName: "Artistic by Khushi",
     type: "website",
   },

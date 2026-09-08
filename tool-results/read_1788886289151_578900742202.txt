@@ -1,0 +1,587 @@
+     1→"use client";
+     2→
+     3→import { useEffect, useRef, useState } from "react";
+     4→import { useQueryClient } from "@tanstack/react-query";
+     5→import { api } from "@/lib/api-client";
+     6→import { useToast } from "@/hooks/use-toast";
+     7→import { Button } from "@/components/ui/button";
+     8→import { Input } from "@/components/ui/input";
+     9→import { Switch } from "@/components/ui/switch";
+    10→import { Textarea } from "@/components/ui/textarea";
+    11→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+    12→import { Skeleton } from "@/components/ui/skeleton";
+    13→import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+    14→import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+    15→import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+    16→import { Card, CardContent } from "@/components/ui/card";
+    17→import { Badge } from "@/components/ui/badge";
+    18→import { ArrowDown, ArrowUp, Eye, FolderTree, Pencil, Plus, Save, Star, Trash2 } from "lucide-react";
+    19→import { useAdminCategories, type AdminCategory } from "./useAdminData";
+    20→import { PUBLIC_CACHE_KEYS } from "./useAdminData";
+    21→import { CharCount, ConfirmDialog, EmptyState, Field, GooglePreview, ImageThumb, PublishedBadge, SlugInput, Spinner } from "./shared";
+    22→import { RichTextEditor } from "./rich-text-editor";
+    23→import { MediaPickField } from "./media-picker";
+    24→import { errMsg } from "./admin-utils";
+    25→
+    26→// ============================================================
+    27→// Categories module — table + dialog form + reorder.
+    28→// ============================================================
+    29→
+    30→export function CategoriesManager({ createSignal }: { createSignal?: number }) {
+    31→  const { data: categories, isLoading } = useAdminCategories();
+    32→  const qc = useQueryClient();
+    33→  const { toast } = useToast();
+    34→  const catKey = ["admin", "categories"] as const;
+    35→
+    36→  const [editing, setEditing] = useState<AdminCategory | "new" | null>(createSignal ? "new" : null);
+    37→  const [toDelete, setToDelete] = useState<AdminCategory | null>(null);
+    38→  const [deleteMsg, setDeleteMsg] = useState("");
+    39→  const [deleting, setDeleting] = useState(false);
+    40→
+    41→  function patchCategory(id: string, patch: Partial<AdminCategory>) {
+    42→    const prev = qc.getQueryData<AdminCategory[]>(catKey);
+    43→    if (prev) qc.setQueryData(catKey, prev.map((c) => (c.id === id ? { ...c, ...patch } : c)));
+    44→    return prev;
+    45→  }
+    46→
+    47→  /** Optimistic toggle (published/featured). */
+    48→  function toggleField(cat: AdminCategory, field: "published" | "featured") {
+    49→    const prev = patchCategory(cat.id, { [field]: !cat[field] } as Partial<AdminCategory>);
+    50→    const nextVal = !cat[field];
+    51→    api
+    52→      .put(`/api/admin/categories/${cat.id}`, { [field]: nextVal })
+    53→      .then(() => {
+    54→        toast({ title: field === "published" ? (nextVal ? "Category published" : "Category hidden") : nextVal ? "Marked as featured" : "Removed from featured", description: cat.name });
+    55→        for (const key of PUBLIC_CACHE_KEYS) void qc.invalidateQueries({ queryKey: key });
+    56→      })
+    57→      .catch((e) => {
+    58→        if (prev) qc.setQueryData(catKey, prev);
+    59→        toast({ title: "Update failed", description: errMsg(e), variant: "destructive" });
+    60→      });
+    61→  }
+    62→
+    63→  /** Save displayOrder on blur. */
+    64→  function saveOrder(cat: AdminCategory, order: number) {
+    65→    if (order === cat.displayOrder) return;
+    66→    patchCategory(cat.id, { displayOrder: order });
+    67→    api
+    68→      .put(`/api/admin/categories/${cat.id}`, { displayOrder: order })
+    69→      .then(() => {
+    70→        void qc.invalidateQueries({ queryKey: catKey });
+    71→        for (const key of PUBLIC_CACHE_KEYS) void qc.invalidateQueries({ queryKey: key });
+    72→      })
+    73→      .catch((e) => {
+    74→        toast({ title: "Could not save order", description: errMsg(e), variant: "destructive" });
+    75→        void qc.invalidateQueries({ queryKey: catKey });
+    76→      });
+    77→  }
+    78→
+    79→  /** Swap displayOrder with the neighbour and persist both. */
+    80→  function reorder(idx: number, dir: -1 | 1) {
+    81→    const list = qc.getQueryData<AdminCategory[]>(catKey);
+    82→    if (!list) return;
+    83→    const target = idx + dir;
+    84→    if (target < 0 || target >= list.length) return;
+    85→    const a = list[idx];
+    86→    const b = list[target];
+    87→    const reordered = [...list];
+    88→    reordered[idx] = { ...b, displayOrder: a.displayOrder };
+    89→    reordered[target] = { ...a, displayOrder: b.displayOrder };
+    90→    qc.setQueryData(catKey, reordered);
+    91→    Promise.all([
+    92→      api.put(`/api/admin/categories/${a.id}`, { displayOrder: b.displayOrder }),
+    93→      api.put(`/api/admin/categories/${b.id}`, { displayOrder: a.displayOrder }),
+    94→    ])
+    95→      .then(() => {
+    96→        toast({ title: "Order updated", description: `${b.name} now comes before ${a.name}.` });
+    97→        void qc.invalidateQueries({ queryKey: catKey });
+    98→        for (const key of PUBLIC_CACHE_KEYS) void qc.invalidateQueries({ queryKey: key });
+    99→      })
+   100→      .catch((e) => {
+   101→        toast({ title: "Reorder failed", description: errMsg(e), variant: "destructive" });
+   102→        void qc.invalidateQueries({ queryKey: catKey });
+   103→      });
+   104→  }
+   105→
+   106→  function attemptDelete(force = false) {
+   107→    if (!toDelete) return;
+   108→    setDeleting(true);
+   109→    api
+   110→      .delete(`/api/admin/categories/${toDelete.id}${force ? "?force=true" : ""}`)
+   111→      .then(() => {
+   112→        toast({ title: "Category deleted", description: toDelete.name });
+   113→        setToDelete(null);
+   114→        setDeleteMsg("");
+   115→        void qc.invalidateQueries({ queryKey: catKey });
+   116→        for (const key of PUBLIC_CACHE_KEYS) void qc.invalidateQueries({ queryKey: key });
+   117→      })
+   118→      .catch((e) => {
+   119→        const msg = errMsg(e);
+   120→        const is409 = e instanceof Error && "status" in e && (e as { status: number }).status === 409;
+   121→        if (is409) {
+   122→          setDeleteMsg(msg);
+   123→          setToDelete(null);
+   124→        } else {
+   125→          toast({ title: "Delete failed", description: msg, variant: "destructive" });
+   126→        }
+   127→      })
+   128→      .finally(() => setDeleting(false));
+   129→  }
+   130→
+   131→  const list = categories ?? [];
+   132→
+   133→  return (
+   134→    <div className="space-y-4">
+   135→      <div className="flex items-center justify-between gap-2">
+   136→        <p className="text-sm text-muted-foreground">Catalogue sections shown in the website menu & homepage.</p>
+   137→        <Button onClick={() => setEditing("new")}>
+   138→          <Plus className="mr-1 h-4 w-4" /> Add Category
+   139→        </Button>
+   140→      </div>
+   141→
+   142→      {isLoading ? (
+   143→        <div className="space-y-2">
+   144→          {Array.from({ length: 6 }).map((_, i) => (
+   145→            <Skeleton key={i} className="h-14 rounded-lg" />
+   146→          ))}
+   147→        </div>
+   148→      ) : list.length === 0 ? (
+   149→        <EmptyState icon={<FolderTree className="h-8 w-8 text-muted-foreground/50" />} title="No categories yet" hint="Create categories like Nameplates, Wall Décor, Trays…" />
+   150→      ) : (
+   151→        <>
+   152→          {/* Desktop table */}
+   153→          <div className="hidden max-h-[70vh] overflow-auto custom-scroll rounded-lg border md:block">
+   154→            <Table>
+   155→              <TableHeader className="sticky top-0 z-10 bg-background">
+   156→                <TableRow>
+   157→                  <TableHead className="w-16">Image</TableHead>
+   158→                  <TableHead>Category</TableHead>
+   159→                  <TableHead className="w-20 text-center">Products</TableHead>
+   160→                  <TableHead className="w-24">Published</TableHead>
+   161→                  <TableHead className="w-20">Featured</TableHead>
+   162→                  <TableHead className="w-20 text-center">Order</TableHead>
+   163→                  <TableHead className="w-32 text-right">Actions</TableHead>
+   164→                </TableRow>
+   165→              </TableHeader>
+   166→              <TableBody>
+   167→                {list.map((c, idx) => (
+   168→                  <TableRow key={c.id}>
+   169→                    <TableCell>
+   170→                      <ImageThumb src={c.imageUrl} alt={c.imageAlt} size={40} />
+   171→                    </TableCell>
+   172→                    <TableCell>
+   173→                      <button type="button" className="text-left" onClick={() => setEditing(c)}>
+   174→                        <p className="font-medium hover:text-primary">{c.name}</p>
+   175→                        <p className="text-xs text-muted-foreground">/{c.slug}</p>
+   176→                      </button>
+   177→                    </TableCell>
+   178→                    <TableCell className="text-center text-sm">{c.productCount}</TableCell>
+   179→                    <TableCell>
+   180→                      <Switch checked={c.published} onCheckedChange={() => toggleField(c, "published")} aria-label={`Toggle published for ${c.name}`} />
+   181→                    </TableCell>
+   182→                    <TableCell>
+   183→                      <button type="button" onClick={() => toggleField(c, "featured")} className="rounded p-1 hover:bg-secondary" aria-label={`Toggle featured for ${c.name}`} aria-pressed={c.featured}>
+   184→                        <Star className={`h-4 w-4 ${c.featured ? "text-gold" : "text-muted-foreground/40"}`} fill={c.featured ? "currentColor" : "none"} />
+   185→                      </button>
+   186→                    </TableCell>
+   187→                    <TableCell className="text-center">
+   188→                      <Input
+   189→                        type="number"
+   190→                        defaultValue={c.displayOrder}
+   191→                        onBlur={(e) => saveOrder(c, Number(e.target.value) || 0)}
+   192→                        className="h-8 w-14 text-center"
+   193→                        aria-label={`Display order for ${c.name}`}
+   194→                      />
+   195→                    </TableCell>
+   196→                    <TableCell className="text-right">
+   197→                      <div className="flex items-center justify-end gap-0.5">
+   198→                        <Button variant="ghost" size="icon" className="h-8 w-8" disabled={idx === 0} onClick={() => reorder(idx, -1)} aria-label="Move up">
+   199→                          <ArrowUp className="h-4 w-4" />
+   200→                        </Button>
+   201→                        <Button variant="ghost" size="icon" className="h-8 w-8" disabled={idx === list.length - 1} onClick={() => reorder(idx, 1)} aria-label="Move down">
+   202→                          <ArrowDown className="h-4 w-4" />
+   203→                        </Button>
+   204→                        <a href={`#/category/${c.slug}`} target="_blank" rel="noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-secondary" title="Preview" aria-label={`Preview ${c.name}`}>
+   205→                          <Eye className="h-4 w-4" />
+   206→                        </a>
+   207→                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditing(c)} aria-label="Edit">
+   208→                          <Pencil className="h-4 w-4" />
+   209→                        </Button>
+   210→                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => setToDelete(c)} aria-label="Delete">
+   211→                          <Trash2 className="h-4 w-4" />
+   212→                        </Button>
+   213→                      </div>
+   214→                    </TableCell>
+   215→                  </TableRow>
+   216→                ))}
+   217→              </TableBody>
+   218→            </Table>
+   219→          </div>
+   220→
+   221→          {/* Mobile cards */}
+   222→          <div className="space-y-2 md:hidden">
+   223→            {list.map((c, idx) => (
+   224→              <Card key={c.id}>
+   225→                <CardContent className="p-3">
+   226→                  <div className="flex items-start gap-3">
+   227→                    <ImageThumb src={c.imageUrl} alt={c.imageAlt} size={52} />
+   228→                    <div className="min-w-0 flex-1">
+   229→                      <div className="flex items-start justify-between gap-2">
+   230→                        <button type="button" onClick={() => setEditing(c)} className="text-left min-w-0">
+   231→                          <p className="truncate font-medium">{c.name}</p>
+   232→                          <p className="text-xs text-muted-foreground">/{c.slug}</p>
+   233→                        </button>
+   234→                        <PublishedBadge published={c.published} />
+   235→                      </div>
+   236→                      <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+   237→                        <Badge variant="secondary">{c.productCount} products</Badge>
+   238→                        <button type="button" onClick={() => toggleField(c, "featured")} aria-label="Toggle featured">
+   239→                          <Star className={`h-4 w-4 ${c.featured ? "text-gold" : "text-muted-foreground/40"}`} fill={c.featured ? "currentColor" : "none"} />
+   240→                        </button>
+   241→                      </div>
+   242→                      <div className="mt-2 flex items-center gap-2">
+   243→                        <Switch checked={c.published} onCheckedChange={() => toggleField(c, "published")} aria-label="Toggle published" />
+   244→                        <span className="text-[11px] text-muted-foreground">{c.published ? "Published" : "Hidden"}</span>
+   245→                        <span className="flex-1" />
+   246→                        <Button variant="outline" size="icon" className="h-7 w-7" disabled={idx === 0} onClick={() => reorder(idx, -1)} aria-label="Move up">
+   247→                          <ArrowUp className="h-3.5 w-3.5" />
+   248→                        </Button>
+   249→                        <Button variant="outline" size="icon" className="h-7 w-7" disabled={idx === list.length - 1} onClick={() => reorder(idx, 1)} aria-label="Move down">
+   250→                          <ArrowDown className="h-3.5 w-3.5" />
+   251→                        </Button>
+   252→                        <a href={`#/category/${c.slug}`} target="_blank" rel="noreferrer" className="inline-flex h-7 w-7 items-center justify-center rounded-md border" aria-label="Preview">
+   253→                          <Eye className="h-3.5 w-3.5" />
+   254→                        </a>
+   255→                        <Button variant="outline" size="icon" className="h-7 w-7 text-destructive" onClick={() => setToDelete(c)} aria-label="Delete">
+   256→                          <Trash2 className="h-3.5 w-3.5" />
+   257→                        </Button>
+   258→                      </div>
+   259→                    </div>
+   260→                  </div>
+   261→                </CardContent>
+   262→              </Card>
+   263→            ))}
+   264→          </div>
+   265→        </>
+   266→      )}
+   267→
+   268→      {/* category form */}
+   269→      {editing !== null ? (
+   270→        <CategoryFormDialog
+   271→          category={editing === "new" ? null : editing}
+   272→          all={list}
+   273→          onClose={() => setEditing(null)}
+   274→        />
+   275→      ) : null}
+   276→
+   277→      {/* delete confirm */}
+   278→      <ConfirmDialog
+   279→        open={!!toDelete}
+   280→        onOpenChange={(o) => !o && setToDelete(null)}
+   281→        title={`Delete “${toDelete?.name ?? ""}”?`}
+   282→        description="The category will be removed from the website. Products in it are kept (they will need a new category)."
+   283→        confirmLabel="Delete category"
+   284→        onConfirm={() => attemptDelete(false)}
+   285→        pending={deleting}
+   286→      />
+   287→
+   288→      {/* 409 force delete */}
+   289→      <ConfirmDialog
+   290→        open={!!deleteMsg}
+   291→        onOpenChange={(o) => !o && setDeleteMsg("")}
+   292→        title="Category still has products"
+   293→        description={`${deleteMsg} Deleting anyway will permanently remove those products and their images.`}
+   294→        confirmLabel="Delete anyway (force)"
+   295→        onConfirm={() => {
+   296→          const cat = list.find((c) => deleteMsg.includes(c.name)) ?? null;
+   297→          setToDelete(cat);
+   298→          setDeleteMsg("");
+   299→          if (cat) {
+   300→            setDeleting(true);
+   301→            api
+   302→              .delete(`/api/admin/categories/${cat.id}?force=true`)
+   303→              .then(() => {
+   304→                toast({ title: "Category deleted", description: `${cat.name} and its products were removed.` });
+   305→                void qc.invalidateQueries({ queryKey: catKey });
+   306→                for (const key of PUBLIC_CACHE_KEYS) void qc.invalidateQueries({ queryKey: key });
+   307→              })
+   308→              .catch((e) => toast({ title: "Delete failed", description: errMsg(e), variant: "destructive" }))
+   309→              .finally(() => setDeleting(false));
+   310→          }
+   311→        }}
+   312→        destructive
+   313→      />
+   314→    </div>
+   315→  );
+   316→}
+   317→
+   318→// ============================================================
+   319→// Category form dialog
+   320→// ============================================================
+   321→
+   322→interface CategoryFormState {
+   323→  name: string;
+   324→  slug: string;
+   325→  imageUrl: string;
+   326→  imageAlt: string;
+   327→  shortDescription: string;
+   328→  longDescription: string;
+   329→  introContent: string;
+   330→  bottomContent: string;
+   331→  featured: boolean;
+   332→  published: boolean;
+   333→  displayOrder: number;
+   334→  parentId: string;
+   335→  seoTitle: string;
+   336→  metaDescription: string;
+   337→  focusKeyword: string;
+   338→  secondaryKeywords: string;
+   339→  ogTitle: string;
+   340→  ogDescription: string;
+   341→  canonicalUrl: string;
+   342→}
+   343→
+   344→const EMPTY_CATEGORY: CategoryFormState = {
+   345→  name: "",
+   346→  slug: "",
+   347→  imageUrl: "",
+   348→  imageAlt: "",
+   349→  shortDescription: "",
+   350→  longDescription: "",
+   351→  introContent: "",
+   352→  bottomContent: "",
+   353→  featured: false,
+   354→  published: true,
+   355→  displayOrder: 0,
+   356→  parentId: "",
+   357→  seoTitle: "",
+   358→  metaDescription: "",
+   359→  focusKeyword: "",
+   360→  secondaryKeywords: "",
+   361→  ogTitle: "",
+   362→  ogDescription: "",
+   363→  canonicalUrl: "",
+   364→};
+   365→
+   366→function CategoryFormDialog({
+   367→  category,
+   368→  all,
+   369→  onClose,
+   370→}: {
+   371→  category: AdminCategory | null;
+   372→  all: AdminCategory[];
+   373→  onClose: () => void;
+   374→}) {
+   375→  const [form, setForm] = useState<CategoryFormState>(EMPTY_CATEGORY);
+   376→  const [submitted, setSubmitted] = useState(false);
+   377→  const [saving, setSaving] = useState(false);
+   378→  const { toast } = useToast();
+   379→  const qc = useQueryClient();
+   380→  const initRef = useRef(false);
+   381→
+   382→  useEffect(() => {
+   383→    if (category && !initRef.current) {
+   384→      initRef.current = true;
+   385→      setForm({
+   386→        name: category.name,
+   387→        slug: category.slug,
+   388→        imageUrl: category.imageUrl,
+   389→        imageAlt: category.imageAlt,
+   390→        shortDescription: category.shortDescription,
+   391→        longDescription: category.longDescription,
+   392→        introContent: category.introContent,
+   393→        bottomContent: category.bottomContent,
+   394→        featured: category.featured,
+   395→        published: category.published,
+   396→        displayOrder: category.displayOrder,
+   397→        parentId: category.parentId ?? "",
+   398→        seoTitle: category.seoTitle,
+   399→        metaDescription: category.metaDescription,
+   400→        focusKeyword: category.focusKeyword,
+   401→        secondaryKeywords: category.secondaryKeywords,
+   402→        ogTitle: category.ogTitle,
+   403→        ogDescription: category.ogDescription,
+   404→        canonicalUrl: category.canonicalUrl,
+   405→      });
+   406→    }
+   407→    if (!category) initRef.current = true;
+   408→  }, [category]);
+   409→
+   410→  function set<K extends keyof CategoryFormState>(key: K, value: CategoryFormState[K]) {
+   411→    setForm((f) => ({ ...f, [key]: value }));
+   412→  }
+   413→
+   414→  async function save() {
+   415→    setSubmitted(true);
+   416→    if (!form.name.trim()) {
+   417→      toast({ title: "Category name is required", variant: "destructive" });
+   418→      return;
+   419→    }
+   420→    setSaving(true);
+   421→    const body = {
+   422→      name: form.name.trim(),
+   423→      slug: form.slug,
+   424→      imageUrl: form.imageUrl,
+   425→      imageAlt: form.imageAlt,
+   426→      shortDescription: form.shortDescription,
+   427→      longDescription: form.longDescription,
+   428→      introContent: form.introContent,
+   429→      bottomContent: form.bottomContent,
+   430→      featured: form.featured,
+   431→      published: form.published,
+   432→      displayOrder: form.displayOrder,
+   433→      parentId: form.parentId || null,
+   434→      seoTitle: form.seoTitle,
+   435→      metaDescription: form.metaDescription,
+   436→      focusKeyword: form.focusKeyword,
+   437→      secondaryKeywords: form.secondaryKeywords,
+   438→      ogTitle: form.ogTitle,
+   439→      ogDescription: form.ogDescription,
+   440→      canonicalUrl: form.canonicalUrl,
+   441→    };
+   442→    try {
+   443→      if (category) {
+   444→        await api.put(`/api/admin/categories/${category.id}`, body);
+   445→      } else {
+   446→        await api.post("/api/admin/categories", body);
+   447→      }
+   448→      toast({ title: "Category saved", description: form.name });
+   449→      void qc.invalidateQueries({ queryKey: ["admin", "categories"] });
+   450→      void qc.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+   451→      for (const key of PUBLIC_CACHE_KEYS) void qc.invalidateQueries({ queryKey: key });
+   452→      onClose();
+   453→    } catch (e) {
+   454→      toast({ title: "Save failed", description: errMsg(e), variant: "destructive" });
+   455→    } finally {
+   456→      setSaving(false);
+   457→    }
+   458→  }
+   459→
+   460→  const parentOptions = all.filter((c) => c.id !== category?.id);
+   461→
+   462→  return (
+   463→    <Dialog open onOpenChange={(o) => !o && onClose()}>
+   464→      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto custom-scroll">
+   465→        <DialogHeader>
+   466→          <DialogTitle className="font-display">{category ? `Edit category: ${category.name}` : "New category"}</DialogTitle>
+   467→          <DialogDescription>Categories group your products on the website.</DialogDescription>
+   468→        </DialogHeader>
+   469→
+   470→        <Tabs defaultValue="content">
+   471→          <TabsList>
+   472→            <TabsTrigger value="content">Content</TabsTrigger>
+   473→            <TabsTrigger value="seo">SEO</TabsTrigger>
+   474→          </TabsList>
+   475→
+   476→          <TabsContent value="content" className="mt-4 space-y-4">
+   477→            <div className="grid gap-4 sm:grid-cols-2">
+   478→              <Field label="Name" required error={submitted && !form.name.trim() ? "Name is required" : undefined}>
+   479→                <Input value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="e.g. Nameplates" aria-required />
+   480→              </Field>
+   481→              <Field label="Display order">
+   482→                <Input type="number" value={form.displayOrder} onChange={(e) => set("displayOrder", Number(e.target.value) || 0)} className="w-28" />
+   483→              </Field>
+   484→            </div>
+   485→            <SlugInput value={form.slug} onChange={(v) => set("slug", v)} from={form.name} />
+   486→            <Field label="Parent category" hint="Optional — creates a subcategory.">
+   487→              <Select value={form.parentId} onValueChange={(v) => set("parentId", v === "__none" ? "" : v)}>
+   488→                <SelectTrigger>
+   489→                  <SelectValue placeholder="— none —" />
+   490→                </SelectTrigger>
+   491→                <SelectContent>
+   492→                  <SelectItem value="__none">— none —</SelectItem>
+   493→                  {parentOptions.map((c) => (
+   494→                    <SelectItem key={c.id} value={c.id}>
+   495→                      {c.name}
+   496→                    </SelectItem>
+   497→                  ))}
+   498→                </SelectContent>
+   499→              </Select>
+   500→            </Field>
+   501→            <Field label="Image">
+   502→              <MediaPickField
+   503→                value={form.imageUrl}
+   504→                alt={form.imageAlt}
+   505→                onPick={(pick) => {
+   506→                  set("imageUrl", pick.url);
+   507→                  set("imageAlt", pick.alt);
+   508→                }}
+   509→                onClear={() => {
+   510→                  set("imageUrl", "");
+   511→                  set("imageAlt", "");
+   512→                }}
+   513→              />
+   514→            </Field>
+   515→            <Field label="Image alt text">
+   516→              <Input value={form.imageAlt} onChange={(e) => set("imageAlt", e.target.value)} placeholder="Resin nameplate on a wooden door" />
+   517→            </Field>
+   518→            <Field label="Short description" counter={<CharCount text={form.shortDescription} target={160} />}>
+   519→              <Textarea rows={2} value={form.shortDescription} onChange={(e) => set("shortDescription", e.target.value)} />
+   520→            </Field>
+   521→            <Field label="Long description">
+   522→              <RichTextEditor value={form.longDescription} onChange={(v) => set("longDescription", v)} rows={6} />
+   523→            </Field>
+   524→            <Field label="Intro content" hint="Optional HTML shown above the product grid.">
+   525→              <RichTextEditor value={form.introContent} onChange={(v) => set("introContent", v)} rows={5} />
+   526→            </Field>
+   527→            <Field label="Bottom content" hint="Optional HTML shown below the product grid.">
+   528→              <RichTextEditor value={form.bottomContent} onChange={(v) => set("bottomContent", v)} rows={5} />
+   529→            </Field>
+   530→            <div className="flex flex-wrap gap-6">
+   531→              <div className="flex items-center gap-2">
+   532→                <Switch id="cat-published" checked={form.published} onCheckedChange={(v) => set("published", v)} />
+   533→                <label htmlFor="cat-published" className="text-sm">Published</label>
+   534→              </div>
+   535→              <div className="flex items-center gap-2">
+   536→                <Switch id="cat-featured" checked={form.featured} onCheckedChange={(v) => set("featured", v)} />
+   537→                <label htmlFor="cat-featured" className="text-sm">Featured on homepage</label>
+   538→              </div>
+   539→            </div>
+   540→          </TabsContent>
+   541→
+   542→          <TabsContent value="seo" className="mt-4 space-y-4">
+   543→            <GooglePreview
+   544→              title={form.seoTitle || form.name || "Category title"}
+   545→              url={`artisticbykhushi.com/category/${form.slug || "your-slug"}`}
+   546→              description={form.metaDescription || form.shortDescription}
+   547→            />
+   548→            <Field label="SEO title" counter={<CharCount text={form.seoTitle} target={60} />}>
+   549→              <Input value={form.seoTitle} onChange={(e) => set("seoTitle", e.target.value)} />
+   550→            </Field>
+   551→            <Field label="Meta description" counter={<CharCount text={form.metaDescription} target={160} />}>
+   552→              <Textarea rows={2} value={form.metaDescription} onChange={(e) => set("metaDescription", e.target.value)} />
+   553→            </Field>
+   554→            <div className="grid gap-4 sm:grid-cols-2">
+   555→              <Field label="Focus keyword">
+   556→                <Input value={form.focusKeyword} onChange={(e) => set("focusKeyword", e.target.value)} />
+   557→              </Field>
+   558→              <Field label="Secondary keywords" hint="Comma separated">
+   559→                <Input value={form.secondaryKeywords} onChange={(e) => set("secondaryKeywords", e.target.value)} />
+   560→              </Field>
+   561→              <Field label="OG title">
+   562→                <Input value={form.ogTitle} onChange={(e) => set("ogTitle", e.target.value)} />
+   563→              </Field>
+   564→              <Field label="Canonical URL">
+   565→                <Input value={form.canonicalUrl} onChange={(e) => set("canonicalUrl", e.target.value)} placeholder="https://…" />
+   566→              </Field>
+   567→            </div>
+   568→            <Field label="OG description">
+   569→              <Textarea rows={2} value={form.ogDescription} onChange={(e) => set("ogDescription", e.target.value)} />
+   570→            </Field>
+   571→          </TabsContent>
+   572→        </Tabs>
+   573→
+   574→        <DialogFooter>
+   575→          <Button variant="outline" onClick={onClose} disabled={saving}>
+   576→            Cancel
+   577→          </Button>
+   578→          <Button onClick={save} disabled={saving}>
+   579→            {saving ? <Spinner className="mr-1" /> : <Save className="mr-1 h-4 w-4" />}
+   580→            {saving ? "Saving…" : "Save category"}
+   581→          </Button>
+   582→        </DialogFooter>
+   583→      </DialogContent>
+   584→    </Dialog>
+   585→  );
+   586→}
+   587→

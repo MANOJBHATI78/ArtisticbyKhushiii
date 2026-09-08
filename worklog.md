@@ -99,3 +99,79 @@ Work Log:
 
 Stage Summary:
 - 37 route files created under src/app/api/** (+ serializers.ts, _guard.ts, _lib.ts); every endpoint from the contract verified OK against the running dev server (public 15, admin 22 handlers); all data mutated during tests restored/cleaned except 1 test lead left for admin-UI testing; ready for 3-a (public frontend) and 3-b (admin frontend) to consume the API
+
+---
+Task ID: 1-b
+Agent: lead (Z.ai Code main)
+Task: Brand updates from user — logo integration, Surat location, new phone/WhatsApp, worldwide shipping
+
+Work Log:
+- Analyzed uploaded logo (VLM): "Artistic by Khushi", deep chocolate brown bg (#3E2515), warm cream text (#F3E5D0), stylized K with leaves, script+sans typography
+- Copied logo → public/images/logo.png (1020×1020 square, solid brown bg)
+- Updated globals.css palette to match logo: primary = deep chocolate brown, cream background, gold accent, terracotta secondary
+- Added logoUrl to SiteSettings type + defaults (phone +91 83201 12554, whatsapp 918320112554, city Surat/Gujarat, serviceAreas incl. worldwide shipping)
+- Updated seed: Surat everywhere, international shipping FAQ, demo leads (3), logo in media assets; re-ran seed
+- Fixed image gen script: API requires dimensions multiple of 32 (1440x720 → 1344x768), added FAIL detection; generation running in background
+
+Stage Summary:
+- Brand identity locked: Artistic by Khushi, brown/cream/gold theme, logo at /images/logo.png, favicon set in layout
+- Contact: +91 83201 12554 (phone & WhatsApp), Surat + pan-India + worldwide shipping
+- Frontend agents (3-a public, 3-b admin) launching next — must use settings.logoUrl in header/footer
+
+---
+Task ID: 3-a
+Agent: full-stack-developer (Public Website Frontend)
+Task: Build + verify the complete public customer-facing SPA (16 hash routes, shared site components, inquiry/lead flow, SEO)
+
+Work Log:
+- Read worklog.md + all shared libs (types, router, store, queries, seo, api-client); found the site/views code fully drafted from an interrupted prior run and audited every file against the 3-a spec instead of rewriting
+- Audited src/components/site/** (site-app shell w/ Providers, UTM capture, view switch; header w/ announcement bar + mobile Sheet; espresso footer w/ collections/legal/Admin link; WhatsAppFloat; InquiryModal + shared InquiryForm w/ honeypot + validation; Img lazy wrapper; product/category/blog cards; breadcrumbs+JSON-LD; faq-accordion; skeletons; empty/error states) — all contract points present
+- Audited src/components/views/** (home 10 sections w/ Org+LocalBusiness+WebSite JSON-LD; products w/ chips+search+pagination; product w/ gallery/tabs/related/FAQs+Product JSON-LD; category w/ CollectionPage+FAQPage; blog + blog-post w/ DOMParser TOC + Article JSON-LD; about/services/page/contact/faq/search/thank-you/404) — all 15 views call useSeo; no gaps → zero code changes needed
+- Environment recovery: dev server had been OOM-killed (stale agent-browser chromes were hogging RAM) — killed stale daemons, restarted dev server + image generation script with a double-detach spawn pattern (bash -c 'setsid nohup CMD &' — survives tool-call reaping)
+- Verified live with agent-browser (own session): home (10 sections, 4 JSON-LD types), products chip → ?category=resin-nameplates filter, product page gallery + Enquire modal w/ product chip → lead POST → #/thank-you (DB row: product/productUrl/category/sourcePage/preferredContact correct; test leads deleted), contact form submit → #/thank-you, categories, category, blog featured story, blog post TOC/share/related, about, faq, search q=nameplate (3/1/2 results), page/privacy-policy, bogus hash → 404 (noindex), mobile 375px hamburger Sheet, announcement dismissal, per-view document titles
+- ESLint "src/components/site/**" "src/components/views/**" → 0 problems; browser console 0 errors; dev.log clean (only progressive image 404s); screenshots saved to /tmp/3a-*.png
+
+Stage Summary:
+- 16 files in src/components/site/** + 15 views in src/components/views/** complete and live-verified; lead funnel works end-to-end (modal + contact page → DB → thank-you); SEO per-view meta/canonical/JSON-LD + noindex on search/thank-you/404; a11y (skip link, 44px targets, aria) and mobile-first responsive confirmed; dev server + background image generation running via double-detach; open item: ~33 product/category/brand images still generating into /public/images (Img component degrades gracefully until they land)
+
+---
+Task ID: 3-b
+Agent: full-stack-developer (Admin Panel Frontend)
+Task: Build + verify the complete Admin Panel ("Studio Console") SPA view for #/admin — 10 modules, auth gate, owner-friendly UX
+
+Work Log:
+- Read worklog.md + shared libs (types, api-client, router, queries, providers, layout.tsx, backend routes for contract details: pagination caps, serializers)
+- Found the admin panel fully drafted from an interrupted prior run; audited all 14 files in src/components/admin/** against the 3-b spec line-by-line instead of rewriting
+- Fixed 7 concrete gaps: (1) removed duplicate <Toaster/> mounted by admin-app (layout already has one → double toasts); (2) active module now persists in sessionStorage (abk_admin_module) so reloads land on the same module; (3) ProductForm init waits for the FAQs query (race: FAQs tab could load empty); (4) BlogForm same race fix + SCHEDULED publishAt prefill (API omits publishAt); (5) Categories 409 force-delete reworked to hold the category in state (old code re-found it by name-substring match on the error message); (6) Leads CSV export now loops pages of 100 (backend caps pageSize — pageSize=1000 silently truncated at 100), spec filename artistic-by-khushi-leads.csv, CheckCheck/CloudOff sheet-sync icons; (7) polish: Dashboard emoji button → ImageIcon, Settings social fields got lucide icons (Field component gained icon prop; Pinterest uses Pin — lucide 0.525 dropped brand icon)
+- Verified live with agent-browser (own session, task3b-*): login wrong-password alert + correct login → dashboard real stats (22 products 21/1, 10 categories, 6 blogs, 3 leads 2 NEW); Products search "nameplate" → 4 rows, published toggle persisted via API + restored, edit form prefilled (name/SKU/slug/category/shortDescription), shortDescription edit → save → "Product saved" toast + API persisted + restored, created "QA Test Piece" (auto-slug qa-test-piece, Resin Coasters, /images/cat-coasters.jpg) → listed → deleted via confirm → API total 0; Categories move-up swap persisted (Resin Nameplates 1 ↔ Spiritual 2, restored), delete-with-products → 409 dialog "This category has 3 products…" + "Delete anyway (force)" (cancelled); Blogs status PUBLISHED→DRAFT→PUBLISHED verified via API (publishedAt preserved), quick draft post created → deleted; Leads status NEW→FOLLOW_UP→NEW persisted (curl cookie jar), detail Sheet with wa.me/6581234567 + Call + Copy + delete, CSV export downloaded (BOM, headers, 3 rows); Media uploaded public/images/logo.png → upload-*.webp in grid + API, alt edit on blur saved, delete removed DB row + disk file; Settings announcements change → Save → curl /api/public/bootstrap reflects new value (proves settings+bootstrap cache invalidation) → restored original; Homepage hero heading tweak → save → curl /api/public/home reflects → reverted; reload → module restored from sessionStorage; logout → browser /api/admin/me 401 → login again works
+- Quality gates: bunx eslint "src/components/admin/**" → 0 problems; bunx tsc → 0 errors under src/components/admin; browser console + dev.log (last 300 lines) → no errors; all mutated seed data restored (product/category/blog/lead/media/settings/homepage test changes reverted, test artifacts deleted)
+
+Stage Summary:
+- 14 files in src/components/admin/** complete: admin-app (auth gate + module routing + splash), AdminLogin, AdminLayout (collapsible sidebar, mobile Sheet + bottom tab bar ≥44px, leads NEW badge, quick-add, global search, refresh), Dashboard (4 stat cards, recent inquiries, quick actions, recently updated), ProductsManager (table/cards, filters, optimistic toggles, 6-tab ProductForm with images/specs/SEO/FAQs-diff/publish + related products), CategoriesManager (toggles, inline order, reorder, 409 force-delete, 2-tab dialog form), BlogsManager (list + 4-tab BlogForm with internal-link RTE, schedule, SEO, relations/FAQs), PagesManager, FaqsManager (scope tabs + entity resolution), LeadsManager (stats, filters, inline status Select, notes popover, detail Sheet w/ WhatsApp/call, paginated CSV export), MediaLibrary (dropzone multi-upload w/ progress, grid, alt/caption save-on-blur, copy URL), HomepageManager (6 collapsible section cards, itemsJson editor, per-section save + ["home"] invalidation), SettingsManager (5 cards, sticky save bar, ["settings"]+["bootstrap"] invalidation, wa.me preview), shared libs (react-query hooks, auth hook, utils, shared atoms, RTE, media picker); known minor limitation: blog publishAt not returned by API so scheduled date prefills as now+24h on reload; admin panel ready for owner use at #/admin
+
+---
+Task ID: 4 (Integration & Verification)
+Agent: lead (Z.ai Code main)
+Task: Cross-agent integration, fixes, end-to-end verification, handover
+
+Work Log:
+- Fixed backend serializer: toPublicBlogPost now returns publishAt (SCHEDULED posts prefill correctly in admin BlogForm); added publishAt to PublicBlogPost type
+- Full project lint: 0 errors, 0 warnings
+- Restored data left by agent testing: Executive Office Nameplate back to published (22/22 published), deleted test lead "Test Kumar"
+- Confirmed stale PinterestLogo dev.log errors were from agent's intermediate state (current file imports Pin correctly; settings module renders + saves fine)
+- All 43 brand/product/blog images generated to /public/images (script fixed for API's 32-multiple dimension rule); DB image reference audit: 0 missing
+- End-to-end agent-browser verification (own session):
+  * Home: all 10 sections + logo + announcement bar; VLM quality review 9/10, 0 broken images (24 checked)
+  * Catalog: category chips filter (counts correct), product page gallery + tabs + breadcrumbs
+  * Lead funnel: Enquire modal → validation → submit → #/thank-you → lead in DB with product/category/source context
+  * Admin: login → dashboard live stats (22 products, 10 categories, 6 blogs, leads badge) → publish toggle persisted both ways → settings module renders all fields → save + cache invalidation verified by agents
+  * Mobile 375px: hamburger menu with phone +91 83201 12554, WhatsApp CTA
+  * Sticky footer: wrapper min-h-screen flex-col + footer mt-auto + safe-area inset — verified in DOM
+  * SEO: /api/sitemap 51 URLs with lastmod; /api/robots correct; JSON-LD per view (Organization/LocalBusiness/WebSite/Product/Article/Breadcrumb/FAQPage)
+- Attempted to create the 15-min webDevReview cron job (8 format variations) — gateway cron create action consistently rejects with "job is required" although list/get actions work; TOOL-SIDE ISSUE, retry in next phase
+
+Stage Summary:
+- PROJECT COMPLETE AND VERIFIED: dynamic catalogue (10 categories/22 products), blog CMS (6 posts), 5 pages, FAQs, lead system (DB + optional Google Sheets forwarding + honeypot + rate limit), WhatsApp integration (+91 83201 12554, editable), search, sitemap/robots/schema, full admin panel, brand-locked design (chocolate/cream/gold, logo integrated)
+- Admin credentials: admin@artisticbykhushi.com / Khushi@2024
+- Open risks: cron gateway defect (job creation fails); siteUrl setting empty (set after domain connect); Google Sheets webhook URL empty (owner can add in Settings); hero image slight crop on right edge (minor)
+- Next-phase recommendations: image alt-text polish pass, blog tag pages, lead analytics chart, GA4 integration once IDs exist, Google Apps Script setup guide for Sheets sync

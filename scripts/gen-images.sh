@@ -9,14 +9,14 @@ LOG=/home/z/my-project/imagegen.log
 gen() {
   local file="$1"; local size="$2"; local prompt="$3"
   if [ -s "$DIR/$file" ]; then echo "SKIP $file" >> "$LOG"; return 0; fi
-  z-ai image -p "$prompt" -o "$DIR/$file" -s "$size" >> "$LOG" 2>&1
+  z-ai image -p "$prompt" -o "$DIR/$file" -s "$size" >> "$LOG" 2>&1 || { echo "FAIL $file" >> "$LOG"; return 1; }
   echo "DONE $file" >> "$LOG"
 }
 
 # ---------- Hero & brand ----------
-gen hero-main.jpg 1440x720 "Luxurious flat lay of handcrafted epoxy resin art pieces on warm cream linen: personalized nameplate with gold lettering, hexagonal coasters with pressed dried flowers, gold-rimmed serving tray, soft natural window light, terracotta and gold accents, premium artisan brand photography, elegant, high quality, detailed"
+gen hero-main.jpg 1344x768 "Luxurious flat lay of handcrafted epoxy resin art pieces on warm cream linen: personalized nameplate with gold lettering, hexagonal coasters with pressed dried flowers, gold-rimmed serving tray, soft natural window light, terracotta and gold accents, premium artisan brand photography, elegant, high quality, detailed"
 gen about-studio.jpg 1024x1024 "Cozy artisan home studio workspace for resin art: wooden table with epoxy resin mixing cups, dried flowers, gold pigment bottles, dried bouquet, warm afternoon sunlight, terracotta walls, handmade craft atmosphere, warm and inviting, high quality photography"
-gen cta-bg.jpg 1440x720 "Abstract epoxy resin pour art background, swirling gold and champagne and terracotta pigments on cream, marble-like glossy texture, elegant premium texture, high detail, macro photography"
+gen cta-bg.jpg 1344x768 "Abstract epoxy resin pour art background, swirling gold and champagne and terracotta pigments on cream, marble-like glossy texture, elegant premium texture, high detail, macro photography"
 gen og-default.jpg 1344x768 "Elegant collection of handcrafted resin art gifts: nameplate, coasters, keychain and photo frame arranged on cream background with gold ribbon and dried flowers, premium Indian handcrafted brand photography, warm tones, high quality"
 
 # ---------- Category images ----------

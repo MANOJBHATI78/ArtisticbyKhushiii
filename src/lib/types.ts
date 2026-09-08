@@ -8,6 +8,7 @@
 export interface SiteSettings {
   brandName: string;
   tagline: string;
+  logoUrl: string;
   logoText: string;
   phone: string;
   whatsappNumber: string;
@@ -127,6 +128,7 @@ export interface PublicBlogPost {
   tags: string;
   featured: boolean;
   status: string;
+  publishAt: string | null;
   publishedAt: string | null;
   blogCategoryName: string | null;
   blogCategorySlug: string | null;
@@ -273,15 +275,16 @@ export const LEAD_STATUSES = ["NEW", "CONTACTED", "FOLLOW_UP", "CONVERTED", "NOT
 export const DEFAULT_SETTINGS: SiteSettings = {
   brandName: "Artistic by Khushi",
   tagline: "Handcrafted Resin Art & Personalized Gifting",
+  logoUrl: "/images/logo.png",
   logoText: "Artistic by Khushi",
-  phone: "",
-  whatsappNumber: "919876543210",
+  phone: "+91 83201 12554",
+  whatsappNumber: "918320112554",
   whatsappMessage: "Hello! I'm interested in your handcrafted resin art. Please share more details.",
   email: "hello@artisticbykhushi.com",
   address: "",
-  city: "Indore",
-  state: "Madhya Pradesh",
-  serviceAreas: "Indore, Bhopal, Mumbai, Delhi, Pune — shipping across India",
+  city: "Surat",
+  state: "Gujarat",
+  serviceAreas: "Surat — pan-India delivery — worldwide international shipping",
   instagramUrl: "https://instagram.com/artisticbykhushi",
   facebookUrl: "",
   pinterestUrl: "",

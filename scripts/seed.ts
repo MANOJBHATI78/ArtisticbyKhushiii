@@ -50,15 +50,16 @@ async function main() {
   const settings: Record<string, string> = {
     brandName: "Artistic by Khushi",
     tagline: "Handcrafted Resin Art & Personalized Gifting",
+    logoUrl: "/images/logo.png",
     logoText: "Artistic by Khushi",
-    phone: "+91 98765 43210",
-    whatsappNumber: "919876543210",
+    phone: "+91 83201 12554",
+    whatsappNumber: "918320112554",
     whatsappMessage: "Hello Khushi! I found your website and I'm interested in your handcrafted resin art. Please share more details.",
     email: "hello@artisticbykhushi.com",
     address: "Studio visits by appointment only",
-    city: "Indore",
-    state: "Madhya Pradesh",
-    serviceAreas: "Indore, Bhopal, Mumbai, Delhi, Pune, Jaipur — shipping across India",
+    city: "Surat",
+    state: "Gujarat",
+    serviceAreas: "Surat, Gujarat — pan-India delivery — worldwide international shipping",
     instagramUrl: "https://instagram.com/artisticbykhushi",
     facebookUrl: "https://facebook.com/artisticbykhushi",
     pinterestUrl: "",
@@ -75,7 +76,7 @@ async function main() {
     googleSheetsWebhookUrl: "",
     headerCtaText: "Enquire Now",
     headerCtaUrl: "#/contact",
-    announcements: "✨ Now accepting custom festive & wedding season orders — book early to reserve your date!",
+    announcements: "✨ Pan-India delivery & worldwide shipping — accepting custom festive season orders, book early!",
     siteUrl: "",
   };
   for (const [key, value] of Object.entries(settings)) {
@@ -102,7 +103,7 @@ async function main() {
     {
       sectionKey: "brand_intro",
       heading: "Where Memories Become Art",
-      subheading: "A small-batch resin art studio from Indore, crafting one-of-a-kind pieces since 2021",
+      subheading: "A small-batch resin art studio from Surat, crafting one-of-a-kind pieces since 2021",
       body:
         "<p>Artistic by Khushi began at a kitchen table — with one mould, a bundle of wedding flowers and a wish to make beautiful things that hold meaning. Today, every nameplate, tray, frame and keepsake that leaves our studio is still made the same way: slowly, carefully, and completely by hand.</p><p>We don't mass-produce. We design each piece around your names, colours, flowers and stories, then pour, cure, sand and polish it over several days so it arrives ready to be treasured for years.</p>",
       imageUrl: IMG("about-studio.jpg"),
@@ -130,7 +131,7 @@ async function main() {
       itemsJson: JSON.stringify([
         { title: "Personalized Designs", text: "Your names, dates, colours and flowers designed into the art — not printed on it." },
         { title: "Premium Resin Finish", text: "Glass-smooth, UV-stabilised epoxy that keeps its clarity and shine for years." },
-        { title: "Handmade Craftsmanship", text: "Every piece is poured, cured and finished by hand in our Indore studio." },
+        { title: "Handmade Craftsmanship", text: "Every piece is poured, cured and finished by hand in our Surat studio." },
         { title: "Custom Colours & Themes", text: "Match your home, wedding palette or brand — terracotta, gold, pastels and more." },
         { title: "Memory Preservation", text: "Wedding bouquets, first birthday keepsakes and milestone memories preserved forever." },
         { title: "Made With Care", text: "Small batches, honest timelines, careful packaging and warm communication." },
@@ -1082,8 +1083,8 @@ async function main() {
     {
       title: "About Us",
       slug: "about",
-      content: `<h2>Where memories become art</h2><p>Artistic by Khushi is a small-batch resin art studio based in Indore, crafting personalized nameplates, home décor, jewellery and memory keepsakes — each piece poured, cured, sanded and polished by hand.</p><h3>How it started</h3><p>It began at a kitchen table with one silicone mould and a bridal bouquet a friend couldn't bear to throw away. That first preserved-flower heart — cloudy, imperfect, deeply loved — taught us what resin could really hold: not just flowers, but feeling.</p><h3>What we believe</h3><ul><li><strong>Personal beats perfect.</strong> Your names, colours and stories make art meaningful — we design around them.</li><li><strong>Slow is a feature.</strong> Thin-poured layers, patient curing, four-grit polishing. Rushed resin cracks.</li><li><strong>Honest craft.</strong> Real dried flowers, premium UV-stabilised resin, and timelines we actually keep.</li></ul><h3>How we work</h3><p>Every order starts with a conversation — your idea, our design plan, a preview you approve before anything is poured. Nothing here is mass-produced, and that's exactly the point.</p><h3>Let's make something together</h3><p>Browse the <a href="#/categories">collections</a>, read the <a href="#/blog">journal</a>, or <a href="#/contact">say hello</a> — we reply personally.</p>`,
-      metaDescription: "The story of Artistic by Khushi — a small-batch handcrafted resin art studio from Indore making personalized décor, gifts and memory keepsakes.",
+      content: `<h2>Where memories become art</h2><p>Artistic by Khushi is a small-batch resin art studio based in Surat, Gujarat, crafting personalized nameplates, home décor, jewellery and memory keepsakes — each piece poured, cured, sanded and polished by hand. We deliver across India and ship worldwide.</p><h3>How it started</h3><p>It began at a kitchen table with one silicone mould and a bridal bouquet a friend couldn't bear to throw away. That first preserved-flower heart — cloudy, imperfect, deeply loved — taught us what resin could really hold: not just flowers, but feeling.</p><h3>What we believe</h3><ul><li><strong>Personal beats perfect.</strong> Your names, colours and stories make art meaningful — we design around them.</li><li><strong>Slow is a feature.</strong> Thin-poured layers, patient curing, four-grit polishing. Rushed resin cracks.</li><li><strong>Honest craft.</strong> Real dried flowers, premium UV-stabilised resin, and timelines we actually keep.</li></ul><h3>How we work</h3><p>Every order starts with a conversation — your idea, our design plan, a preview you approve before anything is poured. Nothing here is mass-produced, and that's exactly the point.</p><h3>Let's make something together</h3><p>Browse the <a href="#/categories">collections</a>, read the <a href="#/blog">journal</a>, or <a href="#/contact">say hello</a> — we reply personally.</p>`,
+      metaDescription: "The story of Artistic by Khushi — a handcrafted resin art studio from Surat making personalized décor, gifts and memory keepsakes, delivered across India and worldwide.",
       order: 1,
     },
     {
@@ -1132,16 +1133,16 @@ async function main() {
   // ---------------- General FAQs ----------------
   const generalFaqs = [
     {
+      q: "Do you deliver across India and worldwide?",
+      a: "Yes! We deliver pan-India (careful double-boxed packaging, tracked shipping) AND ship internationally to most countries. International shipping cost and timeline are confirmed at order time.",
+    },
+    {
       q: "Do you take custom orders?",
       a: "Yes — custom is our happy place! Share your idea (size, colours, theme, text) via the inquiry form or WhatsApp and we'll send a design plan and quote.",
     },
     {
       q: "How long does an order take?",
       a: "Most pieces ship in 7–10 days after design approval. Memory preservation pieces take 3–4 weeks (drying + curing). Festive-season bulk orders: book 2 months ahead.",
-    },
-    {
-      q: "Do you ship across India?",
-      a: "Yes, we ship pan-India with careful double-boxed packaging. Shipping cost and timeline are confirmed at order time.",
     },
     {
       q: "How do I place an order?",
@@ -1173,8 +1174,54 @@ async function main() {
   }
   console.log(`✓ ${generalFaqs.length} FAQs`);
 
+  // ---------------- Demo leads (so admin panel has data) ----------------
+  await db.lead.create({
+    data: {
+      name: "Priya Sharma",
+      mobile: "+91 98250 11234",
+      city: "Surat",
+      product: "Personalized Family Resin Nameplate",
+      productUrl: "#/product/personalized-resin-nameplate",
+      category: "Resin Nameplates",
+      message: "Want a nameplate for our new home in Adajan. Family name 'The Sharmas' with warm gold tones.",
+      sourcePage: "#/product/personalized-resin-nameplate",
+      status: "NEW",
+    },
+  });
+  await db.lead.create({
+    data: {
+      name: "Rahul Mehta",
+      mobile: "+91 99201 55678",
+      city: "Mumbai",
+      product: "Wedding Bouquet Memory Heart",
+      productUrl: "#/product/wedding-bouquet-memory-heart",
+      category: "Memory Preservation",
+      message: "Getting married in December — want to preserve the bouquet for my wife as an anniversary surprise.",
+      sourcePage: "#/category/memory-preservation",
+      status: "CONTACTED",
+      notes: "Shared pricing & flower pressing guide on WhatsApp.",
+    },
+  });
+  await db.lead.create({
+    data: {
+      name: "Ananya Iyer",
+      mobile: "+65 8123 4567",
+      city: "Singapore",
+      product: "Pressed Flower Hexagon Coaster Set",
+      productUrl: "#/product/pressed-flower-coaster-set",
+      category: "Resin Coasters",
+      message: "Do you ship to Singapore? I'd love two sets with monogram 'A'.",
+      sourcePage: "#/products",
+      utmSource: "instagram",
+      utmMedium: "social",
+      status: "NEW",
+    },
+  });
+  console.log("✓ 3 demo leads");
+
   // ---------------- Media library registration ----------------
   const allImages = new Set<string>([
+    "logo.png",
     "hero-main.jpg", "about-studio.jpg", "cta-bg.jpg", "og-default.jpg",
     ...categories.map((c) => c.image.split("/").pop()!),
     ...products.flatMap((p) => p.images.map((i) => i.url.split("/").pop()!)),
