@@ -1,0 +1,2181 @@
+# ARTISTIC BY KHUSHI
+
+## Complete Dynamic Website + Admin Panel + Product Catalogue + Blog CMS + SEO + Lead Management
+
+### Master Development & Project Specification
+
+---
+
+## 1. PROJECT OVERVIEW
+
+I want to build a complete, professional, SEO-focused and fully dynamic website for my brand:
+
+**Brand Name: Artistic by Khushi**
+
+The website should not be designed as a simple static portfolio website.
+
+The goal is to create a complete **content-driven product catalogue + lead-generation + blog + SEO platform** where I can independently manage almost everything through a secure Admin Panel.
+
+I should not need a developer for small or regular changes.
+
+The entire website should be designed so that:
+
+* Products can be added/edited/deleted from Admin Panel
+* Categories can be added/edited/deleted
+* Product images can be managed
+* Product descriptions can be managed
+* Product SEO can be managed
+* Blog posts can be created and published
+* Blog images can be uploaded
+* Meta title, meta description, slug and keywords can be managed
+* Pages can be edited dynamically
+* FAQs can be managed
+* Internal links can be managed
+* Homepage sections can be managed
+* Contact information can be changed
+* WhatsApp number can be changed
+* Inquiry forms can be managed
+* Leads/inquiries should be sent to Google Sheets
+* Website should have strong technical SEO
+* Website should be optimized for Google Search as well as AI/LLM-based search
+* Website should be fast and mobile responsive
+* Website should be deployable on Netlify using a free/low-cost architecture wherever possible
+* No shopping cart or online checkout is required
+
+This is primarily a **product discovery + inquiry + lead-generation website**, not a traditional e-commerce checkout website.
+
+---
+
+# 2. CORE BUSINESS MODEL
+
+The website will showcase all Artistic by Khushi products and services.
+
+Customers should be able to:
+
+1. Discover a category
+2. Browse products
+3. Open a product detail page
+4. View product images and information
+5. Understand customization options
+6. Click an Inquiry button
+7. Submit their:
+
+   * Name
+   * Mobile Number
+   * City / Location
+   * Product they are interested in
+   * Optional message
+8. Inquiry should be stored in Google Sheets
+9. Customer should also have a direct WhatsApp option
+
+There should be NO:
+
+* Add to Cart
+* Cart page
+* Checkout
+* Payment gateway
+* Order-processing ecommerce system
+
+The primary CTA should be:
+
+**Enquire Now**
+
+Secondary CTA:
+
+**WhatsApp Us**
+
+---
+
+# 3. BRAND POSITIONING
+
+Artistic by Khushi is a handcrafted resin art and personalized gifting brand.
+
+The website should communicate:
+
+* Premium handcrafted resin art
+* Personalized products
+* Home décor
+* Gifting
+* Memory preservation
+* Custom designs
+* Artistic craftsmanship
+* Premium finishing
+* Long-lasting visual appeal
+* Personalized memories converted into art
+
+Brand communication should feel:
+
+* Premium
+* Artistic
+* Trustworthy
+* Human
+* Elegant
+* Warm
+* Professional
+* Indian handcrafted brand
+
+Avoid making the website look like a generic AI-generated template.
+
+---
+
+# 4. MAIN PRODUCT / SERVICE CATEGORIES
+
+The architecture must support unlimited categories.
+
+Initial categories should include the existing Artistic by Khushi product/service range such as:
+
+### Resin Nameplates
+
+* Personalized Resin Nameplates
+* Custom Nameplates
+* Home Nameplates
+* Office Nameplates
+* Couple Nameplates
+* Family Nameplates
+* Customized Nameplates
+
+### Spiritual / Mantra Frames
+
+* Mantra Frames
+* Spiritual Frames
+* Religious Resin Frames
+* Personalized Spiritual Art
+* Positivity Art
+* Custom Mantra Frames
+
+### Lippan / Mud Mirror Inspired Art
+
+* Lippan Art
+* Mud Mirror Inspired Art
+* Lippan Frames
+* Decorative Wall Art
+
+### Resin Wall Art
+
+* Resin Wall Art
+* Abstract Resin Art
+* Customized Wall Art
+* Decorative Resin Art
+
+### Resin Trays
+
+* Resin Serving Trays
+* Decorative Trays
+* Customized Resin Trays
+
+### Resin Coasters
+
+* Resin Coasters
+* Personalized Coasters
+* Customized Coaster Sets
+
+### Resin Keychains
+
+* Resin Keychains
+* Personalized Keychains
+* Custom Keychains
+
+### Resin Jewellery
+
+* Custom Resin Jewellery
+* Resin Earrings
+* Resin Pendants
+* Resin Accessories
+* Personalized Jewellery
+
+### Memory Preservation
+
+* Memory Preservation Resin Art
+* Wedding Memory Preservation
+* Flower Preservation
+* Special Memory Keepsakes
+* Personalized Keepsakes
+
+### Custom Orders
+
+* Custom Resin Products
+* Personalized Resin Art
+* Custom Colors
+* Custom Themes
+* Custom Patterns
+* Custom Designs
+
+IMPORTANT:
+
+The architecture must NOT hard-code these categories.
+
+I should be able to create additional categories from the Admin Panel without changing the code.
+
+---
+
+# 5. WEBSITE STRUCTURE
+
+The website should contain:
+
+## Main Pages
+
+* Home
+* About Us
+* All Products
+* Categories
+* Individual Category Pages
+* Individual Product Pages
+* Services
+* Custom Orders
+* Memory Preservation
+* Blog
+* Individual Blog Pages
+* FAQ
+* Contact Us
+* Privacy Policy
+* Terms & Conditions
+* Disclaimer
+* Thank You Page
+* 404 Page
+
+The architecture should support creating additional pages from Admin Panel.
+
+---
+
+# 6. HOMEPAGE STRUCTURE
+
+Homepage should be completely dynamic.
+
+Suggested structure:
+
+### Section 1 – Hero
+
+Headline related to handcrafted personalized resin art.
+
+Supporting text explaining the brand.
+
+Primary CTA:
+
+**Explore Products**
+
+Secondary CTA:
+
+**Enquire Now**
+
+Optional:
+
+**WhatsApp Us**
+
+---
+
+### Section 2 – Brand Introduction
+
+Short introduction to Artistic by Khushi.
+
+Include:
+
+* What we create
+* What makes us different
+* Personalized craftsmanship
+* Customization
+
+---
+
+### Section 3 – Featured Categories
+
+Dynamic category cards.
+
+Admin should be able to:
+
+* Add category
+* Remove category
+* Change category image
+* Change category title
+* Change category description
+* Change display order
+
+---
+
+### Section 4 – Featured Products
+
+Dynamic products selected from Admin Panel.
+
+Admin should be able to mark products as:
+
+**Featured**
+
+Only featured products appear here.
+
+---
+
+### Section 5 – Why Choose Artistic by Khushi
+
+Dynamic editable section.
+
+Possible points:
+
+* Personalized Designs
+* Premium Resin Finish
+* Handmade Craftsmanship
+* Custom Colors & Themes
+* Memory Preservation
+* Made With Care
+
+Admin must be able to edit these.
+
+---
+
+### Section 6 – Custom Orders
+
+Explain that customers can request:
+
+* Custom size
+* Custom colour
+* Custom theme
+* Custom name
+* Custom design
+* Custom concept
+
+CTA:
+
+**Start Your Custom Order**
+
+---
+
+### Section 7 – Memory Preservation
+
+Dedicated promotional section for memory-preserving resin art.
+
+CTA:
+
+**Preserve Your Memory**
+
+---
+
+### Section 8 – Latest Blog Posts
+
+Automatically show latest published blogs.
+
+Admin can control:
+
+* Number of posts
+* Featured posts
+* Category
+
+---
+
+### Section 9 – FAQs
+
+Dynamic FAQs.
+
+---
+
+### Section 10 – Final CTA
+
+Strong inquiry section:
+
+**Have Something Special in Mind?**
+
+Button:
+
+**Send an Inquiry**
+
+WhatsApp option should also be available.
+
+---
+
+# 7. CATEGORY PAGE STRUCTURE
+
+Every category must have its own SEO-friendly URL.
+
+Example:
+
+/resin-nameplates/
+
+/resin-coasters/
+
+/resin-keychains/
+
+/memory-preservation/
+
+/custom-resin-art/
+
+Category pages should contain:
+
+1. Breadcrumb
+2. H1 category title
+3. Introductory content
+4. Category description
+5. Featured products
+6. All products within category
+7. Product cards
+8. Customization information
+9. FAQs
+10. Related categories
+11. Related blog posts
+12. Internal links
+13. Inquiry CTA
+14. WhatsApp CTA
+
+Category content must be editable from Admin Panel.
+
+---
+
+# 8. PRODUCT PAGE STRUCTURE
+
+Each product should have a dedicated dynamic page.
+
+Example:
+
+/product/personalized-resin-nameplate/
+
+Product page should contain:
+
+### Above the Fold
+
+* Product name
+* Main product image
+* Image gallery
+* Short description
+* Key highlights
+* Enquire Now button
+* WhatsApp button
+
+NO ADD TO CART.
+
+---
+
+### Product Information
+
+* Detailed description
+* Product features
+* Customization options
+* Available sizes
+* Available colours
+* Material information
+* Design information
+* Suitable occasions
+* Care instructions
+* Production information if applicable
+
+All fields must be optional and dynamic.
+
+---
+
+### Product Gallery
+
+Support multiple images.
+
+Admin should be able to:
+
+* Upload image
+* Delete image
+* Reorder image
+* Set featured image
+* Add image alt text
+* Add image caption
+
+---
+
+### Inquiry CTA
+
+Every product page should have:
+
+**Enquire About This Product**
+
+When clicked, inquiry form should automatically know which product the customer is enquiring about.
+
+For example:
+
+Product: Personalized Resin Nameplate
+
+The form should automatically submit the product name with the lead.
+
+---
+
+### Related Products
+
+Automatically show related products based on:
+
+* Category
+* Subcategory
+* Tags
+
+Admin should also be able to manually select related products.
+
+---
+
+### Related Blogs
+
+Show relevant blog posts.
+
+---
+
+### FAQs
+
+Product-specific FAQs should be supported.
+
+---
+
+# 9. PRODUCT ADMIN PANEL
+
+Admin should be able to create unlimited products.
+
+Product fields:
+
+* Product Name
+* Product Slug
+* SKU / Internal ID optional
+* Category
+* Subcategory
+* Short Description
+* Long Description
+* Featured Image
+* Product Gallery
+* Image Alt Text
+* Image Caption
+* Product Tags
+* Customization Options
+* Size
+* Material
+* Colour
+* Occasion
+* Care Instructions
+* Featured Product toggle
+* Published / Draft toggle
+* Display Order
+
+SEO fields:
+
+* SEO Title
+* Meta Description
+* Focus Keyword
+* Secondary Keywords
+* Canonical URL
+* Open Graph Title
+* Open Graph Description
+* Social Image
+* FAQ Schema content
+* Breadcrumb information
+
+---
+
+# 10. CATEGORY ADMIN PANEL
+
+Category fields:
+
+* Category Name
+* Slug
+* Category Image
+* Short Description
+* Long Description
+* Featured Category toggle
+* Display Order
+* Parent Category
+* SEO Title
+* Meta Description
+* Focus Keyword
+* Secondary Keywords
+* OG Title
+* OG Description
+* OG Image
+* Canonical URL
+* FAQ
+* Intro content
+* Bottom SEO content
+
+Categories must be fully dynamic.
+
+---
+
+# 11. BLOG CMS
+
+Blog is a major part of the website.
+
+I will publish blogs regularly, potentially daily.
+
+Therefore the blog system must behave like a proper CMS.
+
+Admin should be able to:
+
+* Create blog
+* Edit blog
+* Delete blog
+* Save draft
+* Publish
+* Unpublish
+* Schedule if supported
+* Add featured image
+* Add multiple content images
+* Add image alt text
+* Add captions
+* Add categories
+* Add tags
+* Add author
+* Add reading time
+* Add table of contents
+* Add FAQs
+* Add related products
+* Add related categories
+* Add internal links
+
+---
+
+# 12. BLOG EDITOR
+
+The blog editor should support rich content.
+
+Required:
+
+* H1
+* H2
+* H3
+* H4
+* Paragraph
+* Bold
+* Italic
+* Bullet list
+* Numbered list
+* Quote
+* Links
+* Images
+* Image captions
+* Tables
+* FAQ sections
+* Internal links
+* External links
+* Anchor links
+* Table of contents
+
+The editor should generate clean semantic HTML.
+
+Avoid unnecessary inline styling and bloated HTML.
+
+---
+
+# 13. BLOG SEO FIELDS
+
+Every blog should have:
+
+* SEO Title
+* Meta Description
+* URL Slug
+* Focus Keyword
+* Secondary Keywords
+* Canonical URL
+* Featured Image
+* OG Image
+* OG Title
+* OG Description
+* Twitter/X metadata
+* Article schema
+* Breadcrumb schema
+* FAQ schema where applicable
+
+The system should automatically generate:
+
+* Article structured data
+* Breadcrumb structured data
+* Open Graph metadata
+* Canonical tags
+
+---
+
+# 14. IMAGE MANAGEMENT
+
+Since the website will contain many product and blog images, image management is extremely important.
+
+Images should support:
+
+* Upload
+* Replace
+* Delete
+* Alt text
+* Caption
+* Title
+* Featured image
+* Compression
+* Responsive image sizes
+* Lazy loading where appropriate
+
+Images should be optimized for performance.
+
+Do not load unnecessarily huge original images.
+
+Use modern image formats such as WebP/AVIF where the hosting architecture supports them.
+
+Important:
+
+Every important image should have meaningful SEO-friendly alt text.
+
+Do not automatically generate spammy alt text by stuffing keywords.
+
+---
+
+# 15. INQUIRY / LEAD SYSTEM
+
+There should be NO traditional ecommerce checkout.
+
+Instead, the website should be built around lead generation.
+
+Every product page should have:
+
+**Enquire Now**
+
+button.
+
+The inquiry form should collect:
+
+### Required
+
+* Name
+* Mobile Number
+* City / Location
+
+### Optional
+
+* Product
+* Message
+* Preferred contact method
+
+The product should automatically populate when the form is opened from a product page.
+
+---
+
+# 16. GOOGLE SHEETS DATABASE
+
+Instead of paying for a traditional CRM/database, use **Google Sheets as the lead database** wherever technically practical.
+
+Form submission flow:
+
+Customer
+→ Website Inquiry Form
+→ Serverless/API endpoint
+→ Google Apps Script Web App
+→ Google Sheet
+→ Lead stored
+
+Google Sheet columns should include:
+
+* Date
+* Time
+* Name
+* Mobile
+* City / Location
+* Product
+* Product URL
+* Category
+* Message
+* Source Page
+* UTM Source
+* UTM Medium
+* UTM Campaign
+* Referrer
+* Lead Status
+* Notes
+
+The website should NOT expose Google Sheet credentials or sensitive configuration to the frontend.
+
+Use a secure serverless/API mechanism or Google Apps Script endpoint.
+
+Do not put private API keys or secrets directly into frontend JavaScript.
+
+---
+
+# 17. LEAD MANAGEMENT
+
+Admin panel should ideally allow basic lead management if feasible.
+
+Lead statuses:
+
+* New
+* Contacted
+* Follow-up
+* Converted
+* Not Interested
+* Closed
+
+However, Google Sheets remains the main database.
+
+If full lead management inside Admin Panel is unnecessarily expensive for the free architecture, Google Sheets can remain the source of truth.
+
+---
+
+# 18. WHATSAPP INTEGRATION
+
+Every major product and inquiry section should include WhatsApp.
+
+Buttons:
+
+**WhatsApp Us**
+
+**Enquire on WhatsApp**
+
+When clicked, WhatsApp should open with a pre-filled message.
+
+Example:
+
+Hello, I am interested in [Product Name] from Artistic by Khushi. Please share more details.
+
+The WhatsApp number must be editable from Admin Panel / site settings.
+
+Do not hard-code the number throughout the website.
+
+---
+
+# 19. GLOBAL SITE SETTINGS
+
+Create a central Site Settings section in Admin Panel.
+
+It should manage:
+
+* Brand Name
+* Logo
+* Favicon
+* Phone Number
+* WhatsApp Number
+* Email
+* Address / Location
+* Social media links
+* Footer content
+* Copyright text
+* Default SEO title
+* Default meta description
+* Default OG image
+* Google Analytics ID
+* Google Search Console verification
+* Social links
+* Header CTA
+* Footer CTA
+
+Changing these settings should automatically update the website.
+
+---
+
+# 20. DYNAMIC HEADER
+
+Header should include:
+
+* Logo
+* Home
+* Products
+* Categories
+* Services
+* About
+* Blog
+* Contact
+* Enquire Now
+
+Navigation should be dynamically manageable from Admin Panel if possible.
+
+Mobile menu must be responsive.
+
+---
+
+# 21. DYNAMIC FOOTER
+
+Footer should contain:
+
+* Brand introduction
+* Important links
+* Product categories
+* Services
+* Blog
+* Contact information
+* WhatsApp
+* Social media
+* Privacy Policy
+* Terms
+* Disclaimer
+* Copyright
+
+Footer content must be editable.
+
+---
+
+# 22. ADMIN PANEL
+
+Admin Panel is one of the most important parts of the project.
+
+Admin dashboard should allow me to manage the entire website.
+
+Dashboard:
+
+* Total Products
+* Published Products
+* Draft Products
+* Total Categories
+* Published Blogs
+* Draft Blogs
+* Recent Inquiries
+* Featured Products
+* Quick Add Product
+* Quick Add Blog
+* Quick Add Category
+
+---
+
+# 23. ADMIN MODULES
+
+Create separate modules:
+
+### Products
+
+* Add
+* Edit
+* Delete
+* Publish
+* Draft
+* Feature
+* Search
+* Filter
+* Sort
+
+### Categories
+
+* Add
+* Edit
+* Delete
+* Reorder
+* Feature
+
+### Blogs
+
+* Add
+* Edit
+* Delete
+* Draft
+* Publish
+* Schedule if supported
+
+### Pages
+
+* Add
+* Edit
+* Publish
+* Draft
+
+### FAQs
+
+* Add
+* Edit
+* Delete
+* Reorder
+
+### Media Library
+
+* Upload
+* Search
+* Delete
+* Alt text
+* Captions
+
+### Leads
+
+* View
+* Filter
+* Search
+* Status
+
+### Site Settings
+
+* Contact details
+* WhatsApp
+* Logo
+* Social media
+* SEO defaults
+
+### SEO
+
+* Global SEO
+* Page SEO
+* Product SEO
+* Category SEO
+* Blog SEO
+
+---
+
+# 24. ADMIN AUTHENTICATION
+
+Admin Panel must not be publicly accessible.
+
+Implement secure authentication.
+
+Requirements:
+
+* Login
+* Logout
+* Protected admin routes
+* Password hashing
+* Session management
+* Authorization
+* Protection against unauthorized access
+
+Do not expose admin credentials in frontend code.
+
+If using a free authentication provider, choose an architecture that has a usable free tier and does not create unnecessary recurring costs.
+
+---
+
+# 25. SEO ARCHITECTURE
+
+SEO must be built into the architecture from the beginning.
+
+Do NOT add SEO as an afterthought.
+
+Every page should have:
+
+* Unique URL
+* Unique title
+* Meta description
+* Canonical URL
+* H1
+* Proper H2/H3 hierarchy
+* Breadcrumb
+* Internal links
+* Image alt text
+* Structured data where relevant
+* Open Graph
+* Social metadata
+
+---
+
+# 26. TECHNICAL SEO
+
+Implement:
+
+* XML Sitemap
+* Dynamic Sitemap
+* Robots.txt
+* Canonical tags
+* Clean URLs
+* 301 redirect support where possible
+* 404 page
+* HTTPS
+* Mobile responsiveness
+* Fast loading
+* Semantic HTML
+* Proper heading hierarchy
+* Image optimization
+* Lazy loading
+* Structured data
+* Breadcrumbs
+* No duplicate URL issues
+* Pagination handling if required
+* Index/noindex controls from Admin Panel
+
+The sitemap should automatically update when products, categories or blogs are published.
+
+---
+
+# 27. SEO URL STRUCTURE
+
+Use clean human-readable URLs.
+
+Examples:
+
+/products/
+
+/category/resin-nameplates/
+
+/category/resin-coasters/
+
+/product/personalized-resin-nameplate/
+
+/blog/resin-nameplate-design-ideas/
+
+Avoid URLs such as:
+
+/product?id=123
+
+unless technically required internally.
+
+The public URL should remain SEO-friendly.
+
+---
+
+# 28. LLM / AI SEARCH OPTIMIZATION
+
+The website should be structured so AI search engines and LLM-based systems can understand the business.
+
+Content should be:
+
+* Clear
+* Factual
+* Structured
+* Entity-oriented
+* Context-rich
+* Easy to crawl
+* Easy to interpret
+
+Use:
+
+* Clear headings
+* Direct answers
+* FAQs
+* Product specifications
+* Category descriptions
+* Business information
+* Location information
+* Service information
+* Author information
+* About page
+* Organization schema
+* Product schema where applicable
+* Article schema
+* FAQ schema where appropriate
+* Breadcrumb schema
+
+Avoid meaningless keyword stuffing.
+
+---
+
+# 29. GEO / GENERATIVE ENGINE OPTIMIZATION
+
+Build pages that answer natural customer questions.
+
+Examples:
+
+* What is resin art?
+* What are resin nameplates?
+* How can I customize a resin nameplate?
+* What resin products can be personalized?
+* How does memory preservation work?
+* What can be preserved in resin?
+* Where can I get customized resin gifts?
+* How can I order a custom resin product?
+* What information is required for a custom order?
+
+Create useful FAQ sections and informational content naturally.
+
+The website should establish Artistic by Khushi as a clear entity with:
+
+* Brand name
+* Products
+* Services
+* Location
+* Contact
+* Expertise
+* Content
+* Author/business information
+
+---
+
+# 30. LOCAL SEO
+
+The website should support local SEO.
+
+Admin should be able to manage:
+
+* Business location
+* City
+* State
+* Service areas
+* Contact number
+* Business description
+
+Create appropriate local business structured data only where accurate.
+
+Do not create fake locations or fake branches.
+
+The system should allow future expansion to multiple service areas without rebuilding the website.
+
+---
+
+# 31. INTERNAL LINKING SYSTEM
+
+Internal linking should be a major SEO feature.
+
+Examples:
+
+Product
+→ Category
+
+Product
+→ Related Product
+
+Product
+→ Related Blog
+
+Blog
+→ Product
+
+Blog
+→ Category
+
+Category
+→ Product
+
+Category
+→ Blog
+
+Admin should be able to manually add internal links from the content editor.
+
+Where useful, automatically suggest related content.
+
+---
+
+# 32. BREADCRUMBS
+
+Every relevant page should have breadcrumbs.
+
+Example:
+
+Home
+→ Resin Art
+→ Resin Nameplates
+→ Personalized Resin Nameplate
+
+Breadcrumbs should also support BreadcrumbList structured data.
+
+---
+
+# 33. STRUCTURED DATA
+
+Implement schema markup appropriately.
+
+Potential schema types:
+
+* Organization
+* LocalBusiness where applicable
+* WebSite
+* WebPage
+* BreadcrumbList
+* Product
+* Article
+* FAQPage
+* Person / Author where appropriate
+
+Do not generate misleading structured data.
+
+Only include information that is actually visible and accurate.
+
+---
+
+# 34. PERFORMANCE
+
+Website must be fast.
+
+Target:
+
+* Good Core Web Vitals
+* Optimized images
+* Minimal JavaScript
+* Lazy loading
+* Code splitting where appropriate
+* Caching
+* CDN
+* Optimized fonts
+* Avoid unnecessary third-party scripts
+
+Do not install unnecessary libraries.
+
+---
+
+# 35. NETLIFY HOSTING
+
+The website will be hosted on **Netlify**.
+
+Architecture should be compatible with Netlify's free hosting capabilities wherever practical.
+
+Prefer:
+
+* Static generation / pre-rendering where appropriate
+* Serverless functions where required
+* Lightweight architecture
+* CDN-friendly assets
+* No traditional paid server requirement
+
+Do not design the project around an expensive VPS.
+
+The developer should clearly document:
+
+* Netlify deployment steps
+* Environment variables
+* Build command
+* Publish directory
+* Functions configuration
+* Domain connection
+* HTTPS
+* Redirects
+* Forms/API configuration
+
+---
+
+# 36. DATABASE / BACKEND ARCHITECTURE
+
+The project should prioritize a free or very low-cost architecture.
+
+Important distinction:
+
+The website content needs to be dynamic, but we should avoid unnecessary paid infrastructure.
+
+Possible architecture:
+
+Frontend
+→ Netlify
+
+Backend/API
+→ Netlify Functions or suitable free serverless architecture
+
+Lead database
+→ Google Sheets through Google Apps Script
+
+Content database
+→ A suitable free-tier database/CMS/backend that works reliably with the chosen architecture
+
+The developer should select the simplest stable architecture that can actually support:
+
+* Products
+* Categories
+* Blogs
+* Pages
+* FAQs
+* SEO data
+* Admin authentication
+* Media references
+* Dynamic content
+
+Do not use a paid service merely because it is convenient.
+
+---
+
+# 37. IMPORTANT FREE-TIER REQUIREMENT
+
+The project should be designed around free tiers wherever practical.
+
+Avoid unnecessary subscriptions for:
+
+* Hosting
+* Database
+* CMS
+* Lead management
+* Analytics
+* Authentication
+
+However, do NOT compromise website security or data integrity just to avoid every possible paid service.
+
+The developer must clearly identify:
+
+1. What is completely free
+2. What has a free tier
+3. What may eventually incur a cost
+4. What limits apply
+
+There should be no hidden recurring dependency.
+
+---
+
+# 38. ADMIN PAGE BUILDER / DYNAMIC CONTENT
+
+I should be able to modify website sections without editing code.
+
+For important pages, provide editable content fields.
+
+For example:
+
+Homepage:
+
+* Hero heading
+* Hero description
+* Hero image
+* CTA text
+* CTA URL
+* Featured categories
+* Featured products
+* Why choose us
+* Custom order section
+* Memory preservation section
+* FAQ
+* CTA
+
+About page:
+
+* Heading
+* Content
+* Images
+* Story
+* Values
+* CTA
+
+Contact page:
+
+* Heading
+* Description
+* Phone
+* WhatsApp
+* Email
+* Location
+* Form
+
+---
+
+# 39. SEO CONTROL PANEL
+
+Admin should have a dedicated SEO section.
+
+For every important page:
+
+* SEO title
+* Meta description
+* Slug
+* Canonical
+* Robots index/noindex
+* Follow/nofollow
+* OG title
+* OG description
+* OG image
+* Schema settings
+* Focus keyword
+* Secondary keywords
+
+There should also be global defaults.
+
+---
+
+# 40. SEO PREVIEW
+
+Where possible, provide a search preview in Admin Panel showing:
+
+Google-style:
+
+Title
+URL
+Meta description
+
+This will help me optimize content myself.
+
+---
+
+# 41. BLOG INDEX PAGE
+
+Blog listing page should include:
+
+* H1
+* Intro content
+* Featured blog
+* Latest blogs
+* Categories
+* Search
+* Pagination
+* Related categories
+
+Admin should be able to control featured content.
+
+---
+
+# 42. BLOG CATEGORY SYSTEM
+
+Blogs should support categories and tags.
+
+Example:
+
+* Resin Art
+* Home Décor
+* Gifting
+* Memory Preservation
+* Customization
+* Resin Care
+* Inspiration
+* DIY / Educational
+* Product Guides
+
+These must remain dynamic.
+
+---
+
+# 43. SEARCH FUNCTION
+
+Website should have a search feature.
+
+Search should be able to find:
+
+* Products
+* Categories
+* Blogs
+
+Search should be fast and mobile friendly.
+
+---
+
+# 44. FILTERING
+
+Product listing should support filters where useful:
+
+* Category
+* Subcategory
+* Product type
+* Tags
+
+Do not overcomplicate the UX.
+
+---
+
+# 45. PRODUCT CARD
+
+Product cards should contain:
+
+* Product image
+* Product name
+* Short description
+* Category
+* View Details
+* Enquire Now
+
+No Add to Cart.
+
+---
+
+# 46. INQUIRY FORM UX
+
+The inquiry form should be simple.
+
+Fields:
+
+Name *
+Mobile Number *
+City / Location *
+
+Product
+Message
+
+CTA:
+
+**Submit Inquiry**
+
+After successful submission:
+
+Show:
+
+**Thank you! Your inquiry has been received. We will contact you soon.**
+
+Then optionally provide:
+
+**Chat on WhatsApp**
+
+---
+
+# 47. SPAM PROTECTION
+
+Inquiry form should include basic spam protection.
+
+Do not make the customer solve difficult CAPTCHAs unless necessary.
+
+Use appropriate:
+
+* Honeypot
+* Rate limiting
+* Validation
+* Server-side validation
+
+---
+
+# 48. FORM VALIDATION
+
+Validate:
+
+Name
+
+* Required
+* Reasonable length
+
+Mobile
+
+* Required
+* Valid phone format
+
+City / Location
+
+* Required
+
+Message
+
+* Optional
+* Maximum length
+
+Never trust only frontend validation.
+
+Validate again on the backend/serverless endpoint.
+
+---
+
+# 49. ANALYTICS
+
+Architecture should support:
+
+* Google Analytics
+* Google Search Console
+* Conversion tracking
+
+Track:
+
+* Product views
+* Inquiry button clicks
+* Form submissions
+* WhatsApp clicks
+* Blog views
+* Category views
+
+Analytics IDs should be configurable from Admin Panel or environment settings.
+
+---
+
+# 50. CONVERSION TRACKING
+
+Important events:
+
+* enquiry_click
+* inquiry_form_open
+* inquiry_submit
+* whatsapp_click
+* product_view
+* blog_view
+
+Do not track sensitive personal information.
+
+---
+
+# 51. SECURITY
+
+Security is mandatory.
+
+Implement:
+
+* Secure admin authentication
+* Password hashing
+* Protected routes
+* Input sanitization
+* Server-side validation
+* XSS protection
+* CSRF protection where relevant
+* Rate limiting
+* Secure environment variables
+* No exposed API keys
+* Secure Google Apps Script integration
+* Safe file handling
+* Access control
+
+Never put private credentials in frontend source code.
+
+---
+
+# 52. MOBILE RESPONSIVENESS
+
+The website must work perfectly on:
+
+* Mobile
+* Tablet
+* Laptop
+* Desktop
+* Large desktop screens
+
+Mobile experience is extremely important because many inquiries will come from mobile users.
+
+Buttons must be easy to tap.
+
+WhatsApp CTA should be highly accessible on mobile.
+
+---
+
+# 53. ACCESSIBILITY
+
+Follow good accessibility practices:
+
+* Semantic HTML
+* Proper labels
+* Alt text
+* Keyboard navigation
+* Good contrast
+* Accessible buttons
+* Form error messages
+* Focus states
+
+---
+
+# 54. 404 PAGE
+
+Create a useful custom 404 page.
+
+Include:
+
+* Message
+* Home button
+* Product link
+* Category link
+* Blog link
+* Search
+
+---
+
+# 55. LEGAL PAGES
+
+Create editable:
+
+* Privacy Policy
+* Terms & Conditions
+* Disclaimer
+
+These should be accessible from footer.
+
+---
+
+# 56. CONTENT MANAGEMENT PRINCIPLE
+
+The website should be **data-driven**, not hard-coded.
+
+Bad implementation:
+
+Product names directly written inside frontend code.
+
+Correct implementation:
+
+Products fetched from backend/content database.
+
+Same principle applies to:
+
+* Categories
+* Blogs
+* FAQs
+* Navigation
+* Homepage sections
+* Contact details
+* SEO metadata
+* Social links
+
+---
+
+# 57. NO DEVELOPER DEPENDENCY
+
+The final project should allow a non-developer to perform routine operations.
+
+I should be able to:
+
+1. Add a product
+2. Add category
+3. Upload product images
+4. Edit product description
+5. Change product SEO
+6. Publish/unpublish product
+7. Add blog
+8. Upload blog images
+9. Change blog SEO
+10. Add FAQ
+11. Change WhatsApp number
+12. Change contact information
+13. Change homepage content
+14. Feature/unfeature products
+15. Update footer
+16. Update social links
+
+without changing source code.
+
+---
+
+# 58. ADMIN DOCUMENTATION
+
+The developer must provide an Admin User Guide.
+
+Explain:
+
+* How to login
+* How to add product
+* How to add category
+* How to upload images
+* How to create blog
+* How to optimize blog SEO
+* How to change homepage
+* How to manage FAQs
+* How to update WhatsApp
+* How to view Google Sheet leads
+* How to publish/unpublish content
+
+---
+
+# 59. DEVELOPER HANDOVER
+
+At project completion provide:
+
+### Source Code
+
+Complete Git repository/source code.
+
+### Environment Variables
+
+Document every variable.
+
+### Deployment
+
+Netlify deployment instructions.
+
+### Domain
+
+Instructions for connecting existing domain.
+
+### Google Sheets
+
+Instructions for connecting Google Apps Script and Sheet.
+
+### Admin
+
+Admin setup instructions.
+
+### Backup
+
+Explain how to backup content/database.
+
+### Maintenance
+
+Explain how the system can be maintained.
+
+---
+
+# 60. ERROR HANDLING
+
+The website should gracefully handle:
+
+* API failure
+* Google Sheet failure
+* Image upload failure
+* Invalid form
+* Network failure
+* Missing product
+* Deleted category
+* Invalid URL
+* Database unavailable
+
+Customer should never see technical errors such as:
+
+500 Internal Server Error
+
+unless absolutely unavoidable.
+
+---
+
+# 61. SEO-FRIENDLY CONTENT ARCHITECTURE
+
+Each important page should follow a clear information architecture.
+
+Example:
+
+Home
+↓
+Category
+↓
+Product
+
+Home
+↓
+Blog
+↓
+Article
+↓
+Related Product
+
+Category
+↓
+Products
+↓
+Product
+↓
+Related Blog
+
+This should create a strong internal topical structure.
+
+---
+
+# 62. CONTENT QUALITY
+
+Do not generate pages simply to target keywords.
+
+Every page should have genuine useful content.
+
+Avoid:
+
+* Keyword stuffing
+* Duplicate descriptions
+* Doorway pages
+* Thin category pages
+* AI-generated meaningless paragraphs
+* Fake reviews
+* Fake locations
+* Fake statistics
+
+The goal is long-term organic SEO.
+
+---
+
+# 63. PRODUCT SEO TEMPLATE
+
+Every product should automatically have a basic SEO template.
+
+Example:
+
+SEO Title:
+
+[Product Name] | Artistic by Khushi
+
+Meta Description:
+
+Discover [Product Name] by Artistic by Khushi. Explore personalized handcrafted resin art and enquire for customization.
+
+But Admin must be able to override the automatic template manually.
+
+---
+
+# 64. CATEGORY SEO TEMPLATE
+
+Example:
+
+[Category Name] | Artistic by Khushi
+
+Again, the automatic template should exist, but Admin should be able to customize it.
+
+---
+
+# 65. BLOG SEO TEMPLATE
+
+Example:
+
+[Blog Title] | Artistic by Khushi
+
+Admin can override it.
+
+---
+
+# 66. SCALABILITY
+
+The architecture should support:
+
+* Hundreds of products
+* Hundreds of categories
+* Hundreds/thousands of blog posts
+* Large image libraries
+
+without requiring a complete rebuild.
+
+---
+
+# 67. DESIGN DIRECTION
+
+The visual design should communicate handcrafted premium resin art.
+
+Avoid:
+
+* Generic ecommerce look
+* Cheap template appearance
+* Overloaded animations
+* Excessive gradients
+* Too many colors
+* Distracting effects
+
+Prefer:
+
+* Clean layout
+* Elegant typography
+* Large product imagery
+* White/neutral visual space
+* Premium presentation
+* Strong CTA
+* Mobile-first layout
+* Subtle animations
+
+The products and artwork should remain the visual focus.
+
+---
+
+# 68. ADMIN UX
+
+Admin panel should be simple enough for a non-technical user.
+
+Use:
+
+* Clear sidebar
+* Dashboard
+* Search
+* Filters
+* Tables
+* Edit buttons
+* Publish toggles
+* Preview buttons
+* Save Draft
+* Publish
+
+Avoid making the Admin Panel unnecessarily complicated.
+
+---
+
+# 69. PREVIEW FUNCTION
+
+Admin should ideally have:
+
+**Preview**
+
+before publishing.
+
+For:
+
+* Product
+* Category
+* Blog
+* Page
+
+This allows me to check the final page before making it live.
+
+---
+
+# 70. DRAFT / PUBLISHED SYSTEM
+
+Every content type should support:
+
+* Draft
+* Published
+* Unpublished
+
+Only published content should appear publicly.
+
+---
+
+# 71. SORTING
+
+Admin should be able to control:
+
+* Product order
+* Category order
+* Featured products
+* Featured categories
+* Blog order
+
+Use display order where necessary.
+
+---
+
+# 72. WEBSITE ARCHITECTURE PRINCIPLE
+
+The website should be built as:
+
+**CMS-driven + SEO-first + lead-generation focused + scalable + secure + mobile-first.**
+
+It should not be a collection of hard-coded pages.
+
+---
+
+# 73. IMPORTANT IMPLEMENTATION RULE
+
+Before coding, first create:
+
+1. Information architecture
+2. Database/content schema
+3. Admin architecture
+4. URL architecture
+5. SEO architecture
+6. Lead architecture
+7. Netlify deployment architecture
+
+Then start development.
+
+Do not start by designing only the homepage.
+
+---
+
+# 74. EXPECTED FINAL RESULT
+
+The final website should allow a customer to:
+
+Discover Artistic by Khushi
+→ Browse categories
+→ Browse products
+→ Open product
+→ Understand product
+→ Enquire
+→ Submit Name + Mobile + City
+→ Lead reaches Google Sheet
+→ Customer can WhatsApp directly
+
+And it should allow the owner to:
+
+Login to Admin Panel
+→ Add/Edit Product
+→ Add/Edit Category
+→ Add/Edit Blog
+→ Upload Images
+→ Edit SEO
+→ Edit Homepage
+→ Edit FAQs
+→ Manage contact information
+→ Publish/Unpublish content
+→ Manage everything dynamically
+
+without depending on a developer for routine changes.
+
+---
+
+# 75. FINAL DEVELOPMENT REQUIREMENT
+
+Build the project with the mindset:
+
+**I own the website and I should be able to control the website.**
+
+The developer's job is to build the infrastructure and Admin Panel.
+
+My job afterward should mainly be:
+
+* Adding products
+* Adding content
+* Adding blogs
+* Updating images
+* Updating SEO
+* Managing leads
+* Updating business information
+
+The architecture should therefore prioritize **owner control, simplicity, SEO, performance, security and scalability**.
+
+---
+
+# 76. ACCEPTANCE CHECKLIST
+
+The project will be considered complete only when all of the following work:
+
+[ ] Home page dynamic
+[ ] Products dynamic
+[ ] Categories dynamic
+[ ] Product pages dynamic
+[ ] Category pages dynamic
+[ ] Blog CMS working
+[ ] Image upload working
+[ ] SEO fields working
+[ ] Dynamic sitemap working
+[ ] Robots.txt working
+[ ] Canonical URLs working
+[ ] Schema markup working
+[ ] Breadcrumbs working
+[ ] Internal linking possible
+[ ] Search working
+[ ] Inquiry form working
+[ ] Name captured
+[ ] Mobile captured
+[ ] City/location captured
+[ ] Product captured
+[ ] Lead reaches Google Sheet
+[ ] WhatsApp integration working
+[ ] Admin authentication working
+[ ] Admin CRUD working
+[ ] Draft/publish working
+[ ] Homepage content editable
+[ ] FAQ editable
+[ ] Site settings editable
+[ ] Mobile responsive
+[ ] Fast loading
+[ ] Security implemented
+[ ] Netlify deployment working
+[ ] Existing domain can be connected
+[ ] Documentation provided
+[ ] Complete source code handed over
+
+---
+
+## MOST IMPORTANT PRINCIPLE
+
+Do not build this as a simple brochure website.
+
+Build it as a **complete dynamic digital platform for Artistic by Khushi**, where the frontend is the customer-facing website and the backend/Admin Panel acts as the control centre for:
+
+**Products + Categories + Blogs + Pages + Images + SEO + FAQs + Leads + WhatsApp + Website Settings.**
+
+The website must be designed for long-term organic growth, continuous blogging, product expansion, local search visibility and AI/LLM search visibility.
+
+The owner must remain capable of managing the website independently after development.

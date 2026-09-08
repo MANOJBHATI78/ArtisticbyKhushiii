@@ -1,0 +1,241 @@
+// Artistic by Khushi — CMS-driven platform schema
+// All list-like fields are stored as strings (JSON-encoded or comma-separated)
+// because the SQLite provider does not support primitive lists.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------- ADMIN AUTH ----------------
+
+model AdminUser {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  name         String         @default("Admin")
+  passwordHash String
+  role         String         @default("OWNER")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  sessions     AdminSession[]
+}
+
+model AdminSession {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  userId    String
+  user      AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+}
+
+// ---------------- CATALOGUE ----------------
+
+model Category {
+  id                String     @id @default(cuid())
+  name              String
+  slug              String     @unique
+  shortDescription  String     @default("")
+  longDescription   String     @default("")
+  imageUrl          String     @default("")
+  imageAlt          String     @default("")
+  introContent      String     @default("")
+  bottomContent     String     @default("")
+  featured          Boolean    @default(false)
+  displayOrder      Int        @default(0)
+  parentId          String?
+  parent            Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children          Category[] @relation("CategoryTree")
+  published         Boolean    @default(true)
+  seoTitle          String     @default("")
+  metaDescription   String     @default("")
+  focusKeyword      String     @default("")
+  secondaryKeywords String     @default("")
+  ogTitle           String     @default("")
+  ogDescription     String     @default("")
+  canonicalUrl      String     @default("")
+  products          Product[]
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+}
+
+model Product {
+  id                   String         @id @default(cuid())
+  name                 String
+  slug                 String         @unique
+  sku                  String         @default("")
+  categoryId           String
+  category             Category       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  subcategory          String         @default("")
+  shortDescription     String         @default("")
+  longDescription      String         @default("")
+  highlights           String         @default("")
+  customizationOptions String         @default("")
+  size                 String         @default("")
+  material             String         @default("")
+  colour               String         @default("")
+  occasion             String         @default("")
+  careInstructions     String         @default("")
+  tags                 String         @default("")
+  featured             Boolean        @default(false)
+  published            Boolean        @default(true)
+  displayOrder         Int            @default(0)
+  relatedProductIds    String         @default("[]")
+  seoTitle             String         @default("")
+  metaDescription      String         @default("")
+  focusKeyword         String         @default("")
+  secondaryKeywords    String         @default("")
+  ogTitle              String         @default("")
+  ogDescription        String         @default("")
+  canonicalUrl         String         @default("")
+  images               ProductImage[]
+  faqs                 Faq[]
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+}
+
+model ProductImage {
+  id           String  @id @default(cuid())
+  productId    String
+  product      Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url          String
+  alt          String  @default("")
+  caption      String  @default("")
+  isFeatured   Boolean @default(false)
+  displayOrder Int     @default(0)
+}
+
+// ---------------- BLOG CMS ----------------
+
+model BlogCategory {
+  id           String     @id @default(cuid())
+  name         String
+  slug         String     @unique
+  description  String     @default("")
+  displayOrder Int        @default(0)
+  posts        BlogPost[]
+}
+
+model BlogPost {
+  id                  String        @id @default(cuid())
+  title               String
+  slug                String        @unique
+  excerpt             String        @default("")
+  content             String        @default("")
+  coverImage          String        @default("")
+  coverAlt            String        @default("")
+  author              String        @default("Khushi")
+  readingTime         Int           @default(4)
+  tags                String        @default("")
+  featured            Boolean       @default(false)
+  status              String        @default("DRAFT")
+  publishAt           DateTime?
+  publishedAt         DateTime?
+  blogCategoryId      String?
+  blogCategory        BlogCategory? @relation(fields: [blogCategoryId], references: [id], onDelete: SetNull)
+  relatedProductSlugs String        @default("[]")
+  seoTitle            String        @default("")
+  metaDescription     String        @default("")
+  focusKeyword        String        @default("")
+  secondaryKeywords   String        @default("")
+  ogTitle             String        @default("")
+  ogDescription       String        @default("")
+  canonicalUrl        String        @default("")
+  faqs                Faq[]
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+}
+
+// ---------------- PAGES / FAQ / LEADS / MEDIA / SETTINGS ----------------
+
+model Page {
+  id              String   @id @default(cuid())
+  title           String
+  slug            String   @unique
+  content         String   @default("")
+  published       Boolean  @default(true)
+  displayOrder    Int      @default(0)
+  seoTitle        String   @default("")
+  metaDescription String   @default("")
+  faqs            Faq[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Faq {
+  id           String    @id @default(cuid())
+  question     String
+  answer       String
+  entityType   String    @default("GENERAL")
+  entityId     String?
+  displayOrder Int       @default(0)
+  published    Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  product      Product?  @relation(fields: [productId], references: [id])
+  productId    String?
+  blogPost     BlogPost? @relation(fields: [blogPostId], references: [id])
+  blogPostId   String?
+  page         Page?     @relation(fields: [pageId], references: [id])
+  pageId       String?
+}
+
+model Lead {
+  id               String   @id @default(cuid())
+  name             String
+  mobile           String
+  city             String
+  product          String   @default("")
+  productUrl       String   @default("")
+  category         String   @default("")
+  message          String   @default("")
+  preferredContact String   @default("")
+  sourcePage       String   @default("")
+  utmSource        String   @default("")
+  utmMedium        String   @default("")
+  utmCampaign      String   @default("")
+  referrer         String   @default("")
+  status           String   @default("NEW")
+  notes            String   @default("")
+  sheetSynced      Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model MediaAsset {
+  id        String   @id @default(cuid())
+  url       String
+  filename  String
+  alt       String   @default("")
+  caption   String   @default("")
+  title     String   @default("")
+  size      Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model SiteSetting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String @default("")
+}
+
+model HomepageSection {
+  id           String   @id @default(cuid())
+  sectionKey   String   @unique
+  heading      String   @default("")
+  subheading   String   @default("")
+  body         String   @default("")
+  imageUrl     String   @default("")
+  ctaText      String   @default("")
+  ctaUrl       String   @default("")
+  ctaText2     String   @default("")
+  ctaUrl2      String   @default("")
+  itemsJson    String   @default("[]")
+  visible      Boolean  @default(true)
+  displayOrder Int      @default(0)
+  updatedAt    DateTime @updatedAt
+}

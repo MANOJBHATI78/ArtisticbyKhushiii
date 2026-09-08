@@ -1,0 +1,2002 @@
+     1→# ARTISTIC BY KHUSHI
+     2→
+     3→## Complete Dynamic Website + Admin Panel + Product Catalogue + Blog CMS + SEO + Lead Management
+     4→
+     5→### Master Development & Project Specification
+     6→
+     7→---
+     8→
+     9→## 1. PROJECT OVERVIEW
+    10→
+    11→I want to build a complete, professional, SEO-focused and fully dynamic website for my brand:
+    12→
+    13→**Brand Name: Artistic by Khushi**
+    14→
+    15→The website should not be designed as a simple static portfolio website.
+    16→
+    17→The goal is to create a complete **content-driven product catalogue + lead-generation + blog + SEO platform** where I can independently manage almost everything through a secure Admin Panel.
+    18→
+    19→I should not need a developer for small or regular changes.
+    20→
+    21→The entire website should be designed so that:
+    22→
+    23→* Products can be added/edited/deleted from Admin Panel
+    24→* Categories can be added/edited/deleted
+    25→* Product images can be managed
+    26→* Product descriptions can be managed
+    27→* Product SEO can be managed
+    28→* Blog posts can be created and published
+    29→* Blog images can be uploaded
+    30→* Meta title, meta description, slug and keywords can be managed
+    31→* Pages can be edited dynamically
+    32→* FAQs can be managed
+    33→* Internal links can be managed
+    34→* Homepage sections can be managed
+    35→* Contact information can be changed
+    36→* WhatsApp number can be changed
+    37→* Inquiry forms can be managed
+    38→* Leads/inquiries should be sent to Google Sheets
+    39→* Website should have strong technical SEO
+    40→* Website should be optimized for Google Search as well as AI/LLM-based search
+    41→* Website should be fast and mobile responsive
+    42→* Website should be deployable on Netlify using a free/low-cost architecture wherever possible
+    43→* No shopping cart or online checkout is required
+    44→
+    45→This is primarily a **product discovery + inquiry + lead-generation website**, not a traditional e-commerce checkout website.
+    46→
+    47→---
+    48→
+    49→# 2. CORE BUSINESS MODEL
+    50→
+    51→The website will showcase all Artistic by Khushi products and services.
+    52→
+    53→Customers should be able to:
+    54→
+    55→1. Discover a category
+    56→2. Browse products
+    57→3. Open a product detail page
+    58→4. View product images and information
+    59→5. Understand customization options
+    60→6. Click an Inquiry button
+    61→7. Submit their:
+    62→
+    63→   * Name
+    64→   * Mobile Number
+    65→   * City / Location
+    66→   * Product they are interested in
+    67→   * Optional message
+    68→8. Inquiry should be stored in Google Sheets
+    69→9. Customer should also have a direct WhatsApp option
+    70→
+    71→There should be NO:
+    72→
+    73→* Add to Cart
+    74→* Cart page
+    75→* Checkout
+    76→* Payment gateway
+    77→* Order-processing ecommerce system
+    78→
+    79→The primary CTA should be:
+    80→
+    81→**Enquire Now**
+    82→
+    83→Secondary CTA:
+    84→
+    85→**WhatsApp Us**
+    86→
+    87→---
+    88→
+    89→# 3. BRAND POSITIONING
+    90→
+    91→Artistic by Khushi is a handcrafted resin art and personalized gifting brand.
+    92→
+    93→The website should communicate:
+    94→
+    95→* Premium handcrafted resin art
+    96→* Personalized products
+    97→* Home décor
+    98→* Gifting
+    99→* Memory preservation
+   100→* Custom designs
+   101→* Artistic craftsmanship
+   102→* Premium finishing
+   103→* Long-lasting visual appeal
+   104→* Personalized memories converted into art
+   105→
+   106→Brand communication should feel:
+   107→
+   108→* Premium
+   109→* Artistic
+   110→* Trustworthy
+   111→* Human
+   112→* Elegant
+   113→* Warm
+   114→* Professional
+   115→* Indian handcrafted brand
+   116→
+   117→Avoid making the website look like a generic AI-generated template.
+   118→
+   119→---
+   120→
+   121→# 4. MAIN PRODUCT / SERVICE CATEGORIES
+   122→
+   123→The architecture must support unlimited categories.
+   124→
+   125→Initial categories should include the existing Artistic by Khushi product/service range such as:
+   126→
+   127→### Resin Nameplates
+   128→
+   129→* Personalized Resin Nameplates
+   130→* Custom Nameplates
+   131→* Home Nameplates
+   132→* Office Nameplates
+   133→* Couple Nameplates
+   134→* Family Nameplates
+   135→* Customized Nameplates
+   136→
+   137→### Spiritual / Mantra Frames
+   138→
+   139→* Mantra Frames
+   140→* Spiritual Frames
+   141→* Religious Resin Frames
+   142→* Personalized Spiritual Art
+   143→* Positivity Art
+   144→* Custom Mantra Frames
+   145→
+   146→### Lippan / Mud Mirror Inspired Art
+   147→
+   148→* Lippan Art
+   149→* Mud Mirror Inspired Art
+   150→* Lippan Frames
+   151→* Decorative Wall Art
+   152→
+   153→### Resin Wall Art
+   154→
+   155→* Resin Wall Art
+   156→* Abstract Resin Art
+   157→* Customized Wall Art
+   158→* Decorative Resin Art
+   159→
+   160→### Resin Trays
+   161→
+   162→* Resin Serving Trays
+   163→* Decorative Trays
+   164→* Customized Resin Trays
+   165→
+   166→### Resin Coasters
+   167→
+   168→* Resin Coasters
+   169→* Personalized Coasters
+   170→* Customized Coaster Sets
+   171→
+   172→### Resin Keychains
+   173→
+   174→* Resin Keychains
+   175→* Personalized Keychains
+   176→* Custom Keychains
+   177→
+   178→### Resin Jewellery
+   179→
+   180→* Custom Resin Jewellery
+   181→* Resin Earrings
+   182→* Resin Pendants
+   183→* Resin Accessories
+   184→* Personalized Jewellery
+   185→
+   186→### Memory Preservation
+   187→
+   188→* Memory Preservation Resin Art
+   189→* Wedding Memory Preservation
+   190→* Flower Preservation
+   191→* Special Memory Keepsakes
+   192→* Personalized Keepsakes
+   193→
+   194→### Custom Orders
+   195→
+   196→* Custom Resin Products
+   197→* Personalized Resin Art
+   198→* Custom Colors
+   199→* Custom Themes
+   200→* Custom Patterns
+   201→* Custom Designs
+   202→
+   203→IMPORTANT:
+   204→
+   205→The architecture must NOT hard-code these categories.
+   206→
+   207→I should be able to create additional categories from the Admin Panel without changing the code.
+   208→
+   209→---
+   210→
+   211→# 5. WEBSITE STRUCTURE
+   212→
+   213→The website should contain:
+   214→
+   215→## Main Pages
+   216→
+   217→* Home
+   218→* About Us
+   219→* All Products
+   220→* Categories
+   221→* Individual Category Pages
+   222→* Individual Product Pages
+   223→* Services
+   224→* Custom Orders
+   225→* Memory Preservation
+   226→* Blog
+   227→* Individual Blog Pages
+   228→* FAQ
+   229→* Contact Us
+   230→* Privacy Policy
+   231→* Terms & Conditions
+   232→* Disclaimer
+   233→* Thank You Page
+   234→* 404 Page
+   235→
+   236→The architecture should support creating additional pages from Admin Panel.
+   237→
+   238→---
+   239→
+   240→# 6. HOMEPAGE STRUCTURE
+   241→
+   242→Homepage should be completely dynamic.
+   243→
+   244→Suggested structure:
+   245→
+   246→### Section 1 – Hero
+   247→
+   248→Headline related to handcrafted personalized resin art.
+   249→
+   250→Supporting text explaining the brand.
+   251→
+   252→Primary CTA:
+   253→
+   254→**Explore Products**
+   255→
+   256→Secondary CTA:
+   257→
+   258→**Enquire Now**
+   259→
+   260→Optional:
+   261→
+   262→**WhatsApp Us**
+   263→
+   264→---
+   265→
+   266→### Section 2 – Brand Introduction
+   267→
+   268→Short introduction to Artistic by Khushi.
+   269→
+   270→Include:
+   271→
+   272→* What we create
+   273→* What makes us different
+   274→* Personalized craftsmanship
+   275→* Customization
+   276→
+   277→---
+   278→
+   279→### Section 3 – Featured Categories
+   280→
+   281→Dynamic category cards.
+   282→
+   283→Admin should be able to:
+   284→
+   285→* Add category
+   286→* Remove category
+   287→* Change category image
+   288→* Change category title
+   289→* Change category description
+   290→* Change display order
+   291→
+   292→---
+   293→
+   294→### Section 4 – Featured Products
+   295→
+   296→Dynamic products selected from Admin Panel.
+   297→
+   298→Admin should be able to mark products as:
+   299→
+   300→**Featured**
+   301→
+   302→Only featured products appear here.
+   303→
+   304→---
+   305→
+   306→### Section 5 – Why Choose Artistic by Khushi
+   307→
+   308→Dynamic editable section.
+   309→
+   310→Possible points:
+   311→
+   312→* Personalized Designs
+   313→* Premium Resin Finish
+   314→* Handmade Craftsmanship
+   315→* Custom Colors & Themes
+   316→* Memory Preservation
+   317→* Made With Care
+   318→
+   319→Admin must be able to edit these.
+   320→
+   321→---
+   322→
+   323→### Section 6 – Custom Orders
+   324→
+   325→Explain that customers can request:
+   326→
+   327→* Custom size
+   328→* Custom colour
+   329→* Custom theme
+   330→* Custom name
+   331→* Custom design
+   332→* Custom concept
+   333→
+   334→CTA:
+   335→
+   336→**Start Your Custom Order**
+   337→
+   338→---
+   339→
+   340→### Section 7 – Memory Preservation
+   341→
+   342→Dedicated promotional section for memory-preserving resin art.
+   343→
+   344→CTA:
+   345→
+   346→**Preserve Your Memory**
+   347→
+   348→---
+   349→
+   350→### Section 8 – Latest Blog Posts
+   351→
+   352→Automatically show latest published blogs.
+   353→
+   354→Admin can control:
+   355→
+   356→* Number of posts
+   357→* Featured posts
+   358→* Category
+   359→
+   360→---
+   361→
+   362→### Section 9 – FAQs
+   363→
+   364→Dynamic FAQs.
+   365→
+   366→---
+   367→
+   368→### Section 10 – Final CTA
+   369→
+   370→Strong inquiry section:
+   371→
+   372→**Have Something Special in Mind?**
+   373→
+   374→Button:
+   375→
+   376→**Send an Inquiry**
+   377→
+   378→WhatsApp option should also be available.
+   379→
+   380→---
+   381→
+   382→# 7. CATEGORY PAGE STRUCTURE
+   383→
+   384→Every category must have its own SEO-friendly URL.
+   385→
+   386→Example:
+   387→
+   388→/resin-nameplates/
+   389→
+   390→/resin-coasters/
+   391→
+   392→/resin-keychains/
+   393→
+   394→/memory-preservation/
+   395→
+   396→/custom-resin-art/
+   397→
+   398→Category pages should contain:
+   399→
+   400→1. Breadcrumb
+   401→2. H1 category title
+   402→3. Introductory content
+   403→4. Category description
+   404→5. Featured products
+   405→6. All products within category
+   406→7. Product cards
+   407→8. Customization information
+   408→9. FAQs
+   409→10. Related categories
+   410→11. Related blog posts
+   411→12. Internal links
+   412→13. Inquiry CTA
+   413→14. WhatsApp CTA
+   414→
+   415→Category content must be editable from Admin Panel.
+   416→
+   417→---
+   418→
+   419→# 8. PRODUCT PAGE STRUCTURE
+   420→
+   421→Each product should have a dedicated dynamic page.
+   422→
+   423→Example:
+   424→
+   425→/product/personalized-resin-nameplate/
+   426→
+   427→Product page should contain:
+   428→
+   429→### Above the Fold
+   430→
+   431→* Product name
+   432→* Main product image
+   433→* Image gallery
+   434→* Short description
+   435→* Key highlights
+   436→* Enquire Now button
+   437→* WhatsApp button
+   438→
+   439→NO ADD TO CART.
+   440→
+   441→---
+   442→
+   443→### Product Information
+   444→
+   445→* Detailed description
+   446→* Product features
+   447→* Customization options
+   448→* Available sizes
+   449→* Available colours
+   450→* Material information
+   451→* Design information
+   452→* Suitable occasions
+   453→* Care instructions
+   454→* Production information if applicable
+   455→
+   456→All fields must be optional and dynamic.
+   457→
+   458→---
+   459→
+   460→### Product Gallery
+   461→
+   462→Support multiple images.
+   463→
+   464→Admin should be able to:
+   465→
+   466→* Upload image
+   467→* Delete image
+   468→* Reorder image
+   469→* Set featured image
+   470→* Add image alt text
+   471→* Add image caption
+   472→
+   473→---
+   474→
+   475→### Inquiry CTA
+   476→
+   477→Every product page should have:
+   478→
+   479→**Enquire About This Product**
+   480→
+   481→When clicked, inquiry form should automatically know which product the customer is enquiring about.
+   482→
+   483→For example:
+   484→
+   485→Product: Personalized Resin Nameplate
+   486→
+   487→The form should automatically submit the product name with the lead.
+   488→
+   489→---
+   490→
+   491→### Related Products
+   492→
+   493→Automatically show related products based on:
+   494→
+   495→* Category
+   496→* Subcategory
+   497→* Tags
+   498→
+   499→Admin should also be able to manually select related products.
+   500→
+   501→---
+   502→
+   503→### Related Blogs
+   504→
+   505→Show relevant blog posts.
+   506→
+   507→---
+   508→
+   509→### FAQs
+   510→
+   511→Product-specific FAQs should be supported.
+   512→
+   513→---
+   514→
+   515→# 9. PRODUCT ADMIN PANEL
+   516→
+   517→Admin should be able to create unlimited products.
+   518→
+   519→Product fields:
+   520→
+   521→* Product Name
+   522→* Product Slug
+   523→* SKU / Internal ID optional
+   524→* Category
+   525→* Subcategory
+   526→* Short Description
+   527→* Long Description
+   528→* Featured Image
+   529→* Product Gallery
+   530→* Image Alt Text
+   531→* Image Caption
+   532→* Product Tags
+   533→* Customization Options
+   534→* Size
+   535→* Material
+   536→* Colour
+   537→* Occasion
+   538→* Care Instructions
+   539→* Featured Product toggle
+   540→* Published / Draft toggle
+   541→* Display Order
+   542→
+   543→SEO fields:
+   544→
+   545→* SEO Title
+   546→* Meta Description
+   547→* Focus Keyword
+   548→* Secondary Keywords
+   549→* Canonical URL
+   550→* Open Graph Title
+   551→* Open Graph Description
+   552→* Social Image
+   553→* FAQ Schema content
+   554→* Breadcrumb information
+   555→
+   556→---
+   557→
+   558→# 10. CATEGORY ADMIN PANEL
+   559→
+   560→Category fields:
+   561→
+   562→* Category Name
+   563→* Slug
+   564→* Category Image
+   565→* Short Description
+   566→* Long Description
+   567→* Featured Category toggle
+   568→* Display Order
+   569→* Parent Category
+   570→* SEO Title
+   571→* Meta Description
+   572→* Focus Keyword
+   573→* Secondary Keywords
+   574→* OG Title
+   575→* OG Description
+   576→* OG Image
+   577→* Canonical URL
+   578→* FAQ
+   579→* Intro content
+   580→* Bottom SEO content
+   581→
+   582→Categories must be fully dynamic.
+   583→
+   584→---
+   585→
+   586→# 11. BLOG CMS
+   587→
+   588→Blog is a major part of the website.
+   589→
+   590→I will publish blogs regularly, potentially daily.
+   591→
+   592→Therefore the blog system must behave like a proper CMS.
+   593→
+   594→Admin should be able to:
+   595→
+   596→* Create blog
+   597→* Edit blog
+   598→* Delete blog
+   599→* Save draft
+   600→* Publish
+   601→* Unpublish
+   602→* Schedule if supported
+   603→* Add featured image
+   604→* Add multiple content images
+   605→* Add image alt text
+   606→* Add captions
+   607→* Add categories
+   608→* Add tags
+   609→* Add author
+   610→* Add reading time
+   611→* Add table of contents
+   612→* Add FAQs
+   613→* Add related products
+   614→* Add related categories
+   615→* Add internal links
+   616→
+   617→---
+   618→
+   619→# 12. BLOG EDITOR
+   620→
+   621→The blog editor should support rich content.
+   622→
+   623→Required:
+   624→
+   625→* H1
+   626→* H2
+   627→* H3
+   628→* H4
+   629→* Paragraph
+   630→* Bold
+   631→* Italic
+   632→* Bullet list
+   633→* Numbered list
+   634→* Quote
+   635→* Links
+   636→* Images
+   637→* Image captions
+   638→* Tables
+   639→* FAQ sections
+   640→* Internal links
+   641→* External links
+   642→* Anchor links
+   643→* Table of contents
+   644→
+   645→The editor should generate clean semantic HTML.
+   646→
+   647→Avoid unnecessary inline styling and bloated HTML.
+   648→
+   649→---
+   650→
+   651→# 13. BLOG SEO FIELDS
+   652→
+   653→Every blog should have:
+   654→
+   655→* SEO Title
+   656→* Meta Description
+   657→* URL Slug
+   658→* Focus Keyword
+   659→* Secondary Keywords
+   660→* Canonical URL
+   661→* Featured Image
+   662→* OG Image
+   663→* OG Title
+   664→* OG Description
+   665→* Twitter/X metadata
+   666→* Article schema
+   667→* Breadcrumb schema
+   668→* FAQ schema where applicable
+   669→
+   670→The system should automatically generate:
+   671→
+   672→* Article structured data
+   673→* Breadcrumb structured data
+   674→* Open Graph metadata
+   675→* Canonical tags
+   676→
+   677→---
+   678→
+   679→# 14. IMAGE MANAGEMENT
+   680→
+   681→Since the website will contain many product and blog images, image management is extremely important.
+   682→
+   683→Images should support:
+   684→
+   685→* Upload
+   686→* Replace
+   687→* Delete
+   688→* Alt text
+   689→* Caption
+   690→* Title
+   691→* Featured image
+   692→* Compression
+   693→* Responsive image sizes
+   694→* Lazy loading where appropriate
+   695→
+   696→Images should be optimized for performance.
+   697→
+   698→Do not load unnecessarily huge original images.
+   699→
+   700→Use modern image formats such as WebP/AVIF where the hosting architecture supports them.
+   701→
+   702→Important:
+   703→
+   704→Every important image should have meaningful SEO-friendly alt text.
+   705→
+   706→Do not automatically generate spammy alt text by stuffing keywords.
+   707→
+   708→---
+   709→
+   710→# 15. INQUIRY / LEAD SYSTEM
+   711→
+   712→There should be NO traditional ecommerce checkout.
+   713→
+   714→Instead, the website should be built around lead generation.
+   715→
+   716→Every product page should have:
+   717→
+   718→**Enquire Now**
+   719→
+   720→button.
+   721→
+   722→The inquiry form should collect:
+   723→
+   724→### Required
+   725→
+   726→* Name
+   727→* Mobile Number
+   728→* City / Location
+   729→
+   730→### Optional
+   731→
+   732→* Product
+   733→* Message
+   734→* Preferred contact method
+   735→
+   736→The product should automatically populate when the form is opened from a product page.
+   737→
+   738→---
+   739→
+   740→# 16. GOOGLE SHEETS DATABASE
+   741→
+   742→Instead of paying for a traditional CRM/database, use **Google Sheets as the lead database** wherever technically practical.
+   743→
+   744→Form submission flow:
+   745→
+   746→Customer
+   747→→ Website Inquiry Form
+   748→→ Serverless/API endpoint
+   749→→ Google Apps Script Web App
+   750→→ Google Sheet
+   751→→ Lead stored
+   752→
+   753→Google Sheet columns should include:
+   754→
+   755→* Date
+   756→* Time
+   757→* Name
+   758→* Mobile
+   759→* City / Location
+   760→* Product
+   761→* Product URL
+   762→* Category
+   763→* Message
+   764→* Source Page
+   765→* UTM Source
+   766→* UTM Medium
+   767→* UTM Campaign
+   768→* Referrer
+   769→* Lead Status
+   770→* Notes
+   771→
+   772→The website should NOT expose Google Sheet credentials or sensitive configuration to the frontend.
+   773→
+   774→Use a secure serverless/API mechanism or Google Apps Script endpoint.
+   775→
+   776→Do not put private API keys or secrets directly into frontend JavaScript.
+   777→
+   778→---
+   779→
+   780→# 17. LEAD MANAGEMENT
+   781→
+   782→Admin panel should ideally allow basic lead management if feasible.
+   783→
+   784→Lead statuses:
+   785→
+   786→* New
+   787→* Contacted
+   788→* Follow-up
+   789→* Converted
+   790→* Not Interested
+   791→* Closed
+   792→
+   793→However, Google Sheets remains the main database.
+   794→
+   795→If full lead management inside Admin Panel is unnecessarily expensive for the free architecture, Google Sheets can remain the source of truth.
+   796→
+   797→---
+   798→
+   799→# 18. WHATSAPP INTEGRATION
+   800→
+   801→Every major product and inquiry section should include WhatsApp.
+   802→
+   803→Buttons:
+   804→
+   805→**WhatsApp Us**
+   806→
+   807→**Enquire on WhatsApp**
+   808→
+   809→When clicked, WhatsApp should open with a pre-filled message.
+   810→
+   811→Example:
+   812→
+   813→Hello, I am interested in [Product Name] from Artistic by Khushi. Please share more details.
+   814→
+   815→The WhatsApp number must be editable from Admin Panel / site settings.
+   816→
+   817→Do not hard-code the number throughout the website.
+   818→
+   819→---
+   820→
+   821→# 19. GLOBAL SITE SETTINGS
+   822→
+   823→Create a central Site Settings section in Admin Panel.
+   824→
+   825→It should manage:
+   826→
+   827→* Brand Name
+   828→* Logo
+   829→* Favicon
+   830→* Phone Number
+   831→* WhatsApp Number
+   832→* Email
+   833→* Address / Location
+   834→* Social media links
+   835→* Footer content
+   836→* Copyright text
+   837→* Default SEO title
+   838→* Default meta description
+   839→* Default OG image
+   840→* Google Analytics ID
+   841→* Google Search Console verification
+   842→* Social links
+   843→* Header CTA
+   844→* Footer CTA
+   845→
+   846→Changing these settings should automatically update the website.
+   847→
+   848→---
+   849→
+   850→# 20. DYNAMIC HEADER
+   851→
+   852→Header should include:
+   853→
+   854→* Logo
+   855→* Home
+   856→* Products
+   857→* Categories
+   858→* Services
+   859→* About
+   860→* Blog
+   861→* Contact
+   862→* Enquire Now
+   863→
+   864→Navigation should be dynamically manageable from Admin Panel if possible.
+   865→
+   866→Mobile menu must be responsive.
+   867→
+   868→---
+   869→
+   870→# 21. DYNAMIC FOOTER
+   871→
+   872→Footer should contain:
+   873→
+   874→* Brand introduction
+   875→* Important links
+   876→* Product categories
+   877→* Services
+   878→* Blog
+   879→* Contact information
+   880→* WhatsApp
+   881→* Social media
+   882→* Privacy Policy
+   883→* Terms
+   884→* Disclaimer
+   885→* Copyright
+   886→
+   887→Footer content must be editable.
+   888→
+   889→---
+   890→
+   891→# 22. ADMIN PANEL
+   892→
+   893→Admin Panel is one of the most important parts of the project.
+   894→
+   895→Admin dashboard should allow me to manage the entire website.
+   896→
+   897→Dashboard:
+   898→
+   899→* Total Products
+   900→* Published Products
+   901→* Draft Products
+   902→* Total Categories
+   903→* Published Blogs
+   904→* Draft Blogs
+   905→* Recent Inquiries
+   906→* Featured Products
+   907→* Quick Add Product
+   908→* Quick Add Blog
+   909→* Quick Add Category
+   910→
+   911→---
+   912→
+   913→# 23. ADMIN MODULES
+   914→
+   915→Create separate modules:
+   916→
+   917→### Products
+   918→
+   919→* Add
+   920→* Edit
+   921→* Delete
+   922→* Publish
+   923→* Draft
+   924→* Feature
+   925→* Search
+   926→* Filter
+   927→* Sort
+   928→
+   929→### Categories
+   930→
+   931→* Add
+   932→* Edit
+   933→* Delete
+   934→* Reorder
+   935→* Feature
+   936→
+   937→### Blogs
+   938→
+   939→* Add
+   940→* Edit
+   941→* Delete
+   942→* Draft
+   943→* Publish
+   944→* Schedule if supported
+   945→
+   946→### Pages
+   947→
+   948→* Add
+   949→* Edit
+   950→* Publish
+   951→* Draft
+   952→
+   953→### FAQs
+   954→
+   955→* Add
+   956→* Edit
+   957→* Delete
+   958→* Reorder
+   959→
+   960→### Media Library
+   961→
+   962→* Upload
+   963→* Search
+   964→* Delete
+   965→* Alt text
+   966→* Captions
+   967→
+   968→### Leads
+   969→
+   970→* View
+   971→* Filter
+   972→* Search
+   973→* Status
+   974→
+   975→### Site Settings
+   976→
+   977→* Contact details
+   978→* WhatsApp
+   979→* Logo
+   980→* Social media
+   981→* SEO defaults
+   982→
+   983→### SEO
+   984→
+   985→* Global SEO
+   986→* Page SEO
+   987→* Product SEO
+   988→* Category SEO
+   989→* Blog SEO
+   990→
+   991→---
+   992→
+   993→# 24. ADMIN AUTHENTICATION
+   994→
+   995→Admin Panel must not be publicly accessible.
+   996→
+   997→Implement secure authentication.
+   998→
+   999→Requirements:
+  1000→
+  1001→* Login
+  1002→* Logout
+  1003→* Protected admin routes
+  1004→* Password hashing
+  1005→* Session management
+  1006→* Authorization
+  1007→* Protection against unauthorized access
+  1008→
+  1009→Do not expose admin credentials in frontend code.
+  1010→
+  1011→If using a free authentication provider, choose an architecture that has a usable free tier and does not create unnecessary recurring costs.
+  1012→
+  1013→---
+  1014→
+  1015→# 25. SEO ARCHITECTURE
+  1016→
+  1017→SEO must be built into the architecture from the beginning.
+  1018→
+  1019→Do NOT add SEO as an afterthought.
+  1020→
+  1021→Every page should have:
+  1022→
+  1023→* Unique URL
+  1024→* Unique title
+  1025→* Meta description
+  1026→* Canonical URL
+  1027→* H1
+  1028→* Proper H2/H3 hierarchy
+  1029→* Breadcrumb
+  1030→* Internal links
+  1031→* Image alt text
+  1032→* Structured data where relevant
+  1033→* Open Graph
+  1034→* Social metadata
+  1035→
+  1036→---
+  1037→
+  1038→# 26. TECHNICAL SEO
+  1039→
+  1040→Implement:
+  1041→
+  1042→* XML Sitemap
+  1043→* Dynamic Sitemap
+  1044→* Robots.txt
+  1045→* Canonical tags
+  1046→* Clean URLs
+  1047→* 301 redirect support where possible
+  1048→* 404 page
+  1049→* HTTPS
+  1050→* Mobile responsiveness
+  1051→* Fast loading
+  1052→* Semantic HTML
+  1053→* Proper heading hierarchy
+  1054→* Image optimization
+  1055→* Lazy loading
+  1056→* Structured data
+  1057→* Breadcrumbs
+  1058→* No duplicate URL issues
+  1059→* Pagination handling if required
+  1060→* Index/noindex controls from Admin Panel
+  1061→
+  1062→The sitemap should automatically update when products, categories or blogs are published.
+  1063→
+  1064→---
+  1065→
+  1066→# 27. SEO URL STRUCTURE
+  1067→
+  1068→Use clean human-readable URLs.
+  1069→
+  1070→Examples:
+  1071→
+  1072→/products/
+  1073→
+  1074→/category/resin-nameplates/
+  1075→
+  1076→/category/resin-coasters/
+  1077→
+  1078→/product/personalized-resin-nameplate/
+  1079→
+  1080→/blog/resin-nameplate-design-ideas/
+  1081→
+  1082→Avoid URLs such as:
+  1083→
+  1084→/product?id=123
+  1085→
+  1086→unless technically required internally.
+  1087→
+  1088→The public URL should remain SEO-friendly.
+  1089→
+  1090→---
+  1091→
+  1092→# 28. LLM / AI SEARCH OPTIMIZATION
+  1093→
+  1094→The website should be structured so AI search engines and LLM-based systems can understand the business.
+  1095→
+  1096→Content should be:
+  1097→
+  1098→* Clear
+  1099→* Factual
+  1100→* Structured
+  1101→* Entity-oriented
+  1102→* Context-rich
+  1103→* Easy to crawl
+  1104→* Easy to interpret
+  1105→
+  1106→Use:
+  1107→
+  1108→* Clear headings
+  1109→* Direct answers
+  1110→* FAQs
+  1111→* Product specifications
+  1112→* Category descriptions
+  1113→* Business information
+  1114→* Location information
+  1115→* Service information
+  1116→* Author information
+  1117→* About page
+  1118→* Organization schema
+  1119→* Product schema where applicable
+  1120→* Article schema
+  1121→* FAQ schema where appropriate
+  1122→* Breadcrumb schema
+  1123→
+  1124→Avoid meaningless keyword stuffing.
+  1125→
+  1126→---
+  1127→
+  1128→# 29. GEO / GENERATIVE ENGINE OPTIMIZATION
+  1129→
+  1130→Build pages that answer natural customer questions.
+  1131→
+  1132→Examples:
+  1133→
+  1134→* What is resin art?
+  1135→* What are resin nameplates?
+  1136→* How can I customize a resin nameplate?
+  1137→* What resin products can be personalized?
+  1138→* How does memory preservation work?
+  1139→* What can be preserved in resin?
+  1140→* Where can I get customized resin gifts?
+  1141→* How can I order a custom resin product?
+  1142→* What information is required for a custom order?
+  1143→
+  1144→Create useful FAQ sections and informational content naturally.
+  1145→
+  1146→The website should establish Artistic by Khushi as a clear entity with:
+  1147→
+  1148→* Brand name
+  1149→* Products
+  1150→* Services
+  1151→* Location
+  1152→* Contact
+  1153→* Expertise
+  1154→* Content
+  1155→* Author/business information
+  1156→
+  1157→---
+  1158→
+  1159→# 30. LOCAL SEO
+  1160→
+  1161→The website should support local SEO.
+  1162→
+  1163→Admin should be able to manage:
+  1164→
+  1165→* Business location
+  1166→* City
+  1167→* State
+  1168→* Service areas
+  1169→* Contact number
+  1170→* Business description
+  1171→
+  1172→Create appropriate local business structured data only where accurate.
+  1173→
+  1174→Do not create fake locations or fake branches.
+  1175→
+  1176→The system should allow future expansion to multiple service areas without rebuilding the website.
+  1177→
+  1178→---
+  1179→
+  1180→# 31. INTERNAL LINKING SYSTEM
+  1181→
+  1182→Internal linking should be a major SEO feature.
+  1183→
+  1184→Examples:
+  1185→
+  1186→Product
+  1187→→ Category
+  1188→
+  1189→Product
+  1190→→ Related Product
+  1191→
+  1192→Product
+  1193→→ Related Blog
+  1194→
+  1195→Blog
+  1196→→ Product
+  1197→
+  1198→Blog
+  1199→→ Category
+  1200→
+  1201→Category
+  1202→→ Product
+  1203→
+  1204→Category
+  1205→→ Blog
+  1206→
+  1207→Admin should be able to manually add internal links from the content editor.
+  1208→
+  1209→Where useful, automatically suggest related content.
+  1210→
+  1211→---
+  1212→
+  1213→# 32. BREADCRUMBS
+  1214→
+  1215→Every relevant page should have breadcrumbs.
+  1216→
+  1217→Example:
+  1218→
+  1219→Home
+  1220→→ Resin Art
+  1221→→ Resin Nameplates
+  1222→→ Personalized Resin Nameplate
+  1223→
+  1224→Breadcrumbs should also support BreadcrumbList structured data.
+  1225→
+  1226→---
+  1227→
+  1228→# 33. STRUCTURED DATA
+  1229→
+  1230→Implement schema markup appropriately.
+  1231→
+  1232→Potential schema types:
+  1233→
+  1234→* Organization
+  1235→* LocalBusiness where applicable
+  1236→* WebSite
+  1237→* WebPage
+  1238→* BreadcrumbList
+  1239→* Product
+  1240→* Article
+  1241→* FAQPage
+  1242→* Person / Author where appropriate
+  1243→
+  1244→Do not generate misleading structured data.
+  1245→
+  1246→Only include information that is actually visible and accurate.
+  1247→
+  1248→---
+  1249→
+  1250→# 34. PERFORMANCE
+  1251→
+  1252→Website must be fast.
+  1253→
+  1254→Target:
+  1255→
+  1256→* Good Core Web Vitals
+  1257→* Optimized images
+  1258→* Minimal JavaScript
+  1259→* Lazy loading
+  1260→* Code splitting where appropriate
+  1261→* Caching
+  1262→* CDN
+  1263→* Optimized fonts
+  1264→* Avoid unnecessary third-party scripts
+  1265→
+  1266→Do not install unnecessary libraries.
+  1267→
+  1268→---
+  1269→
+  1270→# 35. NETLIFY HOSTING
+  1271→
+  1272→The website will be hosted on **Netlify**.
+  1273→
+  1274→Architecture should be compatible with Netlify's free hosting capabilities wherever practical.
+  1275→
+  1276→Prefer:
+  1277→
+  1278→* Static generation / pre-rendering where appropriate
+  1279→* Serverless functions where required
+  1280→* Lightweight architecture
+  1281→* CDN-friendly assets
+  1282→* No traditional paid server requirement
+  1283→
+  1284→Do not design the project around an expensive VPS.
+  1285→
+  1286→The developer should clearly document:
+  1287→
+  1288→* Netlify deployment steps
+  1289→* Environment variables
+  1290→* Build command
+  1291→* Publish directory
+  1292→* Functions configuration
+  1293→* Domain connection
+  1294→* HTTPS
+  1295→* Redirects
+  1296→* Forms/API configuration
+  1297→
+  1298→---
+  1299→
+  1300→# 36. DATABASE / BACKEND ARCHITECTURE
+  1301→
+  1302→The project should prioritize a free or very low-cost architecture.
+  1303→
+  1304→Important distinction:
+  1305→
+  1306→The website content needs to be dynamic, but we should avoid unnecessary paid infrastructure.
+  1307→
+  1308→Possible architecture:
+  1309→
+  1310→Frontend
+  1311→→ Netlify
+  1312→
+  1313→Backend/API
+  1314→→ Netlify Functions or suitable free serverless architecture
+  1315→
+  1316→Lead database
+  1317→→ Google Sheets through Google Apps Script
+  1318→
+  1319→Content database
+  1320→→ A suitable free-tier database/CMS/backend that works reliably with the chosen architecture
+  1321→
+  1322→The developer should select the simplest stable architecture that can actually support:
+  1323→
+  1324→* Products
+  1325→* Categories
+  1326→* Blogs
+  1327→* Pages
+  1328→* FAQs
+  1329→* SEO data
+  1330→* Admin authentication
+  1331→* Media references
+  1332→* Dynamic content
+  1333→
+  1334→Do not use a paid service merely because it is convenient.
+  1335→
+  1336→---
+  1337→
+  1338→# 37. IMPORTANT FREE-TIER REQUIREMENT
+  1339→
+  1340→The project should be designed around free tiers wherever practical.
+  1341→
+  1342→Avoid unnecessary subscriptions for:
+  1343→
+  1344→* Hosting
+  1345→* Database
+  1346→* CMS
+  1347→* Lead management
+  1348→* Analytics
+  1349→* Authentication
+  1350→
+  1351→However, do NOT compromise website security or data integrity just to avoid every possible paid service.
+  1352→
+  1353→The developer must clearly identify:
+  1354→
+  1355→1. What is completely free
+  1356→2. What has a free tier
+  1357→3. What may eventually incur a cost
+  1358→4. What limits apply
+  1359→
+  1360→There should be no hidden recurring dependency.
+  1361→
+  1362→---
+  1363→
+  1364→# 38. ADMIN PAGE BUILDER / DYNAMIC CONTENT
+  1365→
+  1366→I should be able to modify website sections without editing code.
+  1367→
+  1368→For important pages, provide editable content fields.
+  1369→
+  1370→For example:
+  1371→
+  1372→Homepage:
+  1373→
+  1374→* Hero heading
+  1375→* Hero description
+  1376→* Hero image
+  1377→* CTA text
+  1378→* CTA URL
+  1379→* Featured categories
+  1380→* Featured products
+  1381→* Why choose us
+  1382→* Custom order section
+  1383→* Memory preservation section
+  1384→* FAQ
+  1385→* CTA
+  1386→
+  1387→About page:
+  1388→
+  1389→* Heading
+  1390→* Content
+  1391→* Images
+  1392→* Story
+  1393→* Values
+  1394→* CTA
+  1395→
+  1396→Contact page:
+  1397→
+  1398→* Heading
+  1399→* Description
+  1400→* Phone
+  1401→* WhatsApp
+  1402→* Email
+  1403→* Location
+  1404→* Form
+  1405→
+  1406→---
+  1407→
+  1408→# 39. SEO CONTROL PANEL
+  1409→
+  1410→Admin should have a dedicated SEO section.
+  1411→
+  1412→For every important page:
+  1413→
+  1414→* SEO title
+  1415→* Meta description
+  1416→* Slug
+  1417→* Canonical
+  1418→* Robots index/noindex
+  1419→* Follow/nofollow
+  1420→* OG title
+  1421→* OG description
+  1422→* OG image
+  1423→* Schema settings
+  1424→* Focus keyword
+  1425→* Secondary keywords
+  1426→
+  1427→There should also be global defaults.
+  1428→
+  1429→---
+  1430→
+  1431→# 40. SEO PREVIEW
+  1432→
+  1433→Where possible, provide a search preview in Admin Panel showing:
+  1434→
+  1435→Google-style:
+  1436→
+  1437→Title
+  1438→URL
+  1439→Meta description
+  1440→
+  1441→This will help me optimize content myself.
+  1442→
+  1443→---
+  1444→
+  1445→# 41. BLOG INDEX PAGE
+  1446→
+  1447→Blog listing page should include:
+  1448→
+  1449→* H1
+  1450→* Intro content
+  1451→* Featured blog
+  1452→* Latest blogs
+  1453→* Categories
+  1454→* Search
+  1455→* Pagination
+  1456→* Related categories
+  1457→
+  1458→Admin should be able to control featured content.
+  1459→
+  1460→---
+  1461→
+  1462→# 42. BLOG CATEGORY SYSTEM
+  1463→
+  1464→Blogs should support categories and tags.
+  1465→
+  1466→Example:
+  1467→
+  1468→* Resin Art
+  1469→* Home Décor
+  1470→* Gifting
+  1471→* Memory Preservation
+  1472→* Customization
+  1473→* Resin Care
+  1474→* Inspiration
+  1475→* DIY / Educational
+  1476→* Product Guides
+  1477→
+  1478→These must remain dynamic.
+  1479→
+  1480→---
+  1481→
+  1482→# 43. SEARCH FUNCTION
+  1483→
+  1484→Website should have a search feature.
+  1485→
+  1486→Search should be able to find:
+  1487→
+  1488→* Products
+  1489→* Categories
+  1490→* Blogs
+  1491→
+  1492→Search should be fast and mobile friendly.
+  1493→
+  1494→---
+  1495→
+  1496→# 44. FILTERING
+  1497→
+  1498→Product listing should support filters where useful:
+  1499→
+  1500→* Category
+  1501→* Subcategory
+  1502→* Product type
+  1503→* Tags
+  1504→
+  1505→Do not overcomplicate the UX.
+  1506→
+  1507→---
+  1508→
+  1509→# 45. PRODUCT CARD
+  1510→
+  1511→Product cards should contain:
+  1512→
+  1513→* Product image
+  1514→* Product name
+  1515→* Short description
+  1516→* Category
+  1517→* View Details
+  1518→* Enquire Now
+  1519→
+  1520→No Add to Cart.
+  1521→
+  1522→---
+  1523→
+  1524→# 46. INQUIRY FORM UX
+  1525→
+  1526→The inquiry form should be simple.
+  1527→
+  1528→Fields:
+  1529→
+  1530→Name *
+  1531→Mobile Number *
+  1532→City / Location *
+  1533→
+  1534→Product
+  1535→Message
+  1536→
+  1537→CTA:
+  1538→
+  1539→**Submit Inquiry**
+  1540→
+  1541→After successful submission:
+  1542→
+  1543→Show:
+  1544→
+  1545→**Thank you! Your inquiry has been received. We will contact you soon.**
+  1546→
+  1547→Then optionally provide:
+  1548→
+  1549→**Chat on WhatsApp**
+  1550→
+  1551→---
+  1552→
+  1553→# 47. SPAM PROTECTION
+  1554→
+  1555→Inquiry form should include basic spam protection.
+  1556→
+  1557→Do not make the customer solve difficult CAPTCHAs unless necessary.
+  1558→
+  1559→Use appropriate:
+  1560→
+  1561→* Honeypot
+  1562→* Rate limiting
+  1563→* Validation
+  1564→* Server-side validation
+  1565→
+  1566→---
+  1567→
+  1568→# 48. FORM VALIDATION
+  1569→
+  1570→Validate:
+  1571→
+  1572→Name
+  1573→
+  1574→* Required
+  1575→* Reasonable length
+  1576→
+  1577→Mobile
+  1578→
+  1579→* Required
+  1580→* Valid phone format
+  1581→
+  1582→City / Location
+  1583→
+  1584→* Required
+  1585→
+  1586→Message
+  1587→
+  1588→* Optional
+  1589→* Maximum length
+  1590→
+  1591→Never trust only frontend validation.
+  1592→
+  1593→Validate again on the backend/serverless endpoint.
+  1594→
+  1595→---
+  1596→
+  1597→# 49. ANALYTICS
+  1598→
+  1599→Architecture should support:
+  1600→
+  1601→* Google Analytics
+  1602→* Google Search Console
+  1603→* Conversion tracking
+  1604→
+  1605→Track:
+  1606→
+  1607→* Product views
+  1608→* Inquiry button clicks
+  1609→* Form submissions
+  1610→* WhatsApp clicks
+  1611→* Blog views
+  1612→* Category views
+  1613→
+  1614→Analytics IDs should be configurable from Admin Panel or environment settings.
+  1615→
+  1616→---
+  1617→
+  1618→# 50. CONVERSION TRACKING
+  1619→
+  1620→Important events:
+  1621→
+  1622→* enquiry_click
+  1623→* inquiry_form_open
+  1624→* inquiry_submit
+  1625→* whatsapp_click
+  1626→* product_view
+  1627→* blog_view
+  1628→
+  1629→Do not track sensitive personal information.
+  1630→
+  1631→---
+  1632→
+  1633→# 51. SECURITY
+  1634→
+  1635→Security is mandatory.
+  1636→
+  1637→Implement:
+  1638→
+  1639→* Secure admin authentication
+  1640→* Password hashing
+  1641→* Protected routes
+  1642→* Input sanitization
+  1643→* Server-side validation
+  1644→* XSS protection
+  1645→* CSRF protection where relevant
+  1646→* Rate limiting
+  1647→* Secure environment variables
+  1648→* No exposed API keys
+  1649→* Secure Google Apps Script integration
+  1650→* Safe file handling
+  1651→* Access control
+  1652→
+  1653→Never put private credentials in frontend source code.
+  1654→
+  1655→---
+  1656→
+  1657→# 52. MOBILE RESPONSIVENESS
+  1658→
+  1659→The website must work perfectly on:
+  1660→
+  1661→* Mobile
+  1662→* Tablet
+  1663→* Laptop
+  1664→* Desktop
+  1665→* Large desktop screens
+  1666→
+  1667→Mobile experience is extremely important because many inquiries will come from mobile users.
+  1668→
+  1669→Buttons must be easy to tap.
+  1670→
+  1671→WhatsApp CTA should be highly accessible on mobile.
+  1672→
+  1673→---
+  1674→
+  1675→# 53. ACCESSIBILITY
+  1676→
+  1677→Follow good accessibility practices:
+  1678→
+  1679→* Semantic HTML
+  1680→* Proper labels
+  1681→* Alt text
+  1682→* Keyboard navigation
+  1683→* Good contrast
+  1684→* Accessible buttons
+  1685→* Form error messages
+  1686→* Focus states
+  1687→
+  1688→---
+  1689→
+  1690→# 54. 404 PAGE
+  1691→
+  1692→Create a useful custom 404 page.
+  1693→
+  1694→Include:
+  1695→
+  1696→* Message
+  1697→* Home button
+  1698→* Product link
+  1699→* Category link
+  1700→* Blog link
+  1701→* Search
+  1702→
+  1703→---
+  1704→
+  1705→# 55. LEGAL PAGES
+  1706→
+  1707→Create editable:
+  1708→
+  1709→* Privacy Policy
+  1710→* Terms & Conditions
+  1711→* Disclaimer
+  1712→
+  1713→These should be accessible from footer.
+  1714→
+  1715→---
+  1716→
+  1717→# 56. CONTENT MANAGEMENT PRINCIPLE
+  1718→
+  1719→The website should be **data-driven**, not hard-coded.
+  1720→
+  1721→Bad implementation:
+  1722→
+  1723→Product names directly written inside frontend code.
+  1724→
+  1725→Correct implementation:
+  1726→
+  1727→Products fetched from backend/content database.
+  1728→
+  1729→Same principle applies to:
+  1730→
+  1731→* Categories
+  1732→* Blogs
+  1733→* FAQs
+  1734→* Navigation
+  1735→* Homepage sections
+  1736→* Contact details
+  1737→* SEO metadata
+  1738→* Social links
+  1739→
+  1740→---
+  1741→
+  1742→# 57. NO DEVELOPER DEPENDENCY
+  1743→
+  1744→The final project should allow a non-developer to perform routine operations.
+  1745→
+  1746→I should be able to:
+  1747→
+  1748→1. Add a product
+  1749→2. Add category
+  1750→3. Upload product images
+  1751→4. Edit product description
+  1752→5. Change product SEO
+  1753→6. Publish/unpublish product
+  1754→7. Add blog
+  1755→8. Upload blog images
+  1756→9. Change blog SEO
+  1757→10. Add FAQ
+  1758→11. Change WhatsApp number
+  1759→12. Change contact information
+  1760→13. Change homepage content
+  1761→14. Feature/unfeature products
+  1762→15. Update footer
+  1763→16. Update social links
+  1764→
+  1765→without changing source code.
+  1766→
+  1767→---
+  1768→
+  1769→# 58. ADMIN DOCUMENTATION
+  1770→
+  1771→The developer must provide an Admin User Guide.
+  1772→
+  1773→Explain:
+  1774→
+  1775→* How to login
+  1776→* How to add product
+  1777→* How to add category
+  1778→* How to upload images
+  1779→* How to create blog
+  1780→* How to optimize blog SEO
+  1781→* How to change homepage
+  1782→* How to manage FAQs
+  1783→* How to update WhatsApp
+  1784→* How to view Google Sheet leads
+  1785→* How to publish/unpublish content
+  1786→
+  1787→---
+  1788→
+  1789→# 59. DEVELOPER HANDOVER
+  1790→
+  1791→At project completion provide:
+  1792→
+  1793→### Source Code
+  1794→
+  1795→Complete Git repository/source code.
+  1796→
+  1797→### Environment Variables
+  1798→
+  1799→Document every variable.
+  1800→
+  1801→### Deployment
+  1802→
+  1803→Netlify deployment instructions.
+  1804→
+  1805→### Domain
+  1806→
+  1807→Instructions for connecting existing domain.
+  1808→
+  1809→### Google Sheets
+  1810→
+  1811→Instructions for connecting Google Apps Script and Sheet.
+  1812→
+  1813→### Admin
+  1814→
+  1815→Admin setup instructions.
+  1816→
+  1817→### Backup
+  1818→
+  1819→Explain how to backup content/database.
+  1820→
+  1821→### Maintenance
+  1822→
+  1823→Explain how the system can be maintained.
+  1824→
+  1825→---
+  1826→
+  1827→# 60. ERROR HANDLING
+  1828→
+  1829→The website should gracefully handle:
+  1830→
+  1831→* API failure
+  1832→* Google Sheet failure
+  1833→* Image upload failure
+  1834→* Invalid form
+  1835→* Network failure
+  1836→* Missing product
+  1837→* Deleted category
+  1838→* Invalid URL
+  1839→* Database unavailable
+  1840→
+  1841→Customer should never see technical errors such as:
+  1842→
+  1843→500 Internal Server Error
+  1844→
+  1845→unless absolutely unavoidable.
+  1846→
+  1847→---
+  1848→
+  1849→# 61. SEO-FRIENDLY CONTENT ARCHITECTURE
+  1850→
+  1851→Each important page should follow a clear information architecture.
+  1852→
+  1853→Example:
+  1854→
+  1855→Home
+  1856→↓
+  1857→Category
+  1858→↓
+  1859→Product
+  1860→
+  1861→Home
+  1862→↓
+  1863→Blog
+  1864→↓
+  1865→Article
+  1866→↓
+  1867→Related Product
+  1868→
+  1869→Category
+  1870→↓
+  1871→Products
+  1872→↓
+  1873→Product
+  1874→↓
+  1875→Related Blog
+  1876→
+  1877→This should create a strong internal topical structure.
+  1878→
+  1879→---
+  1880→
+  1881→# 62. CONTENT QUALITY
+  1882→
+  1883→Do not generate pages simply to target keywords.
+  1884→
+  1885→Every page should have genuine useful content.
+  1886→
+  1887→Avoid:
+  1888→
+  1889→* Keyword stuffing
+  1890→* Duplicate descriptions
+  1891→* Doorway pages
+  1892→* Thin category pages
+  1893→* AI-generated meaningless paragraphs
+  1894→* Fake reviews
+  1895→* Fake locations
+  1896→* Fake statistics
+  1897→
+  1898→The goal is long-term organic SEO.
+  1899→
+  1900→---
+  1901→
+  1902→# 63. PRODUCT SEO TEMPLATE
+  1903→
+  1904→Every product should automatically have a basic SEO template.
+  1905→
+  1906→Example:
+  1907→
+  1908→SEO Title:
+  1909→
+  1910→[Product Name] | Artistic by Khushi
+  1911→
+  1912→Meta Description:
+  1913→
+  1914→Discover [Product Name] by Artistic by Khushi. Explore personalized handcrafted resin art and enquire for customization.
+  1915→
+  1916→But Admin must be able to override the automatic template manually.
+  1917→
+  1918→---
+  1919→
+  1920→# 64. CATEGORY SEO TEMPLATE
+  1921→
+  1922→Example:
+  1923→
+  1924→[Category Name] | Artistic by Khushi
+  1925→
+  1926→Again, the automatic template should exist, but Admin should be able to customize it.
+  1927→
+  1928→---
+  1929→
+  1930→# 65. BLOG SEO TEMPLATE
+  1931→
+  1932→Example:
+  1933→
+  1934→[Blog Title] | Artistic by Khushi
+  1935→
+  1936→Admin can override it.
+  1937→
+  1938→---
+  1939→
+  1940→# 66. SCALABILITY
+  1941→
+  1942→The architecture should support:
+  1943→
+  1944→* Hundreds of products
+  1945→* Hundreds of categories
+  1946→* Hundreds/thousands of blog posts
+  1947→* Large image libraries
+  1948→
+  1949→without requiring a complete rebuild.
+  1950→
+  1951→---
+  1952→
+  1953→# 67. DESIGN DIRECTION
+  1954→
+  1955→The visual design should communicate handcrafted premium resin art.
+  1956→
+  1957→Avoid:
+  1958→
+  1959→* Generic ecommerce look
+  1960→* Cheap template appearance
+  1961→* Overloaded animations
+  1962→* Excessive gradients
+  1963→* Too many colors
+  1964→* Distracting effects
+  1965→
+  1966→Prefer:
+  1967→
+  1968→* Clean layout
+  1969→* Elegant typography
+  1970→* Large product imagery
+  1971→* White/neutral visual space
+  1972→* Premium presentation
+  1973→* Strong CTA
+  1974→* Mobile-first layout
+  1975→* Subtle animations
+  1976→
+  1977→The products and artwork should remain the visual focus.
+  1978→
+  1979→---
+  1980→
+  1981→# 68. ADMIN UX
+  1982→
+  1983→Admin panel should be simple enough for a non-technical user.
+  1984→
+  1985→Use:
+  1986→
+  1987→* Clear sidebar
+  1988→* Dashboard
+  1989→* Search
+  1990→* Filters
+  1991→* Tables
+  1992→* Edit buttons
+  1993→* Publish toggles
+  1994→* Preview buttons
+  1995→* Save Draft
+  1996→* Publish
+  1997→
+  1998→Avoid making the Admin Panel unnecessarily complicated.
+  1999→
+  2000→---
+
+[showing lines 1-2000 of 2182; use offset=2001 with limit to continue reading]
