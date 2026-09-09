@@ -29,6 +29,7 @@ export interface SiteSettings {
   defaultOgImage: string;
   googleAnalyticsId: string;
   googleSearchConsoleToken: string;
+  microsoftClarityProjectId: string;
   googleSheetsWebhookUrl: string;
   headerCtaText: string;
   headerCtaUrl: string;
@@ -296,6 +297,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   defaultOgImage: "/images/og-default.jpg",
   googleAnalyticsId: "",
   googleSearchConsoleToken: "",
+  microsoftClarityProjectId: "",
   googleSheetsWebhookUrl: "",
   headerCtaText: "Enquire Now",
   headerCtaUrl: "#/contact",

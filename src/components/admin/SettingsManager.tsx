@@ -11,15 +11,32 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Facebook, Instagram, MessageCircle, Pin, Save, Type, Youtube } from "lucide-react";
+import { BarChart3, ExternalLink, Facebook, Instagram, MessageCircle, Pin, Radar, Save, SearchCheck, Type, Youtube } from "lucide-react";
 import { useAdminSettings } from "./useAdminData";
 import { Field, Spinner } from "./shared";
 import { MediaPickField } from "./media-picker";
 import { errMsg } from "./admin-utils";
 
 // ============================================================
-// Site settings — brand, contact, social, footer, SEO defaults.
+// Site settings — brand, contact, social, footer, SEO defaults,
+// analytics & tracking integrations.
 // ============================================================
+
+const GA_ID_RE = /^G-[A-Z0-9]{6,12}$/i;
+const CLARITY_ID_RE = /^[A-Z0-9]{6,16}$/i;
+
+function StatusPill({ on, label = "Not set" }: { on: boolean; label?: string }) {
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+        on ? "border-green-200 bg-green-50 text-green-700" : "border-border bg-muted/40 text-muted-foreground"
+      }`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${on ? "bg-green-500" : "bg-muted-foreground/40"}`} />
+      {on ? "Live on site" : label}
+    </span>
+  );
+}
 
 export function SettingsManager() {
   const { data: settings, isLoading } = useAdminSettings();
@@ -210,7 +227,7 @@ export function SettingsManager() {
       {/* ---------- SEO defaults ---------- */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base font-display">SEO &amp; Integrations</CardTitle>
+          <CardTitle className="text-base font-display">SEO Defaults</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <Field label="Default SEO title" className="md:col-span-2">
@@ -231,19 +248,76 @@ export function SettingsManager() {
           <Field label="Site URL" hint="https://yourdomain.com — used in sitemap & canonical tags.">
             <Input value={form.siteUrl} onChange={(e) => set("siteUrl", e.target.value)} placeholder="https://artisticbykhushi.com" />
           </Field>
-          <Field label="Google Analytics ID" hint="Format G-XXXXXXX — leave empty to disable.">
-            <Input value={form.googleAnalyticsId} onChange={(e) => set("googleAnalyticsId", e.target.value)} placeholder="G-XXXXXXX" />
-          </Field>
-          <Field label="Google Search Console token" hint="Verification token / file content.">
-            <Input value={form.googleSearchConsoleToken} onChange={(e) => set("googleSearchConsoleToken", e.target.value)} />
-          </Field>
-          <Field
-            label="Google Sheets webhook URL"
-            hint="Google Apps Script web app URL — every new inquiry is also forwarded there."
-            className="md:col-span-2"
-          >
-            <Input value={form.googleSheetsWebhookUrl} onChange={(e) => set("googleSheetsWebhookUrl", e.target.value)} placeholder="https://script.google.com/macros/s/…/exec" />
-          </Field>
+        </CardContent>
+      </Card>
+
+      {/* ---------- Analytics & tracking integrations ---------- */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base font-display">
+            <BarChart3 className="h-4 w-4 text-primary" />
+            Analytics &amp; Tracking
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Paste the IDs, press <strong>Save settings</strong> — tracking goes live on the public website instantly. Leave a field empty to keep that tool off.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field
+              label="Google Analytics ID"
+              icon={<BarChart3 className="h-3.5 w-3.5 text-primary" />}
+              hint="GA4 Measurement ID — starts with “G-”. Leave empty to disable."
+              error={
+                form.googleAnalyticsId && !GA_ID_RE.test(form.googleAnalyticsId)
+                  ? "That doesn't look like a GA4 ID — it should look like G-ABC123456 (find it in Google Analytics → Admin → Data streams)."
+                  : undefined
+              }
+              counter={<StatusPill on={GA_ID_RE.test(form.googleAnalyticsId)} />}
+            >
+              <Input value={form.googleAnalyticsId} onChange={(e) => set("googleAnalyticsId", e.target.value)} placeholder="G-ABC123456" />
+            </Field>
+            <Field
+              label="Google Search Console token"
+              icon={<SearchCheck className="h-3.5 w-3.5 text-primary" />}
+              hint="HTML-tag method → paste the whole meta tag or just its content value. Full tag is OK."
+              counter={<StatusPill on={Boolean(form.googleSearchConsoleToken.trim())} />}
+            >
+              <Input value={form.googleSearchConsoleToken} onChange={(e) => set("googleSearchConsoleToken", e.target.value)} placeholder='google-site-verification=TOKEN' />
+            </Field>
+            <Field
+              label="Microsoft Clarity project ID"
+              icon={<Radar className="h-3.5 w-3.5 text-primary" />}
+              hint="Free heatmaps & session recordings from clarity.microsoft.com."
+              error={
+                form.microsoftClarityProjectId && !CLARITY_ID_RE.test(form.microsoftClarityProjectId)
+                  ? "Clarity IDs are 8–12 letters/numbers — find yours in Clarity → Settings → Project ID."
+                  : undefined
+              }
+              counter={<StatusPill on={CLARITY_ID_RE.test(form.microsoftClarityProjectId)} />}
+            >
+              <Input value={form.microsoftClarityProjectId} onChange={(e) => set("microsoftClarityProjectId", e.target.value)} placeholder="abcdefghij" />
+            </Field>
+            <Field
+              label="Google Sheets webhook URL"
+              hint="Google Apps Script web app URL — every new inquiry is also forwarded there."
+              counter={<StatusPill on={Boolean(form.googleSheetsWebhookUrl.trim())} />}
+            >
+              <Input value={form.googleSheetsWebhookUrl} onChange={(e) => set("googleSheetsWebhookUrl", e.target.value)} placeholder="https://script.google.com/macros/s/…/exec" />
+            </Field>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-lg border bg-muted/30 px-3 py-2.5 text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">Where do I get these?</span>
+            <a href="https://analytics.google.com" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+              Google Analytics <ExternalLink className="h-3 w-3" />
+            </a>
+            <a href="https://search.google.com/search-console" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+              Search Console <ExternalLink className="h-3 w-3" />
+            </a>
+            <a href="https://clarity.microsoft.com" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+              Microsoft Clarity <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
         </CardContent>
       </Card>
 

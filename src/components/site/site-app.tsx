@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { InquiryModal } from "@/components/site/inquiry-modal";
 import { WhatsAppFloat } from "@/components/site/whatsapp-float";
+import { SiteAnalytics } from "@/components/site/analytics";
 import HomeView from "@/components/views/home-view";
 import ProductsView from "@/components/views/products-view";
 import ProductView from "@/components/views/product-view";
@@ -120,6 +121,8 @@ function SiteShell() {
       <SiteFooter />
       <InquiryModal />
       <WhatsAppFloat />
+      {/* GA4 / Search Console / MS Clarity — injected only when configured in admin settings. */}
+      {settings ? <SiteAnalytics settings={settings} /> : null}
       <Toaster />
     </div>
   );

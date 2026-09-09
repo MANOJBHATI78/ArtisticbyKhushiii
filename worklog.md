@@ -175,3 +175,21 @@ Stage Summary:
 - Admin credentials: admin@artisticbykhushi.com / Khushi@2024
 - Open risks: cron gateway defect (job creation fails); siteUrl setting empty (set after domain connect); Google Sheets webhook URL empty (owner can add in Settings); hero image slight crop on right edge (minor)
 - Next-phase recommendations: image alt-text polish pass, blog tag pages, lead analytics chart, GA4 integration once IDs exist, Google Apps Script setup guide for Sheets sync
+
+---
+Task ID: 5
+Agent: lead (Z.ai Code main)
+Task: Dynamic analytics integrations — Google Analytics 4, Google Search Console, Microsoft Clarity — configurable from admin panel
+
+Work Log:
+- Added `microsoftClarityProjectId` to SiteSettings type + DEFAULT_SETTINGS (PUT /api/admin/settings auto-accepts via SETTING_KEYS; getSettings merges defaults — no route changes needed)
+- Created src/components/site/analytics.tsx `SiteAnalytics` component: GA4 gtag.js injection with `send_page_view:false` + manual page_view events on every hashchange (GA's history listener doesn't cover hash routers); GSC `google-site-verification` meta tag with smart parser (accepts full meta tag / `google-site-verification=token` / bare token); Microsoft Clarity official queue+loader snippet; all three skip on localhost dev (clean console) and remove themselves when the setting is cleared; `window.__abkAnalytics` debug handle
+- Mounted SiteAnalytics in site-app.tsx SiteShell (public site only — never renders under #/admin)
+- SettingsManager.tsx: new dedicated "Analytics & Tracking" card (GA / GSC / Clarity / Sheets webhook) with green "Live on site"/"Not set" status pills in the Field counter slot, inline format validation (GA_ID_RE G-XXXXXX, CLARITY_ID_RE 6-16 alnum) shown as destructive error text, setup-help links row (analytics.google.com / search.google.com/search-console / clarity.microsoft.com); old SEO & Integrations card split into "SEO Defaults" + this card
+- Verified live via agent-browser: invalid GA shows error hint; saved G-QATEST123 + full meta tag + QA123CLRTY → DB persisted; via gateway host (21.0.1.156:81 — non-localhost so scripts load): gtag.js + clarity tag + verification meta all injected, `window.gtag` function present, dataLayer received page_view `/#/` then `/#/products` on hash navigation; cleared all 3 fields → saved → DB empty → fresh public load has NO scripts/meta and clean console; eslint + tsc clean for all touched files; dev.log clean
+- QA note: agent-browser `fill` with empty string doesn't trigger React onChange — use real keystrokes (click + Ctrl+A + Backspace) when clearing controlled inputs
+
+Stage Summary:
+- Owner can now connect GA4, Search Console & Clarity with zero code changes: Admin → Site Settings → Analytics & Tracking → paste IDs → Save → live instantly (scripts verified end-to-end incl. SPA hash pageviews & removal on clear)
+- Settings flow: SiteSettings(microsoftClarityProjectId) → bootstrap API → SiteAnalytics injector; googleSheetsWebhookUrl unchanged (lead sync)
+- Open: owner needs real IDs (currently empty = all tools off); GSC verification relies on JS-rendered meta (Googlebot renders JS; DNS method is fallback)
