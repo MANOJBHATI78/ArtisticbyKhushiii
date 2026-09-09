@@ -1,5 +1,5 @@
 # Artistic by Khushi — production image
-# Runs `next start` (not the standalone server) so node_modules, sharp and the
+# Runs `next start` (standard .next build) so node_modules, sharp and the
 # Prisma query engine all stay together on one runtime. Data (SQLite + uploads)
 # lives on a persistent volume mounted at /data.
 FROM oven/bun:1

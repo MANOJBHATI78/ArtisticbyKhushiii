@@ -1,105 +1,113 @@
 # 🚀 Artistic by Khushi — Deployment Guide
 
-## Netlify pe problem kyu aayi thi? (Root cause)
+## Aapke Netlify pe problem kyu aa rahi thi? (Root cause)
 
-Aapki website sirf ek "static site" nahi hai — isme 3 cheezein hain jo ek
-**chalta hua server + database** chahti hain:
+Website ke APIs (products, blog, admin login, inquiries) ek **SQLite database**
+file padhte/likhte hain. Netlify ke serverless functions mein:
 
-| Feature | Kaise kaam karta hai | Netlify |
-|---|---|---|
-| Products / Blog / Settings | **SQLite database** (`db/custom.db`) | ❌ Netlify ke functions mein file-system har request pe **mit jaata hai** — data save nahi hota |
-| Admin login | Database + session cookie | ❌ Same wajah |
-| Image uploads | `public/uploads` folder mein file likhna | ❌ Netlify pe likhi hui files **delete ho jaati hain** |
+- ❌ Database file persist nahi hoti (har request pe naya ephemeral container)
+- ❌ Image uploads bhi save nahi ho sakte (file-system read-only-ish)
 
-Header/footer dikhe kyunki wo simple HTML hai — main content + admin login
-**API + database** se aata hai, jo Netlify pe chal hi nahi sakta.
+Isliye header/footer (plain HTML) dikhta hai, lekin main content
+("Something went sideways") aur admin login ("Something went wrong") fail
+hote the — kyunki unhe database chahiye jo Netlify pe tha hi nahi.
 
-> **Note:** Agar future mein Netlify hi chahiye, to database ko **Turso**
-> (cloud SQLite) aur uploads ko blob storage mein migrate karna padega —
-> wo alag project hai, tab kar lenge. Abhi ke liye niche wala tarika best hai.
+## ✅ Solution: Netlify + Turso (FREE — aapka hi netlify.app URL chalega)
 
----
+**Turso** = cloud SQLite (free plan kaafi hai). Maine poora code upgrade kar
+diya hai — ab database aur image uploads dono Turso mein save hote hain,
+aur Netlify pe sab kuch chalta hai:
 
-## ✅ Recommended: Railway.app (easiest, ~$5/month)
-
-Website ek **Docker container** ke roop mein chalti hai jisme database +
-uploads ek **persistent volume** (`/data`) pe save rehte hain — kabhi delete
-nahi honge, redeploy pe bhi safe.
-
-### Steps (10 minutes)
-
-1. **Code ko GitHub pe daalo**
-   - Poora project folder download karo (ya already git repo hai to skip)
-   - GitHub pe new **private repo** banao → saari files push karo
-   - `db/custom.db` push hona **zaroori hai** (wahi aapki saari products,
-     blogs, settings, admin login hai)
-
-2. **Railway pe jao** → [railway.app](https://railway.app) → GitHub se sign in
-   → **New Project → Deploy from GitHub repo** → apni repo select karo
-   - Railway `Dockerfile` ko khud detect kar lega
-
-3. **Volume attach karo (IMPORTANT — yahi data bachata hai)**
-   - Service → **Settings / Volumes** → *New Volume*
-   - **Mount path:** `/data`
-   - Size: 1 GB (pehle ke liye kaafi)
-
-4. **Deploy** — pehli baar build hoga (~3-5 min). Railway khud HTTPS URL
-   dega (jaise `artistic-up-production.up.railway.app`)
-
-5. **Login test karo**
-   - `https://<aapna-url>/#/admin`
-   - Email: `admin@artisticbykhushi.com` / Password: `Khushi@2024`
-   - **Password turant change karna** (Settings ya support se bolo)
-
-### Aapko kya milega live pe
-- Saare 22 products, 10 categories, 6 blog posts, saari settings ✅
-- Nayi inquiries database mein save + Google Sheets sync (agar webhook URL set ho) ✅
-- Image uploads volume pe save — redeploy pe bhi safe ✅
+- ✅ Products / blog / pages / settings — sab database se
+- ✅ Admin login + panel
+- ✅ Nayi inquiries save hoti hain
+- ✅ Image uploads database mein (Netlify pe bhi permanently save)
 
 ---
 
-## Alternatives
+## Step 1: Turso database banao (5 min, FREE)
 
-| Host | Kaise | Cost | Note |
-|---|---|---|---|
-| **Render.com** | GitHub repo → New → **Web Service** (repo me `render.yaml` ready hai) | $7/mo (disk ke saath) | Render free tier mein disk nahi milta |
-| **Fly.io** | `fly launch` + volume 1GB | ~free tier se shuru | Thoda technical hai |
-| **Zeabur** | Railway jaisa hi | plan varies | Deploy ka tareeka same hai (Docker) |
+1. **[app.turso.tech](https://app.turso.tech)** kholo → **Sign up with GitHub**
+   (same GitHub account jisse Netlify pe deploy kiya tha)
+2. Login ke baad: **Create database** → Name: `artistic-khushi` → **Create**
+3. Database ban jaane ke baad us detail page pe jaao:
+   - **Database URL** copy karo — dikhega kuch aisa:
+     `libsql://artistic-khushi-<aapna-user>.turso.io`
+   - **Generate token** / "Create auth token" button → token copy karo
+     (`eyJ...` se shuru hota hai)
+
+> Token ko safe rakho — ye database ka password hai.
+
+## Step 2: Netlify mein environment variables daalo (2 min)
+
+1. **Netlify dashboard** → apni site (`artisticbykhushi.netlify.app`) →
+   **Site settings → Environment variables**
+2. **Add a variable** (dono):
+
+   | Key | Value |
+   |---|---|
+   | `DATABASE_URL` | `libsql://artistic-khushi-<user>.turso.io` |
+   | `DATABASE_AUTH_TOKEN` | `eyJ...` (Step 1 ka token) |
+
+3. Save karo.
+
+## Step 3: Updated code push karo (5 min)
+
+Ye wala updated code (jo abhi aapke paas hai) apne **GitHub repo** mein push
+kar do — Netlify khud rebuild karega. Build ke dauraan:
+
+- `netlify.toml` pehle **Turso database mein saari tables banata hai**
+- Phir **poora content seed karta hai** — 22 products, 10 categories,
+  6 blog posts, 5 pages, FAQs, homepage sections, settings, admin user
+- (Ye sirf PEHLI baar hota hai — dobara deploy karne pe aapka naya data
+  kabhi overwrite nahi hota)
+
+Build complete hone pe:
+
+1. `https://artisticbykhushi.netlify.app/` kholo — poori site live ✅
+2. `#/admin` → **admin@artisticbykhushi.com / Khushi@2024** se login karo ✅
+3. **Password turant change karna** (Security best practice)
+
+## Step 4: Post-deploy checklist
+
+1. Admin → **Site Settings → Site URL** = `https://artisticbykhushi.netlify.app`
+   (SEO canonical tags + sitemap isi se banenge)
+2. **Analytics & Tracking** card mein apne real IDs (GA / Search Console /
+   Microsoft Clarity) daalo — Save karte hi live
+3. Custom domain: Netlify → Domain settings → add karo (DNS CNAME point)
 
 ---
 
-## Post-deploy checklist (ZAROORI)
+## Backup
 
-1. **Admin → Site Settings → Site URL** field bharo:
-   `https://aapka-domain.com` (sitemap, canonical tags, share links isi se
-   banenge — SEO ke liye)
-2. **Analytics & Tracking** card mein apne real IDs daalo:
-   - Google Analytics: `G-XXXXXXXXXX`
-   - Google Search Console token (HTML tag method)
-   - Microsoft Clarity project ID
-   - Save karte hi live ho jaayenge ✅
-3. **Custom domain** connect karo (Railway/Render settings → Domains)
-   → DNS: `CNAME` record host ke URL pe point karo
-4. Google Search Console mein apna final domain **add + verify** karo
+Turso database ka backup:
+- Turso dashboard → database → **Export / Dump** (SQL file download)
+- Ya admin panel → Leads → CSV export
+
+Kabhi bhi local `db/custom.db` se dobara seed karna ho:
+`DATABASE_URL=... DATABASE_AUTH_TOKEN=... node scripts/netlify-init.mjs`
 
 ---
 
-## Data backup (weekly habit)
+## Alternative: Railway / Render (Docker, ~$5-7/mo)
 
-- Railway service → **Volumes** → `/data` → download (DB + uploads)
-- Ya admin panel → Leads → CSV export ( inquiries ka backup)
+Agar Turso nahi lagana hai, Docker deploy bhi ready hai (`Dockerfile` +
+`docker-entrypoint.sh` + `render.yaml`):
 
----
+- Railway: repo → New Project → Volume mount path `/data` → done
+- Render: repo → Web Service (blueprint `render.yaml` ready hai)
+- Is path mein DB + uploads volume pe rehte hain (Turso ki zaroorat nahi)
 
 ## Technical notes (developer ke liye)
 
-- `DATABASE_URL=file:/data/custom.db` + `ABK_UPLOAD_DIR=/data/public-uploads`
-  container mein set hain (Dockerfile ENV) — `.env` ki value inko override
-  nahi karti kyunki process env hamesha jeet-ta hai.
-- First boot pe `docker-entrypoint.sh` bundled `db/custom.db` ko `/data` mein
-  copy karta hai — seed sirf ek baar, existing data kabhi overwrite nahi hota.
-- `/uploads/*` URLs `next.config.ts` ke `beforeFiles` rewrite se
-  `/api/media/*` serve route par jaate hain → volume ke files directly
-  serve hote hain (immutable cache headers ke saath).
-- Health check: `GET /api/public/bootstrap` (public + DB query — perfect liveness probe).
-- Admin credentials: `admin@artisticbykhushi.com` / `Khushi@2024`
+- `src/lib/db.ts`: **Prisma driver-adapter** (PrismaLibSQL factory) —
+  ek hi client `file:` (local/Docker) aur `libsql://` (Turso) dono chalata hai
+- Uploads: `MediaBlob` model — base64 chunks (512KB) DB mein; serve via
+  `/api/media/*` (disk mirror first, DB fallback — Netlify pe DB hi source hai);
+  `/uploads/*` → beforeFiles rewrite → serve route
+- `scripts/netlify-init.mjs`: DDL from `scripts/schema.sql` (regenerate:
+  `bunx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > scripts/schema.sql`),
+  idempotent row-copy from `db/custom.db` + uploads → chunks; `INIT_FORCE=1`
+  se local file-target testing bhi ho sakti hai
+- Health check: `GET /api/public/bootstrap`
+- Admin: `admin@artisticbykhushi.com` / `Khushi@2024`

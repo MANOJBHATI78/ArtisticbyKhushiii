@@ -214,3 +214,26 @@ Stage Summary:
 - Project is now production-deployable as a Docker container with persistent /data volume (DB + uploads survive redeploys); Netlify is architecturally unsuitable for this SQLite+FS app — owner guided to Railway/Render via DEPLOYMENT.md; all path handling env-driven and dev-verified
 - Open risks: Docker image itself not buildable in sandbox (no docker daemon) — Dockerfile follows oven/bun + next start best practices but needs one real build on the host; Netlify-native path (Turso migration) remains a future option if owner insists on Netlify
 - Next-phase priorities: (1) owner deploys to Railway and we verify live, (2) dashboard lead charts, (3) GA event tracking + styling polish round
+
+---
+Task ID: 7
+Agent: lead (Z.ai Code main)
+Task: Fix user's LIVE Netlify deployment — Turso cloud-database migration (serverless-compatible)
+
+Work Log:
+- Probed user's live site: netlify.app APIs return 500 (our envelope) → Netlify Next runtime runs functions but no SQLite database exists server-side; header/footer static shell renders — confirmed diagnosis
+- Installed + version-aligned: prisma@6.19.2, @prisma/client@6.19.2, @prisma/adapter-libsql@6.19.2, @libsql/client@0.18.0
+- prisma/schema.prisma: driverAdapters preview + new MediaBlob model (filename/chunkIndex/data base64 chunks, @@unique)
+- src/lib/db.ts: PrismaLibSQL FACTORY (takes {url, authToken} config, NOT a client instance — that caused URL_INVALID) → single client for file: (dev/Docker) AND libsql:// (Turso); reads DATABASE_URL + DATABASE_AUTH_TOKEN/TURSO_AUTH_TOKEN
+- src/lib/uploads.ts: storeUpload (chunks + best-effort disk mirror), readUploadFromDb, deleteUploadChunks; admin media POST stores DB chunks (sharp with raw-bytes fallback), DELETE removes chunks+disk; /api/media/[...path] serves disk-first → DB-chunks fallback (Netlify path), immutable cache
+- scripts/schema.sql (prisma migrate diff DDL) + scripts/netlify-init.mjs (Node ESM, runs on Netlify build): creates tables via executeMultiple, auto-discovers columns (PRAGMA table_info), idempotent row-copy from bundled db/custom.db ONLY when target empty, migrates public/uploads files → chunks; INIT_FORCE=1 for local testing
+- netlify.toml: @netlify/plugin-nextjs + build = "npx prisma generate && node scripts/netlify-init.mjs && npm run build", NODE_VERSION 20; build script simplified to plain "next build"; removed output:"standalone" from next.config (incompatible with Netlify runtime, unneeded for Docker next start)
+- Verified locally: netlify-init → fresh file DB got DDL + all rows (1 admin, 10 cats, 22 products, 25 images, 6 blogs, 5 pages, 14 FAQs, 3 leads, 44 media, 29 settings, 6 sections) + upload→chunk; second run = no-overwrite ✓; adapter standalone test on migrated DB: reads + media round-trip byte-IDENTICAL + INSERT/SELECT/DELETE ✓; fixed "prisma"→"db" import bug in uploads.ts (all routes had 500); dev restarted clean: login/home/products/uploads all 200; NEW upload → serve-from-disk 200 → disk file deleted → serve-from-DB-chunks 200 image/webp → API delete → 404 ✓ (exact Netlify behavior proven)
+- Discovered Task 6-a (interrupted) actually completed: /api/admin/leads/stats route + LeadStats types + Dashboard recharts "Inquiry Analytics" — verified live: 200 + charts render + lint clean; credited in this round
+- Browser QA: home 24 imgs/10 sections clean console, product view, admin dashboard charts (2 recharts surfaces + stats), sitemap XML ✓; eslint src = 0 problems
+
+Stage Summary:
+- Netlify-ready architecture: ALL state (content, leads, sessions, settings, media) lives in Turso; zero disk dependency; owner steps = Turso account (2 env vars) + git push → auto tables+seed+live (DEPLOYMENT.md step-by-step)
+- Docker/Railway path still fully functional (file: mode, disk mirror + volume)
+- Open risks: real Turso URL/token untested from sandbox (user account needed — code path proven via local file: + adapter); sharp on Netlify function bundles assumed OK with raw-bytes fallback as safety; rate-limiter is per-instance on serverless (honeypot + validation remain)
+- Next: user creates Turso DB + sets Netlify env vars + pushes code → verify live site end-to-end; then resume deferred 6-b (GA events, styling polish)

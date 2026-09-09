@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { fail, ok } from "@/lib/server-utils";
 import { readJsonBody, str, toMediaAsset } from "@/lib/serializers";
 import { requireAdmin } from "../../_guard";
-import { safeUploadPathFromUrl } from "@/lib/uploads";
+import { deleteUploadChunks, safeUploadPathFromUrl } from "@/lib/uploads";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -50,6 +50,9 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     if (filePath) {
       await unlink(filePath).catch(() => {}); // ignore missing files
     }
+    // Also remove the DB chunk copy (authoritative on serverless hosts).
+    const m = existing.url.match(/^\/uploads\/([A-Za-z0-9._-]+)$/);
+    if (m) await deleteUploadChunks(m[1]);
 
     await db.mediaAsset.delete({ where: { id } });
     return ok({ success: true });

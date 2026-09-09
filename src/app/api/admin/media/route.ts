@@ -1,12 +1,10 @@
 import { randomBytes } from "crypto";
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
 import sharp from "sharp";
 import { db } from "@/lib/db";
 import { fail, ok } from "@/lib/server-utils";
 import { str, toMediaAsset } from "@/lib/serializers";
 import { requireAdmin } from "../_guard";
-import { UPLOAD_DIR } from "@/lib/uploads";
+import { storeUpload } from "@/lib/uploads";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -61,20 +59,24 @@ export async function POST(request: Request) {
     }
 
     // ----- process with sharp: max width 1600, webp q82 -----
+    // (falls back to the original bytes when sharp is unavailable — e.g. some
+    // serverless bundles — so uploads keep working everywhere)
     const inputBuffer = Buffer.from(await blob.arrayBuffer());
     let outputBuffer: Buffer;
+    let outExt = "webp";
     try {
       outputBuffer = await sharp(inputBuffer)
         .resize({ width: 1600, withoutEnlargement: true })
         .webp({ quality: 82 })
         .toBuffer();
     } catch {
-      return fail("Could not process the image — the file may be corrupt.", 400);
+      outputBuffer = inputBuffer;
+      outExt = ext || "webp";
     }
 
-    const filename = `upload-${Date.now()}-${randomBytes(3).toString("hex")}.webp`;
-    await mkdir(UPLOAD_DIR, { recursive: true });
-    await writeFile(path.join(UPLOAD_DIR, filename), outputBuffer);
+    const filename = `upload-${Date.now()}-${randomBytes(3).toString("hex")}.${outExt}`;
+    // Stores base64 chunks in the DB (serverless-safe) + mirrors to disk when writable.
+    await storeUpload(filename, outputBuffer);
 
     const media = await db.mediaAsset.create({
       data: {

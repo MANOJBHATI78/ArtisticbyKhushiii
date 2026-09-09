@@ -3,7 +3,8 @@
 // because the SQLite provider does not support primitive lists.
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -238,4 +239,19 @@ model HomepageSection {
   visible      Boolean  @default(true)
   displayOrder Int      @default(0)
   updatedAt    DateTime @updatedAt
+}
+
+// ---------------- MEDIA BLOB STORAGE ----------------
+// Serverless hosts (Netlify) cannot persist files on disk, so uploaded media
+// is stored in the database as base64 chunks and served via /api/media/*.
+// Keyed by filename — MediaAsset.url stays "/uploads/<filename>".
+
+model MediaBlob {
+  id         String   @id @default(cuid())
+  filename   String
+  chunkIndex Int
+  data       String
+  createdAt  DateTime @default(now())
+
+  @@unique([filename, chunkIndex])
 }

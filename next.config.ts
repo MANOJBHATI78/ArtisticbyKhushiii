@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
-  /* config options here */
+  /* Standard .next build — runs under `next start` (Docker) and the
+     Netlify Next.js runtime (functions) alike. */
   typescript: {
     ignoreBuildErrors: true,
   },

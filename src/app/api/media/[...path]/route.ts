@@ -1,6 +1,6 @@
 import { readFile, stat } from "fs/promises";
 import path from "path";
-import { UPLOAD_DIR } from "@/lib/uploads";
+import { UPLOAD_DIR, readUploadFromDb } from "@/lib/uploads";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -36,24 +36,37 @@ export async function GET(_request: Request, { params }: { params: Promise<{ pat
   // Belt & braces traversal guard: must stay inside UPLOAD_DIR.
   if (!filePath.startsWith(UPLOAD_DIR + path.sep)) return notFound();
 
+  // 1) Disk mirror (fast path on dev / Docker hosts).
   try {
     const fileStat = await stat(filePath);
-    if (!fileStat.isFile()) return notFound();
-
-    const buffer = await readFile(filePath);
-    const ext = path.extname(name).toLowerCase();
-    const contentType = MIME_TYPES[ext] ?? "application/octet-stream";
-    return new Response(new Uint8Array(buffer), {
-      status: 200,
-      headers: {
-        "Content-Type": contentType,
-        "Content-Length": String(fileStat.size),
-        "Cache-Control": "public, max-age=31536000, immutable",
-      },
-    });
+    if (fileStat.isFile()) {
+      const buffer = await readFile(filePath);
+      return respond(buffer, fileStat.size, name);
+    }
   } catch {
-    return notFound();
+    /* fall through to database */
   }
+
+  // 2) Database chunks (authoritative on serverless hosts like Netlify).
+  const fromDb = await readUploadFromDb(name).catch(() => null);
+  if (fromDb && fromDb.length > 0) {
+    return respond(fromDb, fromDb.length, name);
+  }
+
+  return notFound();
+}
+
+function respond(buffer: Buffer, size: number, name: string) {
+  const ext = path.extname(name).toLowerCase();
+  const contentType = MIME_TYPES[ext] ?? "application/octet-stream";
+  return new Response(new Uint8Array(buffer), {
+    status: 200,
+    headers: {
+      "Content-Type": contentType,
+      "Content-Length": String(size),
+      "Cache-Control": "public, max-age=31536000, immutable",
+    },
+  });
 }
 
 function notFound() {

@@ -1,0 +1,16 @@
+# Netlify deployment — Artistic by Khushi
+# Runs the official Next.js runtime (route handlers become Netlify Functions)
+# and bootstraps the Turso database before the build.
+#
+# Required environment variables (Netlify UI → Site settings → Environment variables):
+#   DATABASE_URL          = libsql://<your-db>.turso.io
+#   DATABASE_AUTH_TOKEN   = <turso auth token>
+[build]
+  command = "npx prisma generate && node scripts/netlify-init.mjs && npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
