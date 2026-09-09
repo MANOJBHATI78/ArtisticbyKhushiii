@@ -86,6 +86,7 @@ export function LeadsManager({ jump }: { jump?: { q: string; n: number } }) {
       .then(() => {
         toast({ title: `Marked as ${newStatus.replace("_", " ")}`, description: lead.name });
         void qc.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+        void qc.invalidateQueries({ queryKey: ["admin", "lead-stats"] });
       })
       .catch((e) => {
         if (prev) qc.setQueryData(leadsKey, prev);
@@ -147,6 +148,7 @@ export function LeadsManager({ jump }: { jump?: { q: string; n: number } }) {
         setDetail(null);
         void qc.invalidateQueries({ queryKey: ["admin", "leads"] });
         void qc.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+        void qc.invalidateQueries({ queryKey: ["admin", "lead-stats"] });
       })
       .catch((e) => toast({ title: "Delete failed", description: errMsg(e), variant: "destructive" }))
       .finally(() => setDeleting(false));

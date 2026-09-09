@@ -238,6 +238,45 @@ export interface DashboardStats {
   recentBlogs: { id: string; title: string; slug: string; status: string; updatedAt: string }[];
 }
 
+// ---------------- lead analytics ----------------
+
+export interface LeadDailyPoint {
+  /** "YYYY-MM-DD" (UTC) */
+  date: string;
+  /** leads created that day (all statuses) */
+  count: number;
+  /** leads created that day that are currently CONVERTED */
+  converted: number;
+}
+
+export interface LeadStatusCount {
+  status: string;
+  count: number;
+}
+
+export interface LeadProductCount {
+  name: string;
+  count: number;
+}
+
+export interface LeadStatsTotals {
+  thisWeek: number;
+  lastWeek: number;
+  thisMonth: number;
+  /** CONVERTED / total leads, percentage (0-100, 1 decimal) */
+  conversionRate: number;
+}
+
+export interface LeadStats {
+  /** last 14 days, oldest first, zero-filled (every day present) */
+  leadsPerDay: LeadDailyPoint[];
+  /** all 6 LEAD_STATUSES with counts (zeros included) */
+  statusBreakdown: LeadStatusCount[];
+  /** top 5 products by lead count (leads with a product set) */
+  topProducts: LeadProductCount[];
+  totals: LeadStatsTotals;
+}
+
 export interface MediaAsset {
   id: string;
   url: string;

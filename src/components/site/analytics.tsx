@@ -145,7 +145,7 @@ export function SiteAnalytics({ settings }: { settings: SiteSettings }) {
       const queue: unknown[] = [];
       const fn = ((...args: unknown[]) => {
         queue.push(args);
-      }) as Window["clarity"];
+      }) as NonNullable<Window["clarity"]>;
       fn.q = queue;
       window.clarity = fn;
     }

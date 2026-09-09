@@ -8,6 +8,7 @@ import { Container } from "@/components/site/container";
 import { Img } from "@/components/site/img";
 import { navigate, useHashRoute } from "@/lib/router";
 import { useSiteStore, whatsappLink } from "@/lib/store";
+import { trackCallClick, trackWhatsAppClick } from "@/lib/track";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
@@ -179,7 +180,11 @@ export function SiteHeader() {
             </Button>
             <div className="flex gap-3">
               <Button asChild variant="outline" className="h-12 flex-1">
-                <a href={`tel:${settings.phone.replace(/\s/g, "")}`} aria-label={`Call us on ${settings.phone}`}>
+                <a
+                  href={`tel:${settings.phone.replace(/\s/g, "")}`}
+                  onClick={() => trackCallClick("header")}
+                  aria-label={`Call us on ${settings.phone}`}
+                >
                   <Phone aria-hidden="true" />
                   Call
                 </a>
@@ -189,6 +194,7 @@ export function SiteHeader() {
                   href={whatsappLink(settings)}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackWhatsAppClick("header")}
                   aria-label="Chat with us on WhatsApp"
                 >
                   WhatsApp

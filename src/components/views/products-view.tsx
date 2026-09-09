@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Container } from "@/components/site/container";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
+import { FadeIn } from "@/components/site/fade-in";
 import { ProductCard } from "@/components/site/product-card";
 import { EmptyState, ErrorState } from "@/components/site/empty-state";
 import { ProductGridSkeleton } from "@/components/site/skeletons";
@@ -186,8 +187,10 @@ export default function ProductsView() {
           />
         ) : (
           <div className={cn("grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-3 xl:grid-cols-4", isFetching && "opacity-60 transition-opacity")}>
-            {items.map((product) => (
-              <ProductCard key={product.slug} product={product} />
+            {items.map((product, i) => (
+              <FadeIn key={product.slug} delay={Math.min(i, 8) * 0.04} y={12} duration={0.45}>
+                <ProductCard product={product} />
+              </FadeIn>
             ))}
           </div>
         )}

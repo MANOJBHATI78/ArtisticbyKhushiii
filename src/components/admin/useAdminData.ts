@@ -8,6 +8,7 @@ import type {
   Faq,
   HomepageSection,
   Lead,
+  LeadStats,
   MediaAsset,
   Paginated,
   PublicBlogPost,
@@ -63,6 +64,16 @@ export function useAdminDashboard() {
   return useQuery<DashboardStats>({
     queryKey: ["admin", "dashboard"],
     queryFn: () => api.get<DashboardStats>("/api/admin/dashboard"),
+    refetchOnWindowFocus: true,
+  });
+}
+
+/** Lead analytics for the Dashboard charts (single fetch, invalidated on Dashboard mount). */
+export function useLeadStats() {
+  return useQuery<LeadStats>({
+    queryKey: ["admin", "lead-stats"],
+    queryFn: () => api.get<LeadStats>("/api/admin/leads/stats"),
+    staleTime: 60_000,
     refetchOnWindowFocus: true,
   });
 }

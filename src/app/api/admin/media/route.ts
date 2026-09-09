@@ -6,11 +6,11 @@ import { db } from "@/lib/db";
 import { fail, ok } from "@/lib/server-utils";
 import { str, toMediaAsset } from "@/lib/serializers";
 import { requireAdmin } from "../_guard";
+import { UPLOAD_DIR } from "@/lib/uploads";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
 const MAX_BYTES = 8 * 1024 * 1024; // 8MB
 const ALLOWED_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "gif", "avif"]);
 const ALLOWED_MIME = /^image\/(jpe?g|png|webp|gif|avif)$/i;

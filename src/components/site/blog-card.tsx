@@ -20,7 +20,7 @@ export function BlogCard({ post, className }: BlogCardProps) {
   return (
     <Card
       className={cn(
-        "group h-full overflow-hidden pt-0 transition-all duration-300 hover:border-gold/40 hover:shadow-lg",
+        "group h-full overflow-hidden pt-0 transition-all duration-300 hover:-translate-y-1 hover:border-gold/40 hover:shadow-lg",
         className
       )}
     >

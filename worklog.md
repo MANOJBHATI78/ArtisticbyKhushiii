@@ -193,3 +193,24 @@ Stage Summary:
 - Owner can now connect GA4, Search Console & Clarity with zero code changes: Admin → Site Settings → Analytics & Tracking → paste IDs → Save → live instantly (scripts verified end-to-end incl. SPA hash pageviews & removal on clear)
 - Settings flow: SiteSettings(microsoftClarityProjectId) → bootstrap API → SiteAnalytics injector; googleSheetsWebhookUrl unchanged (lead sync)
 - Open: owner needs real IDs (currently empty = all tools off); GSC verification relies on JS-rendered meta (Googlebot renders JS; DNS method is fallback)
+
+---
+Task ID: 6
+Agent: lead (Z.ai Code main) — triggered by webDevReview cron + user Netlify deployment issue
+Task: Diagnose Netlify failure + make project production-deployable (Docker + volume)
+
+Work Log:
+- User deployed to Netlify: header/footer rendered but main content showed "Something went sideways" and admin login "Something went wrong" → ROOT CAUSE: all API routes depend on Prisma SQLite + disk file uploads; (1) .env had sandbox-absolute DATABASE_URL=file:/home/z/my-project/db/custom.db (doesn't exist on Netlify), (2) Netlify functions have ephemeral filesystem — SQLite writes/uploads can never persist there. Static shell (header/footer) renders without APIs; every data fetch 500s/404s → error states.
+- Made paths portable: .env now DATABASE_URL=file:../db/custom.db (relative to prisma/schema.prisma; dev server auto-reloaded, verified 200 + login OK)
+- New src/lib/uploads.ts: UPLOAD_DIR (env ABK_UPLOAD_DIR, default public/uploads) + safeUploadPathFromUrl; admin media routes now use it (upload POST + [id] DELETE)
+- New GET /api/media/[...path]/route.ts: serves files from UPLOAD_DIR with correct MIME, immutable cache headers, traversal guards (404 verified for ../ attacks)
+- next.config.ts: beforeFiles rewrite /uploads/:path* → /api/media/:path* so DB-stored URLs work identically in dev (public dir) and prod (Docker volume outside public/)
+- src/lib/db.ts: prisma log reduced to error/warn in production (query logs were dev-only noisy)
+- Deployment assets: Dockerfile (oven/bun:1, bun install --frozen-lockfile, prisma generate, next build, runs `next start` with PORT env; ENV DATABASE_URL=file:/data/custom.db + ABK_UPLOAD_DIR=/data/public-uploads; VOLUME /data), docker-entrypoint.sh (first boot copies bundled db/custom.db → /data — ships all 22 products/blogs/settings/admin; subsequent boots never overwrite), .dockerignore, render.yaml (Render blueprint with disk + health check), DEPLOYMENT.md (Hinglish owner guide: why Netlify failed, Railway steps with /data volume, Render/Fly/Zeabur alternatives, post-deploy checklist: siteUrl setting, GA/GSC/Clarity IDs, custom domain, backups)
+- Verified in dev: /uploads/qa-test.txt + /api/media/qa-test.txt both 200 with API immutable cache header (proves rewrite routes through API), real webp serves as image/webp, traversal blocked 404, admin login 200 (cookie jar), home renders 13 headings/24 imgs with clean console, eslint + tsc 0 problems on all changed files
+- Deferred from interrupted round 6: admin Dashboard lead analytics charts (recharts) + public-site GA event tracking/styling polish — top priorities for next round
+
+Stage Summary:
+- Project is now production-deployable as a Docker container with persistent /data volume (DB + uploads survive redeploys); Netlify is architecturally unsuitable for this SQLite+FS app — owner guided to Railway/Render via DEPLOYMENT.md; all path handling env-driven and dev-verified
+- Open risks: Docker image itself not buildable in sandbox (no docker daemon) — Dockerfile follows oven/bun + next start best practices but needs one real build on the host; Netlify-native path (Turso migration) remains a future option if owner insists on Netlify
+- Next-phase priorities: (1) owner deploys to Railway and we verify live, (2) dashboard lead charts, (3) GA event tracking + styling polish round

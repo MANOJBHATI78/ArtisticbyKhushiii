@@ -1,21 +1,12 @@
 import { unlink } from "fs/promises";
-import path from "path";
 import { db } from "@/lib/db";
 import { fail, ok } from "@/lib/server-utils";
 import { readJsonBody, str, toMediaAsset } from "@/lib/serializers";
 import { requireAdmin } from "../../_guard";
+import { safeUploadPathFromUrl } from "@/lib/uploads";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-/** Only delete files that live directly under /public/uploads with a safe name. */
-function safeUploadPath(url: string): string | null {
-  const match = url.match(/^\/uploads\/([A-Za-z0-9._-]+)$/);
-  if (!match) return null;
-  const name = match[1];
-  if (name.includes("..")) return null;
-  return path.join(process.cwd(), "public", "uploads", name);
-}
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -55,7 +46,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     const existing = await db.mediaAsset.findUnique({ where: { id } });
     if (!existing) return fail("Media asset not found.", 404);
 
-    const filePath = safeUploadPath(existing.url);
+    const filePath = safeUploadPathFromUrl(existing.url);
     if (filePath) {
       await unlink(filePath).catch(() => {}); // ignore missing files
     }

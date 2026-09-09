@@ -1,0 +1,12 @@
+# Render.com blueprint — deploy with Docker + persistent disk
+# Docs: https render.com/docs/blueprint-spec (remove space, see DEPLOYMENT.md)
+services:
+  - type: web
+    name: artistic-by-khushi
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    disk:
+      name: abk-data
+      mountPath: /data
+    healthCheckPath: /api/public/bootstrap

@@ -3,6 +3,7 @@
 import { Facebook, Instagram, Youtube } from "lucide-react";
 import { useCategories } from "@/lib/queries";
 import { useSiteStore, whatsappLink } from "@/lib/store";
+import { trackCallClick, trackWhatsAppClick } from "@/lib/track";
 import { Img } from "@/components/site/img";
 import { Container } from "@/components/site/container";
 
@@ -121,7 +122,11 @@ export function SiteFooter() {
             <h2 className="font-display text-lg text-cream">Get in Touch</h2>
             <ul className="mt-4 space-y-2.5 text-sm text-cream/70">
               <li>
-                <a href={`tel:${settings.phone.replace(/\s/g, "")}`} className={footerLinkClass}>
+                <a
+                  href={`tel:${settings.phone.replace(/\s/g, "")}`}
+                  onClick={() => trackCallClick("footer")}
+                  className={footerLinkClass}
+                >
                   {settings.phone}
                 </a>
               </li>
@@ -130,6 +135,7 @@ export function SiteFooter() {
                   href={whatsappLink(settings)}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackWhatsAppClick("footer")}
                   className={footerLinkClass}
                 >
                   WhatsApp us

@@ -1,15 +1,27 @@
 "use client";
 
+import { useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { InquiryForm } from "@/components/site/inquiry-form";
 import { useSiteStore } from "@/lib/store";
+import { trackInquiryOpen } from "@/lib/track";
 
 /** Global "Enquire Now" dialog — one instance lives in the SiteApp shell. */
 export function InquiryModal() {
   const inquiryOpen = useSiteStore((s) => s.inquiryOpen);
   const closeInquiry = useSiteStore((s) => s.closeInquiry);
   const inquiryContext = useSiteStore((s) => s.inquiryContext);
+
+  // GA4: fire inquiry_open each time the dialog opens (context = product | general).
+  useEffect(() => {
+    if (!inquiryOpen) return;
+    trackInquiryOpen(
+      inquiryContext?.productSlug ? "product" : "general",
+      inquiryContext?.productSlug,
+      inquiryContext?.category
+    );
+  }, [inquiryOpen, inquiryContext]);
 
   return (
     <Dialog open={inquiryOpen} onOpenChange={(open) => (open ? null : closeInquiry())}>

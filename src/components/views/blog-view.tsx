@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,13 +13,50 @@ import { Img } from "@/components/site/img";
 import { EmptyState, ErrorState } from "@/components/site/empty-state";
 import { BlogGridSkeleton } from "@/components/site/skeletons";
 import { siteOrigin } from "@/components/site/seo-helpers";
+import { api } from "@/lib/api-client";
 import { useBlogCategories, useBlogs } from "@/lib/queries";
 import { navigate, useHashRoute } from "@/lib/router";
-import { splitList } from "@/lib/types";
+import { splitList, type Paginated, type PublicBlogPost } from "@/lib/types";
 import { useSeo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 9;
+
+/** Chip row shows a scrollbar-free horizontal scroll on mobile. */
+const NO_SCROLLBAR = "[scrollbar-width:none] [ -ms-overflow-style:none ] [&::-webkit-scrollbar]:hidden";
+
+const chipClass = (active: boolean) =>
+  cn(
+    "min-h-11 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold",
+    active
+      ? "border-primary bg-primary text-primary-foreground"
+      : "border-border bg-card text-foreground/80 hover:border-gold/50 hover:text-primary"
+  );
+
+/**
+ * Small extension hook (kept local per file-ownership): unfiltered first page
+ * of posts so the tag chips stay stable even while a tag filter is active.
+ * Shares the ["blogs", …] key prefix, so admin invalidation refreshes it too.
+ */
+function useAllBlogTags() {
+  const { data } = useQuery({
+    queryKey: ["blogs", "tags"],
+    queryFn: () => api.get<Paginated<PublicBlogPost>>("/api/public/blogs?page=1&pageSize=48"),
+    staleTime: 1000 * 60 * 5,
+  });
+  return useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const post of data?.items || []) {
+      for (const t of splitList(post.tags)) {
+        counts.set(t, (counts.get(t) || 0) + 1);
+      }
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([t]) => t);
+  }, [data]);
+}
 
 function buildUrl(params: { q?: string; tag?: string; cat?: string; page?: number }): string {
   const sp = new URLSearchParams();
@@ -49,6 +87,7 @@ export default function BlogView() {
 
   const { data: blogCategories } = useBlogCategories();
   const { data, isLoading, isError, refetch, isFetching } = useBlogs(page, PAGE_SIZE, q, tag, cat);
+  const allTags = useAllBlogTags();
 
   useSeo({
     title: "Blog | Artistic by Khushi — Resin Art Journal",
@@ -70,19 +109,6 @@ export default function BlogView() {
 
   const items = data?.items || [];
   const totalPages = data?.totalPages || 1;
-
-  const topTags = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const post of items) {
-      for (const t of splitList(post.tags)) {
-        counts.set(t, (counts.get(t) || 0) + 1);
-      }
-    }
-    return Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([t]) => t);
-  }, [items]);
 
   const featured = !q && !tag && !cat && page === 1 ? items.find((p) => p.featured) : undefined;
   const rest = featured ? items.filter((p) => p.slug !== featured.slug) : items;
@@ -138,17 +164,17 @@ export default function BlogView() {
         </div>
       </div>
 
-      {/* Filters: blog categories + tags */}
-      <div className="mt-6 -mx-4 space-y-2 overflow-x-auto px-4 pb-1 custom-scroll" aria-label="Filter articles">
+      {/* Filters: blog categories + tag chips (scrollable, no scrollbar) */}
+      <div
+        className={cn("mt-6 -mx-4 space-y-2 overflow-x-auto px-4 pb-1", NO_SCROLLBAR)}
+        aria-label="Filter articles"
+      >
         <div className="flex w-max gap-2">
           <button
             type="button"
             onClick={() => navigate(buildUrl({ q, tag }), { keepScroll: true })}
             aria-pressed={!cat}
-            className={cn(
-              "min-h-11 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold",
-              !cat ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground/80 hover:border-gold/50 hover:text-primary"
-            )}
+            className={chipClass(!cat)}
           >
             All Topics
           </button>
@@ -158,41 +184,33 @@ export default function BlogView() {
               type="button"
               onClick={() => navigate(buildUrl({ q, tag, cat: c.slug }), { keepScroll: true })}
               aria-pressed={cat === c.slug}
-              className={cn(
-                "min-h-11 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold",
-                cat === c.slug ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground/80 hover:border-gold/50 hover:text-primary"
-              )}
+              className={chipClass(cat === c.slug)}
             >
               {c.name}
             </button>
           ))}
         </div>
-        {topTags.length > 0 && !tag ? (
-          <div className="flex w-max gap-2 pt-1">
-            {topTags.map((t) => (
+        {allTags.length > 0 ? (
+          <div className="flex w-max items-center gap-2 pt-1" role="group" aria-label="Filter by tag">
+            <button
+              type="button"
+              onClick={() => navigate(buildUrl({ q, cat }), { keepScroll: true })}
+              aria-pressed={!tag}
+              className={chipClass(!tag)}
+            >
+              All tags
+            </button>
+            {allTags.map((t) => (
               <button
                 key={t}
                 type="button"
                 onClick={() => navigate(buildUrl({ q, cat, tag: t }), { keepScroll: true })}
-                className="min-h-9 whitespace-nowrap rounded-full bg-secondary px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-gold-soft hover:text-accent-foreground"
+                aria-pressed={tag === t}
+                className={chipClass(tag === t)}
               >
                 #{t}
               </button>
             ))}
-          </div>
-        ) : null}
-        {tag ? (
-          <div className="flex items-center gap-2 pt-1">
-            <span className="rounded-full bg-gold-soft px-3 py-1.5 text-xs font-medium text-accent-foreground">
-              #{tag}
-            </span>
-            <button
-              type="button"
-              onClick={() => navigate(buildUrl({ q, cat }), { keepScroll: true })}
-              className="min-h-9 rounded-full px-2 text-xs text-muted-foreground hover:text-foreground"
-            >
-              clear
-            </button>
           </div>
         ) : null}
       </div>

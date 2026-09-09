@@ -21,7 +21,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
   return (
     <Card
       className={cn(
-        "group flex h-full flex-col overflow-hidden pt-0 transition-all duration-300 hover:border-gold/40 hover:shadow-lg",
+        "group flex h-full flex-col overflow-hidden pt-0 transition-all duration-300 hover:-translate-y-1 hover:border-gold/40 hover:shadow-lg",
         className
       )}
     >

@@ -29,6 +29,7 @@ import { siteOrigin, socialSameAs } from "@/components/site/seo-helpers";
 import { useHome } from "@/lib/queries";
 import { navigate } from "@/lib/router";
 import { useSiteStore, whatsappLink } from "@/lib/store";
+import { track } from "@/lib/track";
 import { parseJsonArray } from "@/lib/types";
 import { useSeo } from "@/lib/seo";
 
@@ -201,6 +202,7 @@ export default function HomeView() {
                     href={whatsappLink(settings)}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => track("whatsapp_click", { location: "home", section: "hero" })}
                     className="inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-sm font-medium text-[#128C7E] transition-colors hover:bg-[#25D366]/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
                   >
                     <MessageCircle className="size-4" aria-hidden="true" />
@@ -360,16 +362,15 @@ export default function HomeView() {
                 {parseItems(whyChoose.itemsJson).map((item, i) => {
                   const Icon = WHY_ICONS[i % WHY_ICONS.length];
                   return (
-                    <div
-                      key={i}
-                      className="rounded-xl border bg-card p-6 transition-shadow hover:shadow-md"
-                    >
-                      <span className="flex size-11 items-center justify-center rounded-full bg-gold-soft text-terracotta">
-                        <Icon className="size-5" aria-hidden="true" />
-                      </span>
-                      <h3 className="mt-4 font-medium text-foreground">{item.title}</h3>
-                      <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{item.text}</p>
-                    </div>
+                    <FadeIn key={i} delay={i * 0.05} y={12} duration={0.45}>
+                      <div className="h-full rounded-xl border bg-card p-6 transition-shadow hover:shadow-md">
+                        <span className="flex size-11 items-center justify-center rounded-full bg-gold-soft text-terracotta">
+                          <Icon className="size-5" aria-hidden="true" />
+                        </span>
+                        <h3 className="mt-4 font-medium text-foreground">{item.title}</h3>
+                        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{item.text}</p>
+                      </div>
+                    </FadeIn>
                   );
                 })}
               </div>
@@ -471,7 +472,12 @@ export default function HomeView() {
                   className="h-12 rounded-full border-cream/40 bg-transparent px-7 text-base text-cream hover:bg-cream/10 hover:text-cream"
                   asChild
                 >
-                  <a href={whatsappLink(settings)} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={whatsappLink(settings)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => track("whatsapp_click", { location: "home", section: "memory_preservation" })}
+                  >
                     <MessageCircle aria-hidden="true" />
                     Enquire on WhatsApp
                   </a>
@@ -547,7 +553,12 @@ export default function HomeView() {
                   className="h-12 rounded-full border-cream/40 bg-transparent px-8 text-base text-cream hover:bg-cream/10 hover:text-cream"
                   asChild
                 >
-                  <a href={whatsappLink(settings)} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={whatsappLink(settings)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => track("whatsapp_click", { location: "home", section: "final_cta" })}
+                  >
                     <MessageCircle aria-hidden="true" />
                     WhatsApp Us
                   </a>

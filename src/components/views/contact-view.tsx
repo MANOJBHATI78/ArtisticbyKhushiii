@@ -9,6 +9,7 @@ import { InquiryForm } from "@/components/site/inquiry-form";
 import { FadeIn } from "@/components/site/fade-in";
 import { siteOrigin, socialSameAs } from "@/components/site/seo-helpers";
 import { useSiteStore, whatsappLink } from "@/lib/store";
+import { trackCallClick, trackWhatsAppClick } from "@/lib/track";
 import { useSeo } from "@/lib/seo";
 
 function PinterestIcon({ className }: { className?: string }) {
@@ -69,6 +70,7 @@ export default function ContactView() {
       content: settings.phone,
       href: `tel:${settings.phone.replace(/\s/g, "")}`,
       hint: "Mon–Sat, 10am–7pm IST",
+      trackClick: () => trackCallClick("contact"),
     },
     {
       title: "WhatsApp",
@@ -78,6 +80,7 @@ export default function ContactView() {
       external: true,
       hint: "Fastest way to reach us",
       accent: "text-[#128C7E]",
+      trackClick: () => trackWhatsAppClick("contact"),
     },
     {
       title: "Email",
@@ -136,6 +139,7 @@ export default function ContactView() {
                   href={card.href}
                   target={card.external ? "_blank" : undefined}
                   rel={card.external ? "noopener noreferrer" : undefined}
+                  onClick={card.trackClick}
                   className="rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
                 >
                   <Card className="h-full transition-all hover:border-gold/40 hover:shadow-md">{Inner}</Card>

@@ -20,6 +20,7 @@ import { ApiError } from "@/lib/api-client";
 import { navigate } from "@/lib/router";
 import { useSiteStore, whatsappLink } from "@/lib/store";
 import { splitList } from "@/lib/types";
+import { trackCallClick, trackWhatsAppClick } from "@/lib/track";
 import { useSeo } from "@/lib/seo";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -135,13 +136,13 @@ export default function ProductView({ slug }: { slug: string }) {
         <div className="mt-6 grid gap-8 pb-4 lg:grid-cols-2 lg:gap-12">
           {/* Gallery */}
           <div>
-            <div className="overflow-hidden rounded-xl border bg-card">
-              <div className="aspect-square bg-secondary">
+            <div className="group overflow-hidden rounded-xl border bg-card">
+              <div className="aspect-square overflow-hidden bg-secondary">
                 <Img
                   src={current?.url || product.featuredImageUrl}
                   alt={current?.alt || product.featuredImageAlt || product.name}
                   eager
-                  className="size-full object-cover"
+                  className="size-full object-cover transition-transform duration-300 motion-safe:group-hover:scale-105"
                 />
               </div>
             </div>
@@ -156,7 +157,7 @@ export default function ProductView({ slug }: { slug: string }) {
                     aria-pressed={i === activeImage}
                     className={cn(
                       "size-20 shrink-0 overflow-hidden rounded-lg border-2 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold",
-                      i === activeImage ? "border-primary ring-2 ring-primary/30" : "border-transparent opacity-80 hover:opacity-100"
+                      i === activeImage ? "border-primary ring-2 ring-primary" : "border-transparent opacity-80 ring-0 hover:opacity-100"
                     )}
                   >
                     <Img src={image.url} alt={image.alt || `${product.name} — image ${i + 1}`} className="size-full object-cover" />
@@ -218,6 +219,7 @@ export default function ProductView({ slug }: { slug: string }) {
                   href={whatsappLink(settings, product.name)}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackWhatsAppClick("product", product.slug)}
                   aria-label={`Ask about ${product.name} on WhatsApp`}
                 >
                   <MessageCircle aria-hidden="true" />
@@ -225,7 +227,7 @@ export default function ProductView({ slug }: { slug: string }) {
                 </a>
               </Button>
               <Button size="lg" variant="outline" className="h-12 rounded-full px-6 text-base" asChild>
-                <a href={phoneHref} aria-label={`Call us on ${settings.phone}`}>
+                <a href={phoneHref} onClick={() => trackCallClick("product")} aria-label={`Call us on ${settings.phone}`}>
                   <Phone aria-hidden="true" />
                   Call
                 </a>
@@ -391,7 +393,12 @@ export default function ProductView({ slug }: { slug: string }) {
                 className="h-12 rounded-full border-cream/40 bg-transparent px-8 text-base text-cream hover:bg-cream/10 hover:text-cream"
                 asChild
               >
-                <a href={whatsappLink(settings, product.name)} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={whatsappLink(settings, product.name)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackWhatsAppClick("product", product.slug)}
+                >
                   <MessageCircle aria-hidden="true" />
                   WhatsApp Us
                 </a>

@@ -12,6 +12,7 @@ import { api } from "@/lib/api-client";
 import { useProducts } from "@/lib/queries";
 import { navigate, useHashRoute } from "@/lib/router";
 import { useSiteStore } from "@/lib/store";
+import { trackInquirySubmit } from "@/lib/track";
 import { cn } from "@/lib/utils";
 
 const UTM_KEYS = { source: "abk_utm_source", medium: "abk_utm_medium", campaign: "abk_utm_campaign" } as const;
@@ -122,6 +123,12 @@ export function InquiryForm({ className, submitLabel = "Send Inquiry" }: Inquiry
         honeypot,
       });
       setLastLeadRef(String(res.leadId ?? ""));
+      // GA4: inquiry_submit only on SUCCESS (lead saved server-side).
+      trackInquirySubmit({
+        product: hasProductContext ? inquiryContext?.productName || "" : product.trim(),
+        category: hasProductContext ? inquiryContext?.category || "" : "",
+        sourcePage: route.path,
+      });
       closeInquiry();
       navigate("/thank-you");
     } catch (err) {
