@@ -25,17 +25,73 @@ const DEST_TOKEN =
 const SOURCE_URL =
   process.env.SOURCE_DATABASE_URL || `file:${path.join(ROOT, "db/custom.db")}`;
 
+// True when running inside a Netlify build (CI adds these automatically).
+const ON_NETLIFY = Boolean(process.env.NETLIFY || process.env.CONTEXT);
+
 if (!DEST_URL) {
+  if (ON_NETLIFY) {
+    console.error(`
+❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌
+❌  DEPLOY FAILED — DATABASE NOT CONFIGURED
+❌
+❌  Netlify pe database (Turso) ke env variables set nahi hue hain.
+❌  Iske bina site live hone ke baad bhi "Something went sideways"
+❌  error hi dikhega — isliye build ko yahin rok diya gaya hai.
+❌
+❌  FIX (2 minute):
+❌  1. Netlify dashboard → Site settings → Environment variables
+❌  2. Add these TWO variables (Turso app.turso.tech se):
+❌       DATABASE_URL        = libsql://<your-db>.turso.io
+❌       DATABASE_AUTH_TOKEN = eyJ... (Turso token)
+❌  3. Save → Deploys → Trigger deploy → Clear cache and deploy site
+❌
+❌  Full guide: DEPLOYMENT.md (Step 1 & Step 2)
+❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌
+`);
+    process.exit(1);
+  }
   console.error("[netlify-init] DATABASE_URL is not set — nothing to do.");
   process.exit(0); // non-fatal: plain file: dev/Docker flows don't need this
 }
 if (!DEST_URL.startsWith("libsql://") && !DEST_URL.startsWith("https://")) {
+  if (ON_NETLIFY) {
+    console.error(`
+❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌
+❌  DEPLOY FAILED — WRONG DATABASE_URL
+❌
+❌  DATABASE_URL ki value "${DEST_URL}" hai, lekin Netlify pe
+❌  Turso CLOUD database chahiye (file: database Netlify pe kabhi
+❌  nahi chalegi — serverless filesystem permanent nahi hota).
+❌
+❌  FIX: Netlify → Site settings → Environment variables →
+❌  DATABASE_URL ko badal kar Turso ka URL daalo:
+❌       libsql://<your-db>.turso.io
+❌  (DEPLOYMENT.md Step 1 & Step 2)
+❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌
+`);
+    process.exit(1);
+  }
   // Local file target — dev/Docker data already lives there. (INIT_FORCE=1
   // overrides this so the copier can be tested against a fresh local file.)
   if (!process.env.INIT_FORCE) {
     console.log(`[netlify-init] DATABASE_URL is a local file (${DEST_URL}) — skipping.`);
     process.exit(0);
   }
+}
+if (ON_NETLIFY && !DEST_TOKEN) {
+  console.error(`
+❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌
+❌  DEPLOY FAILED — DATABASE_AUTH_TOKEN MISSING
+❌
+❌  DATABASE_URL sahi hai (libsql://) lekin auth token nahi mila.
+❌  Turso har request pe token maangta hai.
+❌
+❌  FIX: Netlify → Site settings → Environment variables →
+❌  Add:  DATABASE_AUTH_TOKEN = eyJ... (Turso "Generate token")
+❌  (DEPLOYMENT.md Step 1 & Step 2)
+❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌❌
+`);
+  process.exit(1);
 }
 
 const dest = createClient(
