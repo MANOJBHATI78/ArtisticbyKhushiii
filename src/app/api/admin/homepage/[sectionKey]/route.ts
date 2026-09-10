@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { db, describeDbError } from "@/lib/db";
 import { fail, ok, sanitizeHtml } from "@/lib/server-utils";
 import { bool, has, int, readJsonBody, str } from "@/lib/serializers";
 import { requireAdmin } from "../../_guard";
@@ -92,6 +92,6 @@ export async function PUT(request: Request, { params }: { params: Promise<{ sect
     return ok(toSection(section));
   } catch (e) {
     console.error("[api/admin/homepage/[sectionKey]]", e);
-    return fail("Something went wrong. Please try again.", 500);
+    return fail(`Server error — database not reachable. Detail: ${describeDbError(e)} (open /api/health for full diagnostics)`, 500);
   }
 }

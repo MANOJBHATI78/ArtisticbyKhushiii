@@ -1,113 +1,118 @@
-# 🚀 Artistic by Khushi — Deployment Guide
+# 🚀 Artistic by Khushi — Deployment Guide (v7.2)
 
-## Aapke Netlify pe problem kyu aa rahi thi? (Root cause)
+> **Is version mein kya naya hai:** Site ab **khud ko heal** karti hai.
+> Database missing/empty ho to code apne aap tables + poora content
+> (22 products, 6 blogs, admin user — sab) bana deta hai. Plus ek **/api/health**
+> diagnostic page — live site pe problem ho to exact reason wahi dikhega.
 
-Website ke APIs (products, blog, admin login, inquiries) ek **SQLite database**
-file padhte/likhte hain. Netlify ke serverless functions mein:
+## 🔴 Aapki live site abhi broken hai — FIX in 10 minutes
 
-- ❌ Database file persist nahi hoti (har request pe naya ephemeral container)
-- ❌ Image uploads bhi save nahi ho sakte (file-system read-only-ish)
+Aapka live URL (`artisticbykhushi.netlify.app`) abhi **purana code** chala raha
+hai (maine check kiya: `/api/health` 404 deta hai = naya code deploy hi nahi
+hua). Isliye "Something went sideways" aa raha hai.
 
-Isliye header/footer (plain HTML) dikhta hai, lekin main content
-("Something went sideways") aur admin login ("Something went wrong") fail
-hote the — kyunki unhe database chahiye jo Netlify pe tha hi nahi.
-
-## ✅ Solution: Netlify + Turso (FREE — aapka hi netlify.app URL chalega)
-
-**Turso** = cloud SQLite (free plan kaafi hai). Maine poora code upgrade kar
-diya hai — ab database aur image uploads dono Turso mein save hote hain,
-aur Netlify pe sab kuch chalta hai:
-
-- ✅ Products / blog / pages / settings — sab database se
-- ✅ Admin login + panel
-- ✅ Nayi inquiries save hoti hain
-- ✅ Image uploads database mein (Netlify pe bhi permanently save)
+Fix ke liye **dono** chahiye: (1) latest code, (2) Turso database. Order:
 
 ---
 
 ## Step 1: Turso database banao (5 min, FREE)
 
 1. **[app.turso.tech](https://app.turso.tech)** kholo → **Sign up with GitHub**
-   (same GitHub account jisse Netlify pe deploy kiya tha)
-2. Login ke baad: **Create database** → Name: `artistic-khushi` → **Create**
-3. Database ban jaane ke baad us detail page pe jaao:
-   - **Database URL** copy karo — dikhega kuch aisa:
-     `libsql://artistic-khushi-<aapna-user>.turso.io`
-   - **Generate token** / "Create auth token" button → token copy karo
-     (`eyJ...` se shuru hota hai)
+   (same GitHub account jisse Netlify deploy kiya tha)
+2. **Create database** → Name: `artistic-khushi` → **Create**
+3. Database detail page se:
+   - **Database URL** copy karo → `libsql://artistic-khushi-<user>.turso.io`
+   - **Generate token** → `eyJ...` copy karo (ye database ka password hai)
 
-> Token ko safe rakho — ye database ka password hai.
+## Step 2: Netlify environment variables (2 min)
 
-## Step 2: Netlify mein environment variables daalo (2 min)
-
-1. **Netlify dashboard** → apni site (`artisticbykhushi.netlify.app`) →
+1. **Netlify dashboard** → site (`artisticbykhushi.netlify.app`) →
    **Site settings → Environment variables**
-2. **Add a variable** (dono):
+2. Add karo (dono):
 
    | Key | Value |
    |---|---|
    | `DATABASE_URL` | `libsql://artistic-khushi-<user>.turso.io` |
    | `DATABASE_AUTH_TOKEN` | `eyJ...` (Step 1 ka token) |
 
-3. Save karo.
+3. Save.
 
-## Step 3: Updated code push karo (5 min)
+## Step 3: LATEST CODE push karo (sabse important!)
 
-Ye wala updated code (jo abhi aapke paas hai) apne **GitHub repo** mein push
-kar do — Netlify khud rebuild karega. Build ke dauraan:
+Jo code aapne pehle push kiya tha usme database-fix **nahi tha**. Latest code
+le kar apne GitHub repo mein **replace/push** karo — ye files specially zaroori
+hain:
 
-- `netlify.toml` pehle **Turso database mein saari tables banata hai**
-- Phir **poora content seed karta hai** — 22 products, 10 categories,
-  6 blog posts, 5 pages, FAQs, homepage sections, settings, admin user
-- (Ye sirf PEHLI baar hota hai — dobara deploy karne pe aapka naya data
-  kabhi overwrite nahi hota)
+- `netlify.toml` (repo ke root mein honi chahiye)
+- `src/lib/db.ts` + `src/lib/db-snapshot.json` (self-healing database)
+- `src/app/api/health/route.ts` (diagnostics)
+- `scripts/netlify-init.mjs` + `scripts/schema.sql`
+- `prisma/schema.prisma` + `package.json` + `bun.lock`/lockfile
 
-Build complete hone pe:
+> Poora project folder download karke repo mein replace karna **sabse safe**
+> hai (`.next/`, `node_modules/`, `db/` chhod sakte ho).
 
-1. `https://artisticbykhushi.netlify.app/` kholo — poori site live ✅
-2. `#/admin` → **admin@artisticbykhushi.com / Khushi@2024** se login karo ✅
-3. **Password turant change karna** (Security best practice)
+Push ke baad Netlify khud rebuild karega. Build ke dauraan:
+- Tables Turso mein banti hain + poora content seed hota hai (sirf pehli baar —
+  aapka naya data kabhi overwrite nahi hota)
+- Agar env variables set nahi hain to **build hi fail ho jata hai** clear
+  message ke saath (aisa isliye taaki broken site live na ho)
 
-## Step 4: Post-deploy checklist
+## Step 4: Verify (1 min)
+
+1. `https://artisticbykhushi.netlify.app/api/health` kholo —
+   `"ok": true` + `"mode": "turso"` dikhna chahiye
+2. Home page kholo — poora content dikhega
+3. `/#/admin` → `admin@artisticbykhushi.com` / `Khushi@2024` → **password
+   turant change karo**
+
+> Agar kuch bhi fail ho: `/api/health` ka output screenshot karo — usme exact
+> reason + fix likha hota hai (e.g. "HTTP status 401" = token galat,
+> "404" = URL galat, "getaddrinfo" = URL typo).
+
+---
+
+## Naya: Site ab "fail" nahi hoti — fallback mode
+
+Agar kisi bhi host pe Turso env vars set na hon AUR disk writable ho, to site
+**bundled snapshot se khud ko seed kar leti hai** aur normal chalti hai.
+Admin panel mein is case mein yellow warning banner dikhta hai ("Temporary
+database mode") — kyunki serverless pe changes restart pe lost ho sakte hain.
+Permanent data ke liye Step 1-2 (Turso) zaroori hain.
+
+## Post-deploy checklist
 
 1. Admin → **Site Settings → Site URL** = `https://artisticbykhushi.netlify.app`
-   (SEO canonical tags + sitemap isi se banenge)
-2. **Analytics & Tracking** card mein apne real IDs (GA / Search Console /
-   Microsoft Clarity) daalo — Save karte hi live
-3. Custom domain: Netlify → Domain settings → add karo (DNS CNAME point)
-
----
-
-## Backup
-
-Turso database ka backup:
-- Turso dashboard → database → **Export / Dump** (SQL file download)
-- Ya admin panel → Leads → CSV export
-
-Kabhi bhi local `db/custom.db` se dobara seed karna ho:
-`DATABASE_URL=... DATABASE_AUTH_TOKEN=... node scripts/netlify-init.mjs`
-
----
+   (SEO canonical + sitemap isi se bante hain)
+2. **Analytics & Tracking** card: GA / Search Console / Microsoft Clarity IDs
+   paste karo — Save karte hi live
+3. Custom domain: Netlify → Domain settings
+4. Turso backup: Turso dashboard → database → Export/Dump
 
 ## Alternative: Railway / Render (Docker, ~$5-7/mo)
 
-Agar Turso nahi lagana hai, Docker deploy bhi ready hai (`Dockerfile` +
-`docker-entrypoint.sh` + `render.yaml`):
-
-- Railway: repo → New Project → Volume mount path `/data` → done
-- Render: repo → Web Service (blueprint `render.yaml` ready hai)
-- Is path mein DB + uploads volume pe rehte hain (Turso ki zaroorat nahi)
+Turso nahi lagana hai? Docker path ready hai (`Dockerfile`,
+`docker-entrypoint.sh`, `render.yaml`):
+- Railway: repo → New Project → Volume mount `/data`
+- Render: repo → Web Service (blueprint ready)
+- DB + uploads volume pe — Turso ki zaroorat nahi
 
 ## Technical notes (developer ke liye)
 
-- `src/lib/db.ts`: **Prisma driver-adapter** (PrismaLibSQL factory) —
-  ek hi client `file:` (local/Docker) aur `libsql://` (Turso) dono chalata hai
-- Uploads: `MediaBlob` model — base64 chunks (512KB) DB mein; serve via
-  `/api/media/*` (disk mirror first, DB fallback — Netlify pe DB hi source hai);
-  `/uploads/*` → beforeFiles rewrite → serve route
-- `scripts/netlify-init.mjs`: DDL from `scripts/schema.sql` (regenerate:
-  `bunx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > scripts/schema.sql`),
-  idempotent row-copy from `db/custom.db` + uploads → chunks; `INIT_FORCE=1`
-  se local file-target testing bhi ho sakti hai
-- Health check: `GET /api/public/bootstrap`
+- `src/lib/db.ts`: Prisma driver-adapter (PrismaLibSQL) + **AutoInit adapter**
+  — `connect()` pe `ensureDatabaseReady()` chalta hai: table check → DDL
+  (IF NOT EXISTS) → snapshot seed (INSERT OR IGNORE, idempotent).
+  Modes: `turso` (libsql://…), `file` (absolute-path resolve: cwd/prisma/root
+  candidates), `tmp-fallback` (read-only FS → os.tmpdir + snapshot).
+- `src/lib/db-snapshot.json`: generated by `bun run db:snapshot` —
+  AdminUser/Category/Product/ProductImage/BlogCategory/BlogPost/Page/Faq/
+  MediaAsset/SiteSetting/HomepageSection (sessions/leads/media-blobs excluded).
+- Error surfacing: saare 33 API routes ab 500 pe `describeDbError(e)` detail
+  dete hain; frontend `ErrorState` + admin login isse "Server said:" block
+  mein dikhate hain; `/api/health` full diagnostics (mode, counts, fix hint,
+  APP_VERSION "7.2.0").
+- Media: `MediaBlob` base64 chunks in DB; `/uploads/*` → beforeFiles rewrite →
+  `/api/media/*` (disk first, DB fallback).
+- `scripts/netlify-init.mjs`: build-time seed (runtime self-heal se double-safe).
+  Schema regenerate: `bunx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > scripts/schema.sql`
 - Admin: `admin@artisticbykhushi.com` / `Khushi@2024`

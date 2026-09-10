@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { db, describeDbError } from "@/lib/db";
 import { fail, ok } from "@/lib/server-utils";
 import { toPublicCategory } from "@/lib/serializers";
 
@@ -21,6 +21,6 @@ export async function GET() {
     return ok(cats.map((c) => toPublicCategory(c, countMap.get(c.id) ?? 0)));
   } catch (e) {
     console.error("[api/public/categories]", e);
-    return fail("Something went wrong. Please try again.", 500);
+    return fail(`Server error — database not reachable. Detail: ${describeDbError(e)} (open /api/health for full diagnostics)`, 500);
   }
 }

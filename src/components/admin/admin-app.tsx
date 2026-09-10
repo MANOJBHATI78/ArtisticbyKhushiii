@@ -7,6 +7,7 @@ import { useAdminMe } from "./useAdminData";
 import { useAdminAuth } from "./useAdminAuth";
 import AdminLogin from "./AdminLogin";
 import { AdminLayout } from "./AdminLayout";
+import { DbModeBanner } from "./DbModeBanner";
 import { Dashboard } from "./Dashboard";
 import { ProductsManager } from "./ProductsManager";
 import { CategoriesManager } from "./CategoriesManager";
@@ -109,6 +110,7 @@ function AdminGate() {
 
   return (
     <AdminLayout user={user} active={module} onNavigate={navigate} onQuickAdd={quickAdd} onSearch={search} onLogout={() => void logout()}>
+      <DbModeBanner />
       {module === "dashboard" ? (
         <Dashboard onNavigate={navigate} onQuickAdd={quickAdd} onEditProduct={(id) => editEntity("products", id)} onEditBlog={(id) => editEntity("blogs", id)} />
       ) : null}

@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { db, describeDbError } from "@/lib/db";
 import { fail, getSettings, ok, rateLimit } from "@/lib/server-utils";
 import { clientIp, str } from "@/lib/serializers";
 
@@ -110,6 +110,6 @@ export async function POST(request: Request) {
     return ok({ leadId: lead.id, sheetSynced });
   } catch (e) {
     console.error("[api/public/leads]", e);
-    return fail("Something went wrong. Please try again.", 500);
+    return fail(`Server error — database not reachable. Detail: ${describeDbError(e)} (open /api/health for full diagnostics)`, 500);
   }
 }

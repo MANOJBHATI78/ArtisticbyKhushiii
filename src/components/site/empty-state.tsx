@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { SearchX, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { getLastServerError } from "@/lib/api-client";
 
 interface EmptyStateProps {
   title: string;
@@ -34,20 +35,50 @@ interface ErrorStateProps {
   className?: string;
 }
 
-/** Friendly error state with retry. */
+/**
+ * Friendly error state with retry. When the server returned a 5xx, the real
+ * reason (e.g. database unreachable) is shown underneath as a compact
+ * diagnostics line, plus a link to /api/health — so a live deployment can be
+ * debugged from the screen itself.
+ */
 export function ErrorState({ title = "Something went sideways", message = "We couldn't load this just now. Please try again — handmade things are worth the wait.", onRetry, className }: ErrorStateProps) {
+  const serverDetail = getLastServerError();
   return (
     <EmptyState
       className={className}
       title={title}
       message={message}
       action={
-        onRetry ? (
-          <Button variant="outline" className="h-11" onClick={onRetry}>
-            <RefreshCcw aria-hidden="true" />
-            Try Again
-          </Button>
-        ) : null
+        <div className="flex flex-col items-center gap-4">
+          {onRetry ? (
+            <Button variant="outline" className="h-11" onClick={onRetry}>
+              <RefreshCcw aria-hidden="true" />
+              Try Again
+            </Button>
+          ) : null}
+          {serverDetail ? (
+            <div
+              role="note"
+              className="mx-auto max-w-lg rounded-lg border border-destructive/25 bg-destructive/5 px-3 py-2 text-left"
+            >
+              <p className="text-[11px] leading-relaxed font-mono break-words text-destructive/90">
+                <span className="font-semibold">Server said: </span>
+                {serverDetail}
+              </p>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Full diagnostics:{" "}
+                <a
+                  href="/api/health"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium underline underline-offset-2 hover:text-foreground"
+                >
+                  open /api/health
+                </a>
+              </p>
+            </div>
+          ) : null}
+        </div>
       }
     />
   );

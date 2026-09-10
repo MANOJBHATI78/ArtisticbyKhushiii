@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { db, describeDbError } from "@/lib/db";
 import { fail, ok } from "@/lib/server-utils";
 import { visiblePostWhere } from "@/lib/serializers";
 
@@ -29,6 +29,6 @@ export async function GET() {
     );
   } catch (e) {
     console.error("[api/public/blog-categories]", e);
-    return fail("Something went wrong. Please try again.", 500);
+    return fail(`Server error — database not reachable. Detail: ${describeDbError(e)} (open /api/health for full diagnostics)`, 500);
   }
 }

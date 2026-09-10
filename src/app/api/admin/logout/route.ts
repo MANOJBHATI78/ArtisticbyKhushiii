@@ -1,5 +1,6 @@
 import { clearSessionCookie, destroySession } from "@/lib/auth";
 import { fail, ok } from "@/lib/server-utils";
+import { describeDbError } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,6 @@ export async function POST(request: Request) {
     return res;
   } catch (e) {
     console.error("[api/admin/logout]", e);
-    return fail("Something went wrong. Please try again.", 500);
+    return fail(`Server error — database not reachable. Detail: ${describeDbError(e)} (open /api/health for full diagnostics)`, 500);
   }
 }

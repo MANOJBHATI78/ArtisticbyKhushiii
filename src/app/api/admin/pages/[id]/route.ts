@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { db, describeDbError } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import { fail, ok } from "@/lib/server-utils";
 import { has, readJsonBody, str, toPublicPage } from "@/lib/serializers";
@@ -22,7 +22,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     return ok(toAdminPage(page));
   } catch (e) {
     console.error("[api/admin/pages/[id] GET]", e);
-    return fail("Something went wrong. Please try again.", 500);
+    return fail(`Server error — database not reachable. Detail: ${describeDbError(e)} (open /api/health for full diagnostics)`, 500);
   }
 }
 

@@ -14,6 +14,25 @@ export class ApiError extends Error {
   }
 }
 
+// ---------------- server error tracking (diagnostics) ----------------
+// The last error the server actually returned. Error screens read this to
+// show WHY things failed on a live site (e.g. database unreachable) instead
+// of a generic "something went wrong".
+
+let lastServerError: string | null = null;
+
+export function getLastServerError(): string | null {
+  return lastServerError;
+}
+
+export function clearLastServerError(): void {
+  lastServerError = null;
+}
+
+function recordServerError(message: string): void {
+  lastServerError = message;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
     ...init,
@@ -27,11 +46,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     payload = (await res.json()) as ApiResponse<T>;
   } catch {
+    recordServerError(`Request failed (${res.status})`);
     throw new ApiError(`Request failed (${res.status})`, res.status);
   }
 
   if (!payload || payload.ok !== true) {
     const msg = payload && "error" in payload ? payload.error : `Request failed (${res.status})`;
+    // Only server-side failures (5xx) are worth surfacing as diagnostics.
+    if (res.status >= 500) recordServerError(msg);
     throw new ApiError(msg, res.status);
   }
   return payload.data;

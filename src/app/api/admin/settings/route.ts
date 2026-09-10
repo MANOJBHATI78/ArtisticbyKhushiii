@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { db, describeDbError } from "@/lib/db";
 import { fail, getSettings, ok } from "@/lib/server-utils";
 import { has, readJsonBody, str } from "@/lib/serializers";
 import { requireAdmin } from "../_guard";
@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     return ok(settings);
   } catch (e) {
     console.error("[api/admin/settings GET]", e);
-    return fail("Something went wrong. Please try again.", 500);
+    return fail(`Server error — database not reachable. Detail: ${describeDbError(e)} (open /api/health for full diagnostics)`, 500);
   }
 }
 

@@ -1,121 +1,64 @@
 import { NextResponse } from "next/server";
-import { access } from "fs/promises";
-import { db } from "@/lib/db";
-import { UPLOAD_DIR } from "@/lib/uploads";
+import { APP_VERSION, db, describeDbError, getDbInfo } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 /**
- * Public health/diagnostics endpoint — NO secrets are exposed (token never
- * included; only the URL scheme + host). Lets the owner (or support) verify
- * a deployment in one request:
- *
- *   GET /api/health
- *   → 200 { healthy: true,  db: { mode: "turso", ok: true, counts: {...} } }
- *   → 503 { healthy: false, db: { ok: false, error: "..." }, hint: "..." }
+ * Public self-diagnostics — open /api/health on any deployment to see exactly
+ * why the site would (not) work: database mode, connectivity, row counts and
+ * a ready-made fix hint. Never exposes secrets (URLs are masked to host).
  */
-
-function dbMode(): { mode: "turso" | "file" | "unset"; urlDisplay: string } {
-  const url = process.env.DATABASE_URL || "";
-  if (!url) return { mode: "unset", urlDisplay: "(not set)" };
-  if (url.startsWith("libsql://") || url.startsWith("https://")) {
-    try {
-      const host = new URL(url).host;
-      return { mode: "turso", urlDisplay: `libsql://${host}` };
-    } catch {
-      return { mode: "turso", urlDisplay: "libsql://…" };
-    }
-  }
-  return { mode: "file", urlDisplay: url };
-}
-
-function hintFor(mode: string): string | undefined {
-  if (mode === "file") {
-    return "DATABASE_URL ek local file hai — serverless (Netlify) pe ye kabhi nahi chalega. Netlify → Site settings → Environment variables mein Turso ka libsql:// URL + DATABASE_AUTH_TOKEN set karo. Guide: DEPLOYMENT.md";
-  }
-  if (mode === "unset") {
-    return "DATABASE_URL set hi nahi hai. Netlify → Site settings → Environment variables mein DATABASE_URL (Turso) + DATABASE_AUTH_TOKEN add karo. Guide: DEPLOYMENT.md";
-  }
-  return undefined;
-}
-
 export async function GET() {
-  const { mode, urlDisplay } = dbMode();
-  const runtime = {
-    node: process.version,
-    env: process.env.NODE_ENV ?? "unknown",
-    time: new Date().toISOString(),
-  };
+  const info = getDbInfo();
 
-  let diskUploadsOk = false;
+  const counts: Record<string, number> = {};
+  const runtimeName =
+    (globalThis as unknown as { Bun?: unknown }).Bun !== undefined ? "bun" : "node";
+  let dbOk = false;
+  let error: string | null = null;
   try {
-    await access(UPLOAD_DIR);
-    diskUploadsOk = true;
-  } catch {
-    diskUploadsOk = false;
-  }
-
-  let dbOk = true;
-  let dbError: string | undefined;
-  let counts: Record<string, number> = {};
-  let mediaFiles = 0;
-
-  try {
-    const [
-      products,
-      categories,
-      blogs,
-      pages,
-      faqs,
-      leads,
-      admins,
-      settings,
-      mediaChunks,
-    ] = await Promise.all([
-      db.product.count(),
-      db.category.count(),
-      db.blogPost.count(),
-      db.page.count(),
-      db.faq.count(),
-      db.lead.count(),
-      db.adminUser.count(),
-      db.siteSetting.count(),
-      db.mediaBlob.count(),
-    ]);
-    counts = { products, categories, blogs, pages, faqs, leads, admins, settings, mediaChunks };
-    const files = await db.mediaBlob.findMany({
-      select: { filename: true },
-      distinct: ["filename"],
-    });
-    mediaFiles = files.length;
+    // Real queries through the full Prisma → adapter → DB path.
+    counts.adminUsers = await db.adminUser.count();
+    counts.categories = await db.category.count();
+    counts.products = await db.product.count();
+    counts.blogs = await db.blogPost.count();
+    counts.leads = await db.lead.count();
+    counts.settings = await db.siteSetting.count();
+    dbOk = counts.adminUsers > 0 && counts.products > 0;
   } catch (e) {
-    dbOk = false;
-    dbError = e instanceof Error ? e.message : String(e);
+    error = describeDbError(e);
   }
 
-  const body = {
-    ok: dbOk,
-    healthy: dbOk,
-    service: "artistic-by-khushiii",
-    runtime,
-    db: {
-      ok: dbOk,
-      mode,
-      url: urlDisplay,
-      ...(dbError ? { error: dbError } : {}),
-      counts,
-    },
-    uploads: {
-      diskDir: UPLOAD_DIR,
-      diskAvailable: diskUploadsOk,
-      dbChunkFiles: mediaFiles,
-      strategy: diskUploadsOk ? "disk + db-mirror" : "db-chunks (serverless)",
-    },
-    ...(dbOk ? {} : { hint: hintFor(mode) }),
-  };
+  let fix: string;
+  if (dbOk) {
+    fix =
+      info.mode === "tmp-fallback"
+        ? "Site works, but the database is TEMPORARY (no writable disk and no Turso URL set) — set DATABASE_URL + DATABASE_AUTH_TOKEN so changes persist."
+        : "All good — database connected and seeded.";
+  } else if (info.mode === "turso") {
+    fix = info.urlEnvSet
+      ? "Turso cloud database is configured but NOT reachable/seeded. Check DATABASE_URL (libsql://…turso.io) and DATABASE_AUTH_TOKEN in your host's environment variables, then redeploy."
+      : "DATABASE_URL is missing. Add DATABASE_URL (libsql://…turso.io) + DATABASE_AUTH_TOKEN in your host's environment variables, then redeploy.";
+  } else if (error) {
+    fix = `Local database error: ${error}`;
+  } else {
+    fix = "Database reachable but empty — re-run the deploy so the snapshot seed runs.";
+  }
 
-  return NextResponse.json(body, {
-    status: dbOk ? 200 : 503,
-    headers: { "Cache-Control": "no-store" },
-  });
+  return NextResponse.json(
+    {
+      ok: dbOk,
+      app: {
+        version: APP_VERSION,
+        env: process.env.NODE_ENV ?? "unknown",
+        runtime: `${runtimeName} ${process.version}`,
+        uptimeSec: Math.round(process.uptime()),
+        timestamp: new Date().toISOString(),
+      },
+      db: { ...info, counts, error },
+      fix,
+    },
+    { headers: { "Cache-Control": "no-store" } },
+  );
 }

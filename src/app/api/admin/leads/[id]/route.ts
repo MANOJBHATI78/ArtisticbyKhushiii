@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { db, describeDbError } from "@/lib/db";
 import { fail, ok } from "@/lib/server-utils";
 import { readJsonBody, str, toLead } from "@/lib/serializers";
 import { requireAdmin } from "../../_guard";
@@ -41,7 +41,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     return ok({ lead: toLead(lead) });
   } catch (e) {
     console.error("[api/admin/leads/[id] PUT]", e);
-    return fail("Something went wrong. Please try again.", 500);
+    return fail(`Server error — database not reachable. Detail: ${describeDbError(e)} (open /api/health for full diagnostics)`, 500);
   }
 }
 

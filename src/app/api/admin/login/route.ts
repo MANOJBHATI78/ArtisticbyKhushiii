@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { db, describeDbError } from "@/lib/db";
 import { createSession, sessionCookie, verifyPassword } from "@/lib/auth";
 import { fail, ok, rateLimit } from "@/lib/server-utils";
 import { clientIp, readJsonBody, str } from "@/lib/serializers";
@@ -35,6 +35,11 @@ export async function POST(request: Request) {
     return res;
   } catch (e) {
     console.error("[api/admin/login]", e);
-    return fail("Something went wrong. Please try again.", 500);
+    // Surface the real reason (DB unreachable/empty) instead of a generic 500,
+    // so a live deployment can be diagnosed from the login screen itself.
+    return fail(
+      `Server error — database not reachable. Detail: ${describeDbError(e)} (open /api/health for full diagnostics)`,
+      500,
+    );
   }
 }
