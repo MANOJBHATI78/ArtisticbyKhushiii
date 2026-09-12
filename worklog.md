@@ -258,3 +258,23 @@ Stage Summary:
 - Site is now self-bootstrapping: DB missing/empty anywhere (file host, Turso, serverless /tmp) → tables + full content auto-created; every failure now states its exact reason on-screen + /api/health gives full diagnostics with fix hints; APP_VERSION 7.2.0 lets anyone verify which code is live
 - Live site still runs OLD code — owner must sync latest code + set 2 Netlify env vars + redeploy (DEPLOYMENT.md Steps 1-3, ~10 min)
 - Open: real Turso account path untested end-to-end (needs owner's Turso URL/token; every code path covered by local file + bogus-URL sims); deferred 6-b polish (GA events, back-to-top, etc.) still pending
+
+---
+Task ID: 9
+Agent: lead (Z.ai Code main)
+Task: User reported Netlify build failure — "DEPLOY FAILED — DATABASE NOT CONFIGURED" (netlify-init.mjs exit 1). Diagnose + verify repo is deploy-ready + guide user.
+
+Work Log:
+- Analyzed user's Netlify build log: build reached `node scripts/netlify-init.mjs` and failed at the DESIGNED env-var checkpoint (`!DEST_URL` → ON_NETLIFY hard-fail). This PROVES latest code (v7.2.0) is now on their Netlify — previous failure (health 404) is resolved; only Steps 1-2 (Turso + env vars) remain.
+- Git audit: ALL deployment-critical files tracked & committed — netlify.toml, scripts/netlify-init.mjs, scripts/schema.sql, src/lib/db.ts, src/lib/db-snapshot.json, src/app/api/health/route.ts, src/lib/uploads.ts, db/custom.db (full seed source), public/uploads/*, prisma/schema.prisma, DEPLOYMENT.md, Docker assets. .gitignore excludes none of them. Working tree clean (only .zscripts/dev.pid + tool-results untracked). Lockfile: bun.lock (npm resolves fresh on Netlify — imports already proven to work there since @libsql/client imported successfully before the checkpoint).
+- netlify-init.mjs local simulation (INIT_FORCE=1, fresh file target): DDL + full seed (1 admin / 10 cats / 22 products / 25 images / 6+6 blogs / 5 pages / 14 FAQs / 3 leads / 44 media / 29 settings / 6 sections) + uploads→MediaBlob chunk migration; second run = "Existing data preserved" (no overwrite) ✓
+- Snapshot freshness: db-snapshot.json (2026-09-10) matches live db/custom.db counts exactly (1/10/22/6/29) ✓
+- Lint: 0 errors ✓ · /api/health: ok:true, mode:file, counts correct, dev.log clean ✓
+- agent-browser QA: home = 44 headings / 24 imgs / 0 broken / no error state; admin login (admin@artisticbykhushi.com) → Dashboard with 22 products, no errors ✓
+- DEPLOYMENT.md updated: top section now explains the build-fail message means "latest code arrived, only env vars pending"; added Neon-extension removal warning (user's log shows `Installing extensions - neon` — must remove to avoid DATABASE_URL conflicts).
+
+Stage Summary:
+- NOT A BUG: the failed build is the intentional safety gate working correctly — env vars missing on Netlify, so the deploy was stopped instead of shipping a broken site.
+- Repo verified 100% deploy-ready: seed script, schema, snapshot, health route, media layer, auth, content — all green locally and all committed.
+- USER ACTION REQUIRED (cannot be done from sandbox — needs their Turso/Netlify accounts): (1) Turso DB + URL/token, (2) two Netlify env vars DATABASE_URL + DATABASE_AUTH_TOKEN, (3) redeploy, (4) remove Neon extension. Then verify /api/health = ok:true + mode:"turso".
+- No code changes needed this round; code state identical to Task 8 (verified again end-to-end).

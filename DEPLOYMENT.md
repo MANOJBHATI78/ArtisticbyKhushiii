@@ -5,13 +5,25 @@
 > (22 products, 6 blogs, admin user — sab) bana deta hai. Plus ek **/api/health**
 > diagnostic page — live site pe problem ho to exact reason wahi dikhega.
 
-## 🔴 Aapki live site abhi broken hai — FIX in 10 minutes
+## 🔴 Build fail ho raha hai? — DATABASE NOT CONFIGURED
 
-Aapka live URL (`artisticbykhushi.netlify.app`) abhi **purana code** chala raha
-hai (maine check kiya: `/api/health` 404 deta hai = naya code deploy hi nahi
-hua). Isliye "Something went sideways" aa raha hai.
+Agar Netlify build log mein ye message dikhe:
 
-Fix ke liye **dono** chahiye: (1) latest code, (2) Turso database. Order:
+```
+❌ DEPLOY FAILED — DATABASE NOT CONFIGURED
+❌ Netlify pe database (Turso) ke env variables set nahi hue hain.
+```
+
+to iska matlab: **latest code Netlify pe pahunch chuka hai** (ye message naye
+code ka hissa hai — purana code ye message deta hi nahi tha). Bas ab **Step 1
++ Step 2** karo — 7 minute ka kaam, phir site live.
+
+Ye build **jaan-boojh kar rok** di gayi hai: env vars ke bina deploy hota to
+site live hoti lekin "Something went sideways" wahi purana problem lauta hota.
+Env vars set karte hi ye message kabhi nahi aayega.
+
+Fix ke liye **dono** chahiye: (1) latest code ✅ (already pushed), (2) Turso
+database ⬇️
 
 ---
 
@@ -36,6 +48,12 @@ Fix ke liye **dono** chahiye: (1) latest code, (2) Turso database. Order:
    | `DATABASE_AUTH_TOKEN` | `eyJ...` (Step 1 ka token) |
 
 3. Save.
+
+> ⚠️ **Agar aapke Netlify pe "Neon" extension installed hai** (build log mein
+> `Installing extensions - neon` dikhta hai) — use **remove/disable** kar do:
+> Site settings → Extensions → Neon → Remove. Ye Postgres database banata hai
+> jo hum use nahi karte; kabhi-kabhi ye apna `DATABASE_URL` khud set kar deta
+> hai jo Turso URL ke saath conflict karega. Sirf Turso chahiye.
 
 ## Step 3: LATEST CODE push karo (sabse important!)
 
