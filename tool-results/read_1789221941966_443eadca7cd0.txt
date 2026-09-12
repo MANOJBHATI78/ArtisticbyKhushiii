@@ -1,0 +1,261 @@
+     1→# Artistic by Khushi — Worklog
+     2→
+     3→Project: Complete dynamic website + admin panel + product catalogue + blog CMS + SEO + lead management.
+     4→Stack: Next.js 16 App Router (single `/` page + hash-based SPA), TypeScript, Tailwind 4 + shadcn/ui, Prisma + SQLite, TanStack Query, Zustand.
+     5→
+     6→## Architecture decisions
+     7→
+     8→- **Only `/` page route exists** (sandbox constraint). The whole public site AND admin panel are client-side views inside `src/app/page.tsx`, driven by a hash router (`#/`, `#/products`, `#/product/[slug]`, `#/category/[slug]`, `#/blog`, `#/blog/[slug]`, `#/about`, `#/contact`, `#/faq`, `#/page/[slug]`, `#/search`, `#/thank-you`, `404`, `#/admin`).
+     9→- All backend logic lives in `src/app/api/**` route handlers (fetch-based, no server actions).
+    10→- SEO handled client-side: `src/lib/seo.ts` sets document title/meta/canonical/JSON-LD per view. Sitemap + robots served by API routes.
+    11→- Admin auth: scrypt password hashing (Node crypto, no deps) + session tokens in httpOnly cookie `abk_admin_session`.
+    12→- Leads stored in DB (`Lead` model) + optional Google Sheets webhook forwarding (setting `googleSheetsWebhookUrl`) server-side only.
+    13→- Images generated into `/public/images/` (brand set done by lead agent). Uploads go to `/public/uploads/`.
+    14→
+    15→## DB schema (prisma/schema.prisma — pushed)
+    16→
+    17→Models: AdminUser, AdminSession, Category (self-referencing parent, SEO fields, introContent/bottomContent), Product (+ ProductImage gallery table, all catalogue fields, SEO fields), BlogCategory, BlogPost (status DRAFT/PUBLISHED/SCHEDULED, publishAt, SEO fields), Page, Faq (polymorphic entityType GENERAL|PRODUCT|CATEGORY|BLOG|PAGE + entityId), Lead (status NEW/CONTACTED/FOLLOW_UP/CONVERTED/NOT_INTERESTED/CLOSED, utm fields), MediaAsset, SiteSetting (key/value), HomepageSection (sectionKey hero|brand_intro|why_choose|custom_orders|memory_preservation|final_cta, itemsJson for lists).
+    18→
+    19→## Shared libs (already written)
+    20→
+    21→- `src/lib/types.ts` — ALL API contract types (PublicProduct, PublicCategory, PublicBlogPost, PublicPage, Faq, Lead, SiteSettings, HomeData, DashboardStats, Paginated<T>, ApiResponse<T> = {ok:true,data}|{ok:false,error}, DEFAULT_SETTINGS). READ THIS FILE.
+    22→- `src/lib/api-client.ts` — client fetch wrapper `api.get/post/put/delete/upload` that unwraps the envelope.
+    23→- `src/lib/router.ts` — hash router: `useHashRoute()` returns {path, segments, query, hash}; `navigate("/product/x")`.
+    24→- `src/lib/store.ts` — Zustand: settings + inquiry modal state (`openInquiry(ctx)`, `whatsappLink(settings, product?)`).
+    25→- `src/lib/queries.ts` — TanStack Query hooks: useSettings, useHome, useCategories, useCategory, useProducts, useProduct, useBlogs, useBlog, useBlogCategories, usePage, useFaqs, useSearch.
+    26→- `src/lib/seo.ts` — `useSeo({title, description, canonical, ogImage, jsonLd, noindex})` + `JsonLdScript`.
+    27→- `src/lib/auth.ts` — hashPassword/verifyPassword (scrypt), createSession/destroySession, getSessionUser(request), sessionCookie/clearSessionCookie helpers.
+    28→- `src/lib/server-utils.ts` — ok()/fail() JSON helpers, rateLimit(key, limit, windowMs), sanitizeHtml(html) allowlist filter, getSettings(), slugify(), uniqueSlug().
+    29→- Brand design: warm cream/terracotta/gold palette in globals.css (`--primary` terracotta, `--gold`, `--font-display` Playfair, `--font-body` Jost, `.prose-content` styles for CMS HTML, `.custom-scroll`).
+    30→
+    31→## API CONTRACT (envelope: { ok: true, data } | { ok: false, error })
+    32→
+    33→### Public
+    34→- GET `/api/public/bootstrap` → SiteSettings
+    35→- GET `/api/public/home` → HomeData { hero, brandIntro, featuredCategories, featuredProducts, whyChoose, customOrders, memoryPreservation, latestBlogs, faqs, finalCta } (sections are HomepageSection|null)
+    36→- GET `/api/public/categories` → PublicCategory[] (published, ordered by displayOrder; includes productCount)
+    37→- GET `/api/public/categories/[slug]` → { category, products: PublicProduct[], faqs: Faq[], relatedCategories: PublicCategory[], relatedBlogs: PublicBlogPost[] }
+    38→- GET `/api/public/products?page=1&pageSize=12&category=slug&q=search&featured=1` → Paginated<PublicProduct>
+    39→- GET `/api/public/products/[slug]` → { product, faqs, relatedProducts, relatedBlogs, category } (published only)
+    40→- GET `/api/public/blogs?page=1&pageSize=9&q=&tag=&cat=slug` → Paginated<PublicBlogPost> (status PUBLISHED, or SCHEDULED with publishAt<=now)
+    41→- GET `/api/public/blogs/[slug]` → { post, faqs, relatedProducts, relatedBlogs }
+    42→- GET `/api/public/blog-categories` → BlogCategory[]
+    43→- GET `/api/public/pages/[slug]` → PublicPage
+    44→- GET `/api/public/faqs` → Faq[] (entityType GENERAL, published)
+    45→- GET `/api/public/search?q=xyz` → SearchResults { products, categories, blogs, query }
+    46→- POST `/api/public/leads` body { name, mobile, city, product?, productUrl?, category?, message?, preferredContact?, sourcePage?, utmSource?, utmMedium?, utmCampaign?, referrer?, honeypot? } → { leadId, sheetSynced } (validates server-side, honeypot field `website` must be empty, rate-limited 5/10min per IP)
+    47→- GET `/api/sitemap` → XML sitemap (all published products/categories/blogs/pages)
+    48→- GET `/api/robots` → robots.txt text
+    49→
+    50→### Admin (all require session cookie; 401 JSON otherwise)
+    51→- POST `/api/admin/login` { email, password } → { user: {id,email,name,role} } + sets cookie
+    52→- POST `/api/admin/logout` → { success: true }
+    53→- GET `/api/admin/me` → { user } or 401
+    54→- GET `/api/admin/dashboard` → DashboardStats
+    55→- GET `/api/admin/products?page&pageSize&q&category&status` → Paginated<Product (full row + category name + images)>
+    56→- POST `/api/admin/products` body = full product fields (name required; slug auto if empty; images: [{url,alt,caption,isFeatured,displayOrder}]; highlights/customizationOptions are \n-separated strings) → { product }
+    57→- GET `/api/admin/products/[id]` → full product
+    58→- PUT `/api/admin/products/[id]` body same as POST → { product }
+    59→- DELETE `/api/admin/products/[id]` → { success: true }
+    60→- Same CRUD pattern for `/api/admin/categories`, `/api/admin/blogs` (+ fields: content HTML, status, publishAt ISO or "", blogCategoryId, relatedProductSlugs), `/api/admin/pages`, `/api/admin/faqs` (question, answer, entityType, entityId, displayOrder, published)
+    61→- GET `/api/admin/leads?page&pageSize&q&status` → Paginated<Lead>; PUT `/api/admin/leads/[id]` { status?, notes? } → { lead }; DELETE → { success }
+    62→- GET `/api/admin/media` → MediaAsset[]; POST `/api/admin/media` (FormData: file, alt?, caption?) → { media: MediaAsset, url } (saves to /public/uploads); PUT `/api/admin/media/[id]` { alt, caption, title }; DELETE `/api/admin/media/[id]` → also removes file
+    63→- GET `/api/admin/settings` → SiteSettings; PUT `/api/admin/settings` body = partial SiteSettings → { settings }
+    64→- GET `/api/admin/homepage` → HomepageSection[]; PUT `/api/admin/homepage/[sectionKey]` body = section fields → { section }
+    65→
+    66→## Seed data (done)
+    67→
+    68→22 products (with galleries+FAQs), 10 categories, 6 blog posts (full HTML), 5 pages (about/services/privacy/terms/disclaimer), 8 general FAQs, homepage sections, settings, admin user **admin@artisticbykhushi.com / Khushi@2024**. Run re-seed with `bun scripts/seed.ts`.
+    69→
+    70→---
+    71→Task ID: 1
+    72→Agent: lead (Z.ai Code main)
+    73→Task: Foundation — schema, libs, seed, design system
+    74→
+    75→Work Log:
+    76→- Read full spec from upload/Pasted Content_1788880949878.txt (2182 lines)
+    77→- Wrote prisma schema (17 models), pushed to SQLite
+    78→- Wrote src/lib/{types,auth,server-utils,router,store,api-client,queries,seo}.ts
+    79→- Wrote globals.css brand palette (cream/terracotta/gold, Playfair+Jost fonts in layout.tsx)
+    80→- Wrote page.tsx SPA shell (dynamic import SiteApp/AdminApp by hash)
+    81→- Seeded DB via scripts/seed.ts; added db:seed + gen:images scripts
+    82→- Image batch generation running in background (scripts/gen-images.sh → /public/images/, log: imagegen.log)
+    83→
+    84→Stage Summary:
+    85→- Foundation complete; next: Task 2-a backend APIs, then 3-a public frontend + 3-b admin frontend
+    86→
+    87→---
+    88→Task ID: 2-a
+    89→Agent: full-stack-developer (Backend APIs)
+    90→Task: Implement + test all API routes (public site data, leads, sitemap/robots, admin auth & CMS CRUD)
+    91→
+    92→Work Log:
+    93→- Read worklog.md, types.ts, server-utils.ts, auth.ts, prisma/schema.prisma; verified seeded slugs & sharp-under-Bun
+    94→- Wrote ONE shared serializer module src/lib/serializers.ts (toPublicProduct/Category/BlogPost/Page, toFaq/toLead/toMediaAsset, pagination/paginated, body-coercion helpers, visiblePostWhere, estimateReadingTime)
+    95→- Added src/app/api/admin/_guard.ts (requireAdmin) + src/app/api/admin/_lib.ts (shared payload parsers & unique-slug helpers per entity)
+    96→- Public: bootstrap, home (6 sections→null-safe, featured cats/prods, latestBlogs, GENERAL faqs), categories (+[slug] with products/faqs/relatedCategories≤4/relatedBlogs≤3), products list (Paginated, page/pageSize/category/q/featured) + [slug] (faqs, relatedProducts via relatedProductIds + same-category fill ≤4, relatedBlogs, category), blogs list (q/tag/cat; PUBLISHED or SCHEDULED≤now) + [slug] (404 future-scheduled), blog-categories (+postCount), pages/[slug], faqs, search (top 8 each), leads POST (honeypot fake-success, 5/10min rate limit, validation, Google Sheets webhook forward w/ 5s timeout), sitemap XML (51 URLs, lastmod, siteUrl-aware), robots.txt
+    97→- Admin: login (rate-limited 10/15min, scrypt, httpOnly Set-Cookie), logout, me, dashboard (DashboardStats + 5 recents each), products GET/POST/[id] GET/PUT/DELETE (image replace: delete-missing/upsert-by-id/create-new; sanitizeHtml; relatedProductIds JSON validated), categories CRUD (delete w/ products → 409 unless force=true), blogs CRUD (status enum, publishAt ""→null, PUBLISHED→publishedAt=now, readingTime auto-estimate), pages CRUD, faqs CRUD (entityType/entityId filters), leads GET + [id] PUT/DELETE (LEAD_STATUSES validation), media GET/POST (sharp: max 1600px, webp q82, ≤8MB, whitelist types, /public/uploads) + [id] PUT/DELETE (disk cleanup, traversal-safe), settings GET/PUT (SiteSetting upsert), homepage GET + [sectionKey] PUT (upsert, itemsJson array-validated, 6 known keys)
+    98→- Tested every endpoint with curl (cookie jar for admin): all CRUD cycles, 401 guards, 404s, 409 category guard, honeypot, validation errors, media upload (PNG→webp served as image/webp), scheduled-post visibility, Paginated envelope exactness; fixed unused eslint-disable directives; lint clean (0 problems); dev.log shows no API runtime errors
+    99→
+   100→Stage Summary:
+   101→- 37 route files created under src/app/api/** (+ serializers.ts, _guard.ts, _lib.ts); every endpoint from the contract verified OK against the running dev server (public 15, admin 22 handlers); all data mutated during tests restored/cleaned except 1 test lead left for admin-UI testing; ready for 3-a (public frontend) and 3-b (admin frontend) to consume the API
+   102→
+   103→---
+   104→Task ID: 1-b
+   105→Agent: lead (Z.ai Code main)
+   106→Task: Brand updates from user — logo integration, Surat location, new phone/WhatsApp, worldwide shipping
+   107→
+   108→Work Log:
+   109→- Analyzed uploaded logo (VLM): "Artistic by Khushi", deep chocolate brown bg (#3E2515), warm cream text (#F3E5D0), stylized K with leaves, script+sans typography
+   110→- Copied logo → public/images/logo.png (1020×1020 square, solid brown bg)
+   111→- Updated globals.css palette to match logo: primary = deep chocolate brown, cream background, gold accent, terracotta secondary
+   112→- Added logoUrl to SiteSettings type + defaults (phone +91 83201 12554, whatsapp 918320112554, city Surat/Gujarat, serviceAreas incl. worldwide shipping)
+   113→- Updated seed: Surat everywhere, international shipping FAQ, demo leads (3), logo in media assets; re-ran seed
+   114→- Fixed image gen script: API requires dimensions multiple of 32 (1440x720 → 1344x768), added FAIL detection; generation running in background
+   115→
+   116→Stage Summary:
+   117→- Brand identity locked: Artistic by Khushi, brown/cream/gold theme, logo at /images/logo.png, favicon set in layout
+   118→- Contact: +91 83201 12554 (phone & WhatsApp), Surat + pan-India + worldwide shipping
+   119→- Frontend agents (3-a public, 3-b admin) launching next — must use settings.logoUrl in header/footer
+   120→
+   121→---
+   122→Task ID: 3-a
+   123→Agent: full-stack-developer (Public Website Frontend)
+   124→Task: Build + verify the complete public customer-facing SPA (16 hash routes, shared site components, inquiry/lead flow, SEO)
+   125→
+   126→Work Log:
+   127→- Read worklog.md + all shared libs (types, router, store, queries, seo, api-client); found the site/views code fully drafted from an interrupted prior run and audited every file against the 3-a spec instead of rewriting
+   128→- Audited src/components/site/** (site-app shell w/ Providers, UTM capture, view switch; header w/ announcement bar + mobile Sheet; espresso footer w/ collections/legal/Admin link; WhatsAppFloat; InquiryModal + shared InquiryForm w/ honeypot + validation; Img lazy wrapper; product/category/blog cards; breadcrumbs+JSON-LD; faq-accordion; skeletons; empty/error states) — all contract points present
+   129→- Audited src/components/views/** (home 10 sections w/ Org+LocalBusiness+WebSite JSON-LD; products w/ chips+search+pagination; product w/ gallery/tabs/related/FAQs+Product JSON-LD; category w/ CollectionPage+FAQPage; blog + blog-post w/ DOMParser TOC + Article JSON-LD; about/services/page/contact/faq/search/thank-you/404) — all 15 views call useSeo; no gaps → zero code changes needed
+   130→- Environment recovery: dev server had been OOM-killed (stale agent-browser chromes were hogging RAM) — killed stale daemons, restarted dev server + image generation script with a double-detach spawn pattern (bash -c 'setsid nohup CMD &' — survives tool-call reaping)
+   131→- Verified live with agent-browser (own session): home (10 sections, 4 JSON-LD types), products chip → ?category=resin-nameplates filter, product page gallery + Enquire modal w/ product chip → lead POST → #/thank-you (DB row: product/productUrl/category/sourcePage/preferredContact correct; test leads deleted), contact form submit → #/thank-you, categories, category, blog featured story, blog post TOC/share/related, about, faq, search q=nameplate (3/1/2 results), page/privacy-policy, bogus hash → 404 (noindex), mobile 375px hamburger Sheet, announcement dismissal, per-view document titles
+   132→- ESLint "src/components/site/**" "src/components/views/**" → 0 problems; browser console 0 errors; dev.log clean (only progressive image 404s); screenshots saved to /tmp/3a-*.png
+   133→
+   134→Stage Summary:
+   135→- 16 files in src/components/site/** + 15 views in src/components/views/** complete and live-verified; lead funnel works end-to-end (modal + contact page → DB → thank-you); SEO per-view meta/canonical/JSON-LD + noindex on search/thank-you/404; a11y (skip link, 44px targets, aria) and mobile-first responsive confirmed; dev server + background image generation running via double-detach; open item: ~33 product/category/brand images still generating into /public/images (Img component degrades gracefully until they land)
+   136→
+   137→---
+   138→Task ID: 3-b
+   139→Agent: full-stack-developer (Admin Panel Frontend)
+   140→Task: Build + verify the complete Admin Panel ("Studio Console") SPA view for #/admin — 10 modules, auth gate, owner-friendly UX
+   141→
+   142→Work Log:
+   143→- Read worklog.md + shared libs (types, api-client, router, queries, providers, layout.tsx, backend routes for contract details: pagination caps, serializers)
+   144→- Found the admin panel fully drafted from an interrupted prior run; audited all 14 files in src/components/admin/** against the 3-b spec line-by-line instead of rewriting
+   145→- Fixed 7 concrete gaps: (1) removed duplicate <Toaster/> mounted by admin-app (layout already has one → double toasts); (2) active module now persists in sessionStorage (abk_admin_module) so reloads land on the same module; (3) ProductForm init waits for the FAQs query (race: FAQs tab could load empty); (4) BlogForm same race fix + SCHEDULED publishAt prefill (API omits publishAt); (5) Categories 409 force-delete reworked to hold the category in state (old code re-found it by name-substring match on the error message); (6) Leads CSV export now loops pages of 100 (backend caps pageSize — pageSize=1000 silently truncated at 100), spec filename artistic-by-khushi-leads.csv, CheckCheck/CloudOff sheet-sync icons; (7) polish: Dashboard emoji button → ImageIcon, Settings social fields got lucide icons (Field component gained icon prop; Pinterest uses Pin — lucide 0.525 dropped brand icon)
+   146→- Verified live with agent-browser (own session, task3b-*): login wrong-password alert + correct login → dashboard real stats (22 products 21/1, 10 categories, 6 blogs, 3 leads 2 NEW); Products search "nameplate" → 4 rows, published toggle persisted via API + restored, edit form prefilled (name/SKU/slug/category/shortDescription), shortDescription edit → save → "Product saved" toast + API persisted + restored, created "QA Test Piece" (auto-slug qa-test-piece, Resin Coasters, /images/cat-coasters.jpg) → listed → deleted via confirm → API total 0; Categories move-up swap persisted (Resin Nameplates 1 ↔ Spiritual 2, restored), delete-with-products → 409 dialog "This category has 3 products…" + "Delete anyway (force)" (cancelled); Blogs status PUBLISHED→DRAFT→PUBLISHED verified via API (publishedAt preserved), quick draft post created → deleted; Leads status NEW→FOLLOW_UP→NEW persisted (curl cookie jar), detail Sheet with wa.me/6581234567 + Call + Copy + delete, CSV export downloaded (BOM, headers, 3 rows); Media uploaded public/images/logo.png → upload-*.webp in grid + API, alt edit on blur saved, delete removed DB row + disk file; Settings announcements change → Save → curl /api/public/bootstrap reflects new value (proves settings+bootstrap cache invalidation) → restored original; Homepage hero heading tweak → save → curl /api/public/home reflects → reverted; reload → module restored from sessionStorage; logout → browser /api/admin/me 401 → login again works
+   147→- Quality gates: bunx eslint "src/components/admin/**" → 0 problems; bunx tsc → 0 errors under src/components/admin; browser console + dev.log (last 300 lines) → no errors; all mutated seed data restored (product/category/blog/lead/media/settings/homepage test changes reverted, test artifacts deleted)
+   148→
+   149→Stage Summary:
+   150→- 14 files in src/components/admin/** complete: admin-app (auth gate + module routing + splash), AdminLogin, AdminLayout (collapsible sidebar, mobile Sheet + bottom tab bar ≥44px, leads NEW badge, quick-add, global search, refresh), Dashboard (4 stat cards, recent inquiries, quick actions, recently updated), ProductsManager (table/cards, filters, optimistic toggles, 6-tab ProductForm with images/specs/SEO/FAQs-diff/publish + related products), CategoriesManager (toggles, inline order, reorder, 409 force-delete, 2-tab dialog form), BlogsManager (list + 4-tab BlogForm with internal-link RTE, schedule, SEO, relations/FAQs), PagesManager, FaqsManager (scope tabs + entity resolution), LeadsManager (stats, filters, inline status Select, notes popover, detail Sheet w/ WhatsApp/call, paginated CSV export), MediaLibrary (dropzone multi-upload w/ progress, grid, alt/caption save-on-blur, copy URL), HomepageManager (6 collapsible section cards, itemsJson editor, per-section save + ["home"] invalidation), SettingsManager (5 cards, sticky save bar, ["settings"]+["bootstrap"] invalidation, wa.me preview), shared libs (react-query hooks, auth hook, utils, shared atoms, RTE, media picker); known minor limitation: blog publishAt not returned by API so scheduled date prefills as now+24h on reload; admin panel ready for owner use at #/admin
+   151→
+   152→---
+   153→Task ID: 4 (Integration & Verification)
+   154→Agent: lead (Z.ai Code main)
+   155→Task: Cross-agent integration, fixes, end-to-end verification, handover
+   156→
+   157→Work Log:
+   158→- Fixed backend serializer: toPublicBlogPost now returns publishAt (SCHEDULED posts prefill correctly in admin BlogForm); added publishAt to PublicBlogPost type
+   159→- Full project lint: 0 errors, 0 warnings
+   160→- Restored data left by agent testing: Executive Office Nameplate back to published (22/22 published), deleted test lead "Test Kumar"
+   161→- Confirmed stale PinterestLogo dev.log errors were from agent's intermediate state (current file imports Pin correctly; settings module renders + saves fine)
+   162→- All 43 brand/product/blog images generated to /public/images (script fixed for API's 32-multiple dimension rule); DB image reference audit: 0 missing
+   163→- End-to-end agent-browser verification (own session):
+   164→  * Home: all 10 sections + logo + announcement bar; VLM quality review 9/10, 0 broken images (24 checked)
+   165→  * Catalog: category chips filter (counts correct), product page gallery + tabs + breadcrumbs
+   166→  * Lead funnel: Enquire modal → validation → submit → #/thank-you → lead in DB with product/category/source context
+   167→  * Admin: login → dashboard live stats (22 products, 10 categories, 6 blogs, leads badge) → publish toggle persisted both ways → settings module renders all fields → save + cache invalidation verified by agents
+   168→  * Mobile 375px: hamburger menu with phone +91 83201 12554, WhatsApp CTA
+   169→  * Sticky footer: wrapper min-h-screen flex-col + footer mt-auto + safe-area inset — verified in DOM
+   170→  * SEO: /api/sitemap 51 URLs with lastmod; /api/robots correct; JSON-LD per view (Organization/LocalBusiness/WebSite/Product/Article/Breadcrumb/FAQPage)
+   171→- Attempted to create the 15-min webDevReview cron job (8 format variations) — gateway cron create action consistently rejects with "job is required" although list/get actions work; TOOL-SIDE ISSUE, retry in next phase
+   172→
+   173→Stage Summary:
+   174→- PROJECT COMPLETE AND VERIFIED: dynamic catalogue (10 categories/22 products), blog CMS (6 posts), 5 pages, FAQs, lead system (DB + optional Google Sheets forwarding + honeypot + rate limit), WhatsApp integration (+91 83201 12554, editable), search, sitemap/robots/schema, full admin panel, brand-locked design (chocolate/cream/gold, logo integrated)
+   175→- Admin credentials: admin@artisticbykhushi.com / Khushi@2024
+   176→- Open risks: cron gateway defect (job creation fails); siteUrl setting empty (set after domain connect); Google Sheets webhook URL empty (owner can add in Settings); hero image slight crop on right edge (minor)
+   177→- Next-phase recommendations: image alt-text polish pass, blog tag pages, lead analytics chart, GA4 integration once IDs exist, Google Apps Script setup guide for Sheets sync
+   178→
+   179→---
+   180→Task ID: 5
+   181→Agent: lead (Z.ai Code main)
+   182→Task: Dynamic analytics integrations — Google Analytics 4, Google Search Console, Microsoft Clarity — configurable from admin panel
+   183→
+   184→Work Log:
+   185→- Added `microsoftClarityProjectId` to SiteSettings type + DEFAULT_SETTINGS (PUT /api/admin/settings auto-accepts via SETTING_KEYS; getSettings merges defaults — no route changes needed)
+   186→- Created src/components/site/analytics.tsx `SiteAnalytics` component: GA4 gtag.js injection with `send_page_view:false` + manual page_view events on every hashchange (GA's history listener doesn't cover hash routers); GSC `google-site-verification` meta tag with smart parser (accepts full meta tag / `google-site-verification=token` / bare token); Microsoft Clarity official queue+loader snippet; all three skip on localhost dev (clean console) and remove themselves when the setting is cleared; `window.__abkAnalytics` debug handle
+   187→- Mounted SiteAnalytics in site-app.tsx SiteShell (public site only — never renders under #/admin)
+   188→- SettingsManager.tsx: new dedicated "Analytics & Tracking" card (GA / GSC / Clarity / Sheets webhook) with green "Live on site"/"Not set" status pills in the Field counter slot, inline format validation (GA_ID_RE G-XXXXXX, CLARITY_ID_RE 6-16 alnum) shown as destructive error text, setup-help links row (analytics.google.com / search.google.com/search-console / clarity.microsoft.com); old SEO & Integrations card split into "SEO Defaults" + this card
+   189→- Verified live via agent-browser: invalid GA shows error hint; saved G-QATEST123 + full meta tag + QA123CLRTY → DB persisted; via gateway host (21.0.1.156:81 — non-localhost so scripts load): gtag.js + clarity tag + verification meta all injected, `window.gtag` function present, dataLayer received page_view `/#/` then `/#/products` on hash navigation; cleared all 3 fields → saved → DB empty → fresh public load has NO scripts/meta and clean console; eslint + tsc clean for all touched files; dev.log clean
+   190→- QA note: agent-browser `fill` with empty string doesn't trigger React onChange — use real keystrokes (click + Ctrl+A + Backspace) when clearing controlled inputs
+   191→
+   192→Stage Summary:
+   193→- Owner can now connect GA4, Search Console & Clarity with zero code changes: Admin → Site Settings → Analytics & Tracking → paste IDs → Save → live instantly (scripts verified end-to-end incl. SPA hash pageviews & removal on clear)
+   194→- Settings flow: SiteSettings(microsoftClarityProjectId) → bootstrap API → SiteAnalytics injector; googleSheetsWebhookUrl unchanged (lead sync)
+   195→- Open: owner needs real IDs (currently empty = all tools off); GSC verification relies on JS-rendered meta (Googlebot renders JS; DNS method is fallback)
+   196→
+   197→---
+   198→Task ID: 6
+   199→Agent: lead (Z.ai Code main) — triggered by webDevReview cron + user Netlify deployment issue
+   200→Task: Diagnose Netlify failure + make project production-deployable (Docker + volume)
+   201→
+   202→Work Log:
+   203→- User deployed to Netlify: header/footer rendered but main content showed "Something went sideways" and admin login "Something went wrong" → ROOT CAUSE: all API routes depend on Prisma SQLite + disk file uploads; (1) .env had sandbox-absolute DATABASE_URL=file:/home/z/my-project/db/custom.db (doesn't exist on Netlify), (2) Netlify functions have ephemeral filesystem — SQLite writes/uploads can never persist there. Static shell (header/footer) renders without APIs; every data fetch 500s/404s → error states.
+   204→- Made paths portable: .env now DATABASE_URL=file:../db/custom.db (relative to prisma/schema.prisma; dev server auto-reloaded, verified 200 + login OK)
+   205→- New src/lib/uploads.ts: UPLOAD_DIR (env ABK_UPLOAD_DIR, default public/uploads) + safeUploadPathFromUrl; admin media routes now use it (upload POST + [id] DELETE)
+   206→- New GET /api/media/[...path]/route.ts: serves files from UPLOAD_DIR with correct MIME, immutable cache headers, traversal guards (404 verified for ../ attacks)
+   207→- next.config.ts: beforeFiles rewrite /uploads/:path* → /api/media/:path* so DB-stored URLs work identically in dev (public dir) and prod (Docker volume outside public/)
+   208→- src/lib/db.ts: prisma log reduced to error/warn in production (query logs were dev-only noisy)
+   209→- Deployment assets: Dockerfile (oven/bun:1, bun install --frozen-lockfile, prisma generate, next build, runs `next start` with PORT env; ENV DATABASE_URL=file:/data/custom.db + ABK_UPLOAD_DIR=/data/public-uploads; VOLUME /data), docker-entrypoint.sh (first boot copies bundled db/custom.db → /data — ships all 22 products/blogs/settings/admin; subsequent boots never overwrite), .dockerignore, render.yaml (Render blueprint with disk + health check), DEPLOYMENT.md (Hinglish owner guide: why Netlify failed, Railway steps with /data volume, Render/Fly/Zeabur alternatives, post-deploy checklist: siteUrl setting, GA/GSC/Clarity IDs, custom domain, backups)
+   210→- Verified in dev: /uploads/qa-test.txt + /api/media/qa-test.txt both 200 with API immutable cache header (proves rewrite routes through API), real webp serves as image/webp, traversal blocked 404, admin login 200 (cookie jar), home renders 13 headings/24 imgs with clean console, eslint + tsc 0 problems on all changed files
+   211→- Deferred from interrupted round 6: admin Dashboard lead analytics charts (recharts) + public-site GA event tracking/styling polish — top priorities for next round
+   212→
+   213→Stage Summary:
+   214→- Project is now production-deployable as a Docker container with persistent /data volume (DB + uploads survive redeploys); Netlify is architecturally unsuitable for this SQLite+FS app — owner guided to Railway/Render via DEPLOYMENT.md; all path handling env-driven and dev-verified
+   215→- Open risks: Docker image itself not buildable in sandbox (no docker daemon) — Dockerfile follows oven/bun + next start best practices but needs one real build on the host; Netlify-native path (Turso migration) remains a future option if owner insists on Netlify
+   216→- Next-phase priorities: (1) owner deploys to Railway and we verify live, (2) dashboard lead charts, (3) GA event tracking + styling polish round
+   217→
+   218→---
+   219→Task ID: 7
+   220→Agent: lead (Z.ai Code main)
+   221→Task: Fix user's LIVE Netlify deployment — Turso cloud-database migration (serverless-compatible)
+   222→
+   223→Work Log:
+   224→- Probed user's live site: netlify.app APIs return 500 (our envelope) → Netlify Next runtime runs functions but no SQLite database exists server-side; header/footer static shell renders — confirmed diagnosis
+   225→- Installed + version-aligned: prisma@6.19.2, @prisma/client@6.19.2, @prisma/adapter-libsql@6.19.2, @libsql/client@0.18.0
+   226→- prisma/schema.prisma: driverAdapters preview + new MediaBlob model (filename/chunkIndex/data base64 chunks, @@unique)
+   227→- src/lib/db.ts: PrismaLibSQL FACTORY (takes {url, authToken} config, NOT a client instance — that caused URL_INVALID) → single client for file: (dev/Docker) AND libsql:// (Turso); reads DATABASE_URL + DATABASE_AUTH_TOKEN/TURSO_AUTH_TOKEN
+   228→- src/lib/uploads.ts: storeUpload (chunks + best-effort disk mirror), readUploadFromDb, deleteUploadChunks; admin media POST stores DB chunks (sharp with raw-bytes fallback), DELETE removes chunks+disk; /api/media/[...path] serves disk-first → DB-chunks fallback (Netlify path), immutable cache
+   229→- scripts/schema.sql (prisma migrate diff DDL) + scripts/netlify-init.mjs (Node ESM, runs on Netlify build): creates tables via executeMultiple, auto-discovers columns (PRAGMA table_info), idempotent row-copy from bundled db/custom.db ONLY when target empty, migrates public/uploads files → chunks; INIT_FORCE=1 for local testing
+   230→- netlify.toml: @netlify/plugin-nextjs + build = "npx prisma generate && node scripts/netlify-init.mjs && npm run build", NODE_VERSION 20; build script simplified to plain "next build"; removed output:"standalone" from next.config (incompatible with Netlify runtime, unneeded for Docker next start)
+   231→- Verified locally: netlify-init → fresh file DB got DDL + all rows (1 admin, 10 cats, 22 products, 25 images, 6 blogs, 5 pages, 14 FAQs, 3 leads, 44 media, 29 settings, 6 sections) + upload→chunk; second run = no-overwrite ✓; adapter standalone test on migrated DB: reads + media round-trip byte-IDENTICAL + INSERT/SELECT/DELETE ✓; fixed "prisma"→"db" import bug in uploads.ts (all routes had 500); dev restarted clean: login/home/products/uploads all 200; NEW upload → serve-from-disk 200 → disk file deleted → serve-from-DB-chunks 200 image/webp → API delete → 404 ✓ (exact Netlify behavior proven)
+   232→- Discovered Task 6-a (interrupted) actually completed: /api/admin/leads/stats route + LeadStats types + Dashboard recharts "Inquiry Analytics" — verified live: 200 + charts render + lint clean; credited in this round
+   233→- Browser QA: home 24 imgs/10 sections clean console, product view, admin dashboard charts (2 recharts surfaces + stats), sitemap XML ✓; eslint src = 0 problems
+   234→
+   235→Stage Summary:
+   236→- Netlify-ready architecture: ALL state (content, leads, sessions, settings, media) lives in Turso; zero disk dependency; owner steps = Turso account (2 env vars) + git push → auto tables+seed+live (DEPLOYMENT.md step-by-step)
+   237→- Docker/Railway path still fully functional (file: mode, disk mirror + volume)
+   238→- Open risks: real Turso URL/token untested from sandbox (user account needed — code path proven via local file: + adapter); sharp on Netlify function bundles assumed OK with raw-bytes fallback as safety; rate-limiter is per-instance on serverless (honeypot + validation remain)
+   239→- Next: user creates Turso DB + sets Netlify env vars + pushes code → verify live site end-to-end; then resume deferred 6-b (GA events, styling polish)
+   240→
+   241→---
+   242→Task ID: 8
+   243→Agent: lead (Z.ai Code main)
+   244→Task: User reported live site still broken (header/footer ok, middle content "Something went sideways", admin login 500) — find the REAL issue and make the site impossible to break
+   245→
+   246→Work Log:
+   247→- Probed live site (artisticbykhushi.netlify.app): /api/public/bootstrap → 500 (5.2s = network timeout signature), /api/health → 404 (proves deployed code is OLD — new code not pushed), home → 200 (static shell)
+   248→- Root-cause hunt: adapter tests exposed that `file:../db/custom.db` resolves differently per runtime; discovered MY persistent shell exports DATABASE_URL=file:/home/z/my-project/db/custom.db (inherited by every dev launch, beats .env) — this masked all env/path experiments. Also discovered Turbopack inlines env vars at compile time (baked into .next chunks)
+   249→- NEW self-healing database layer (src/lib/db.ts rewrite): resolveTarget() → turso/file/tmp-fallback modes; file: paths resolved to ABSOLUTE via candidates (cwd/prisma-relative/root-relative; picks existing); read-only FS → /tmp fallback; AutoInitLibSQL adapter subclass overrides connect() → ensureDatabaseReady() (module-global singleton, failures not cached) → runSnapshotInit: AdminUser check → IF-NOT-EXISTS DDL → INSERT OR IGNORE rows (idempotent, cold-start safe, concurrent-safe)
+   250→- NEW src/lib/db-snapshot.json (110 KB, 11 content tables, 22 products/10 cats/6 blogs/settings/admin — AdminSession/Lead/MediaBlob excluded) generated by scripts/gen-db-snapshot.ts (`bun run db:snapshot`)
+   251→- NEW GET /api/health: APP_VERSION 7.2.0, mode, masked target, env flags, seeded, lastError, live counts (6 tables), fix hint per failure mode, no-store cache
+   252→- Error surfacing: describeDbError() extracts the real reason line from Prisma-wrapped driver errors (regex over lines, JWT-masked, 240 chars); codemod scripts/enhance-error-messages.ts updated ALL 33 API routes' generic 500 catches; login + bootstrap routes return detailed messages; ErrorState shows "Server said: <detail>" + /api/health link (auto via api-client lastServerError tracker — zero view edits); admin panel got DbModeBanner (amber "Temporary database mode" warning when tmp-fallback / red "Database not reachable")
+   253→- Verified: scenario tests (fresh file /tmp/abk-qa/fresh.db → auto-created + seeded 22/10/6/1/29 + session round-trip OK; foreign cwd /tmp/qa-land with no env → same); DEV e2e: health ok:true mode:file target:absolute, bootstrap/login 200, media 200 both paths; FAILURE SIM (DATABASE_URL=libsql://qa-bogus-nonexistent.turso.io + process restart): login 500 "Detail: SERVER_ERROR: Server returned HTTP status 404" + health ok:false with fix hint + public home ErrorState shows "Server said: Server error — database not reachable…" in browser + admin login form shows the detail; restored green state (13 headings/24 imgs/10 sections, console clean, all 200); eslint src+scripts 0 problems; tsc 0 new errors (pre-existing ones untouched, ignoreBuildErrors already set)
+   254→- Turso runtime self-heal: empty/unseedd Turso DB gets DDL+seed from the same snapshot path on cold start (code path identical to file-mode init, proven locally; network errors verified via bogus-URL sim)
+   255→- DEPLOYMENT.md rewritten (v7.2): live-fix flow (Turso 5 min + Netlify env vars + LATEST CODE push with file checklist), /api/health verify step, fallback-mode explanation, screenshot-the-health-output support flow
+   256→
+   257→Stage Summary:
+   258→- Site is now self-bootstrapping: DB missing/empty anywhere (file host, Turso, serverless /tmp) → tables + full content auto-created; every failure now states its exact reason on-screen + /api/health gives full diagnostics with fix hints; APP_VERSION 7.2.0 lets anyone verify which code is live
+   259→- Live site still runs OLD code — owner must sync latest code + set 2 Netlify env vars + redeploy (DEPLOYMENT.md Steps 1-3, ~10 min)
+   260→- Open: real Turso account path untested end-to-end (needs owner's Turso URL/token; every code path covered by local file + bogus-URL sims); deferred 6-b polish (GA events, back-to-top, etc.) still pending
+   261→
