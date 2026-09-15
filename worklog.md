@@ -278,3 +278,22 @@ Stage Summary:
 - Repo verified 100% deploy-ready: seed script, schema, snapshot, health route, media layer, auth, content — all green locally and all committed.
 - USER ACTION REQUIRED (cannot be done from sandbox — needs their Turso/Netlify accounts): (1) Turso DB + URL/token, (2) two Netlify env vars DATABASE_URL + DATABASE_AUTH_TOKEN, (3) redeploy, (4) remove Neon extension. Then verify /api/health = ok:true + mode:"turso".
 - No code changes needed this round; code state identical to Task 8 (verified again end-to-end).
+
+---
+Task ID: 10
+Agent: lead (Z.ai Code main)
+Task: User connected custom domain artisticbykhushiii.com and reported "dikh nahi rha hai" (not showing) — diagnose + verify live.
+
+Work Log:
+- DNS: apex + www both resolve to Netlify Asia LBs (13.215.239.219 / 52.74.6.109); HTTP→HTTPS 301, www→apex 301, HSTS on — domain FULLY provisioned ✅
+- /api/health: ok:true, version 7.2.0, mode "turso", target artistic-khushi-manojbhati78.aws-ap-south-1.turso.io, counts 1/10/22/6/3/29 — user completed Turso setup + env vars + deploy successfully ✅
+- agent-browser live QA: home renders (44 headings / 23 imgs / 0 broken / footer / no error states); #/products "Showing 12 of 22 handcrafted pieces" (live Turso data); #/admin login admin@artisticbykhushi.com/Khushi@2024 → Dashboard + Inquiry Analytics, zero errors ✅
+- /api/sitemap + robots.txt 200 ✅
+- FOUND: settings.siteUrl NOT set → sitemap emits RELATIVE <loc> paths (/products etc.) — Google requires absolute URLs; must set Site URL = https://artisticbykhushiii.com in Admin → Site Settings (post-deploy checklist item #1)
+- User's "not showing" = local browser cache / device DNS cache (site fully live server-side) — advised hard refresh (Ctrl+Shift+R) / incognito / mobile data
+- Old netlify.app URL redirects not checked; custom domain is now canonical
+
+Stage Summary:
+- SITE IS LIVE AND FULLY FUNCTIONAL at https://artisticbykhushiii.com — Turso cloud DB + all 22 products/6 blogs + admin panel verified end-to-end from sandbox browser
+- REMAINING OWNER ACTIONS: (1) Admin → Site Settings → Site URL = https://artisticbykhushiii.com → Save (fixes sitemap/SEO canonical), (2) change admin password (still default), (3) optionally paste GA/GSC/Clarity IDs, (4) hard-refresh browser to see the site
+- No code changes required this round.
