@@ -492,3 +492,24 @@ Work Log:
 Stage Summary:
 - No code changes this round — advisory only; all safety mechanisms (auto-migrate, seed-on-empty, backup/restore/pull-from-live, /api/health) already built and verified in Tasks 11–15
 - 15-min auto QA/dev cron confirmed active; project stable
+
+---
+Task ID: 17
+Agent: lead (Z.ai Code main) — user-requested fixes round
+Task: User reported 4 live-site issues: (1) # appearing after domain name, (2) Netlify "hosted by" badge, (3) "Khushi" appearing 3x with old spelling on loading screen, (4) how to deploy mobile-image fixes without losing live content
+
+Work Log:
+- Investigated live site (curl https://artisticbykhushiii.com/): found 11x hardcoded "Artistic by Khushi" (OLD spelling) in static HTML — title, og:site_name, splash — while live DB brandName = "Artistic by Khushiii" → inconsistent spellings stacked during load (tab title + splash + header = the "3 baar Khushi" user saw)
+- Root cause of "#": page.tsx useEffect forced replaceState to append "#/" to the clean root URL on every visit
+- FIX #1 (clean root URL): removed forced "#/" append from page.tsx (parseHash("") already resolves to home); router.ts navigate() now special-cases home targets ("#", "#/") — pushState to pathname+search (hash dropped) + dispatch hashchange, preserving history integrity (verified back/forward both work)
+- FIX #2 (all home links): header logo, desktop nav Home, mobile sheet Home, footer logo, footer Explore Home, breadcrumbs Home crumb, 404 view Home — all now href="/" + onClick preventDefault + navigate("/") → clean URL; admin "View Website"/"Preview site" links changed from target=_blank href="#/" to href="/"
+- FIX #3 (brand spelling Khushiii): layout.tsx metadata (title default+template, description, og:title/siteName/description), DEFAULT_SETTINGS in types.ts (brandName, logoText, footerAbout, copyrightText, defaultSeoTitle, defaultMetaDescription), all 16 view useSeo titles, WhatsApp contextProduct message (now reads settings.brandName dynamically), admin login/admin-app/AdminLayout branding, footer social aria-labels, BlogsManager/ProductsManager/LandingManager fallbacks, content-sync fallback — ~50 replacements total; remaining "by Khushi" hits are code comments + author name only
+- FIX #4 (splash): loading fallback is now brand-agnostic (gold ornament ◆ divider + shimmer bar + "Preparing handcrafted goodness…") — no brand text that could go stale/duplicated; role=status + aria-label added
+- Netlify badge: NOT a code issue — instructions given (Netlify dashboard → site → Site configuration → Domains → scroll to "Netlify status badge" → toggle off)
+- VERIFIED via agent-browser: root URL stays exactly "http://localhost:3000/" after full load (no #); nav link → #/products renders; logo click → clean /; browser Back → #/products; Forward → clean /; desktop nav Home click → clean /; mobile (375px) hamburger → Home → clean / + no horizontal scroll; 0 elements with old "Artistic by Khushi" text; server HTML title/og:site_name = "Artistic by Khushiii"; splash HTML has no brand text; categories/products/admin-login titles show Khushiii; Home nav aria-current=page on home; console + page errors clean; lint 0 problems; dev.log clean; committed (967f24c)
+
+Stage Summary:
+- All 3 code-fixable issues resolved: clean root URL (no # after domain), correct brand spelling everywhere (Khushiii), decluttered brand-agnostic splash; Netlify badge = dashboard toggle (instructions provided to user)
+- Mobile-image fixes + all Task 12-16 features are in this codebase ready to deploy; live Turso data is safe (seed-on-empty-only + additive auto-migrate + backup/restore system built in Task 11)
+- User given step-by-step deploy guide: (1) live admin → Backup & Sync → Download Backup, (2) push this code to GitHub repo, (3) Netlify auto-rebuilds (~3-5 min), (4) verify /api/health + homepage, (5) rollback plan = Netlify previous deploy Publish (instant) + backup JSON restore
+- Open items (unchanged): owner should set siteUrl in live settings + change admin password; siteUrl still empty on live
