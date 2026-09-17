@@ -32,7 +32,7 @@ export default function CategoryView({ slug }: { slug: string }) {
   const is404 = error instanceof ApiError && error.status === 404;
 
   useSeo({
-    title: category?.seoTitle || (category ? `${category.name} | Artistic by Khushi` : "Collection | Artistic by Khushi"),
+    title: category?.seoTitle || (category ? `${category.name} | Artistic by Khushiii` : "Collection | Artistic by Khushiii"),
     description: category?.metaDescription || category?.shortDescription,
     canonical: `${origin}/category/${slug}`,
     jsonLd: useMemo(() => {

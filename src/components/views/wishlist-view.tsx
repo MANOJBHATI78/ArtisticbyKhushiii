@@ -31,7 +31,7 @@ export default function WishlistView() {
   const origin = siteOrigin();
 
   useSeo({
-    title: "My Favourites | Artistic by Khushi",
+    title: "My Favourites | Artistic by Khushiii",
     description: "Your saved handcrafted pieces — gathered in one place so you can enquire about them together.",
     canonical: `${origin}/wishlist`,
     noindex: true,
@@ -58,7 +58,7 @@ export default function WishlistView() {
 
   const shareViaWhatsApp = () => {
     const names = saved.slice(0, 10).map((p) => `• ${p.name}`).join("\n");
-    const message = `Hello! I'm interested in these pieces from Artistic by Khushi:\n\n${names}${saved.length > 10 ? `\n…+${saved.length - 10} more` : ""}\n\nPlease share details and pricing.`;
+    const message = `Hello! I'm interested in these pieces from Artistic by Khushiii:\n\n${names}${saved.length > 10 ? `\n…+${saved.length - 10} more` : ""}\n\nPlease share details and pricing.`;
     track("wishlist_share_whatsapp", { count: saved.length });
     const url = `https://wa.me/${settings.whatsappNumber.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank", "noopener,noreferrer");

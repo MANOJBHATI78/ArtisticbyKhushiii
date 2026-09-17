@@ -18,8 +18,8 @@ export default function ThankYouView() {
   const [reviewOpen, setReviewOpen] = useState(false);
 
   useSeo({
-    title: "Thank You | Artistic by Khushi",
-    description: "Your inquiry has been received — Artistic by Khushi will be in touch soon.",
+    title: "Thank You | Artistic by Khushiii",
+    description: "Your inquiry has been received — Artistic by Khushiii will be in touch soon.",
     canonical: `${origin}/thank-you`,
     noindex: true,
   });

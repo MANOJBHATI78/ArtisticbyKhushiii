@@ -56,7 +56,14 @@ export function useHashRoute(): Route {
 
 export function navigate(to: string, opts?: { replace?: boolean; keepScroll?: boolean }) {
   const target = to.startsWith("#") ? to : `#${to.startsWith("/") ? to : `/${to}`}`;
-  if (opts?.replace) {
+  // Home = clean root URL (no trailing #) so the address bar stays tidy on the homepage
+  if (target === "#" || target === "#/") {
+    if (window.location.hash) {
+      // Moving from an inner page back to home — push a clean history entry and drop the hash
+      window.history.pushState(null, "", `${window.location.pathname}${window.location.search}`);
+    }
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
+  } else if (opts?.replace) {
     const url = `${window.location.pathname}${window.location.search}${target}`;
     window.history.replaceState(null, "", url);
     window.dispatchEvent(new HashChangeEvent("hashchange"));

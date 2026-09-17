@@ -31,9 +31,9 @@ export default function FaqView() {
   }, [allFaqs, filter]);
 
   useSeo({
-    title: "FAQ | Artistic by Khushi — Frequently Asked Questions",
+    title: "FAQ | Artistic by Khushiii — Frequently Asked Questions",
     description:
-      "Answers about ordering, customization, delivery timelines, care instructions and international shipping for handcrafted resin art by Artistic by Khushi.",
+      "Answers about ordering, customization, delivery timelines, care instructions and international shipping for handcrafted resin art by Artistic by Khushiii.",
     canonical: `${origin}/faq`,
     jsonLd: useMemo(() => {
       if (allFaqs.length === 0) return undefined;

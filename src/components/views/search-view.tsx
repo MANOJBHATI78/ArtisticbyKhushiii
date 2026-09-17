@@ -40,7 +40,7 @@ export default function SearchView() {
   const { data, isLoading, isFetching } = useSearch(q);
 
   useSeo({
-    title: q ? `Search: ${q} | Artistic by Khushi` : "Search | Artistic by Khushi",
+    title: q ? `Search: ${q} | Artistic by Khushiii` : "Search | Artistic by Khushiii",
     description: "Search handcrafted resin art products, collections and journal stories.",
     canonical: `${origin}/search`,
     noindex: true,

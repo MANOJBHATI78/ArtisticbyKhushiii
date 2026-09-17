@@ -219,11 +219,11 @@ export function AdminLayout({
       >
         <div className={`flex h-14 items-center gap-2.5 border-b px-3 ${collapsed ? "justify-center px-0" : ""}`}>
           { }
-          <img src="/images/logo.png" alt="Artistic by Khushi" className="h-8 w-8 rounded-lg" />
+          <img src="/images/logo.png" alt="Artistic by Khushiii" className="h-8 w-8 rounded-lg" />
           {!collapsed ? (
             <div className="min-w-0">
               <p className="font-display text-sm font-semibold leading-tight text-primary">Studio Console</p>
-              <p className="truncate text-[10px] text-muted-foreground">Artistic by Khushi</p>
+              <p className="truncate text-[10px] text-muted-foreground">Artistic by Khushiii</p>
             </div>
           ) : null}
           <span className="flex-1" />
@@ -240,7 +240,7 @@ export function AdminLayout({
         {navContent()}
         <div className="border-t p-2">
           <a
-            href="#/"
+            href="/"
             target="_blank"
             rel="noreferrer"
             className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground ${
@@ -276,7 +276,7 @@ export function AdminLayout({
               {navContent({ compact: true })}
               <div className="border-t p-2">
                 <a
-                  href="#/"
+                  href="/"
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground"

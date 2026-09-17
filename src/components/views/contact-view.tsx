@@ -56,9 +56,9 @@ export default function ContactView() {
   );
 
   useSeo({
-    title: "Contact Us | Artistic by Khushi",
+    title: "Contact Us | Artistic by Khushiii",
     description:
-      "Get in touch with Artistic by Khushi — call, WhatsApp or send an inquiry. Surat-based resin art studio delivering across India and worldwide.",
+      "Get in touch with Artistic by Khushiii — call, WhatsApp or send an inquiry. Surat-based resin art studio delivering across India and worldwide.",
     canonical: `${origin}/contact`,
     jsonLd,
   });
@@ -162,7 +162,7 @@ export default function ContactView() {
                     href={social.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={`Artistic by Khushi on ${social.label}`}
+                    aria-label={`Artistic by Khushiii on ${social.label}`}
                     className="flex size-11 items-center justify-center rounded-full border bg-card text-foreground/70 transition-all hover:scale-105 hover:border-gold/50 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
                   >
                     <social.icon className="size-5" />

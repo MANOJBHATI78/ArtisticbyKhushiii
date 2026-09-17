@@ -117,7 +117,8 @@ export function whatsappLink(settings: SiteSettings, contextProduct?: string): s
   const number = settings.whatsappNumber.replace(/\D/g, "");
   let message = settings.whatsappMessage;
   if (contextProduct) {
-    message = `Hello! I am interested in "${contextProduct}" from Artistic by Khushi. Please share more details.`;
+    const brand = settings.brandName || "Artistic by Khushiii";
+    message = `Hello! I am interested in "${contextProduct}" from ${brand}. Please share more details.`;
   }
   return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 }

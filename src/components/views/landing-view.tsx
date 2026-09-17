@@ -67,7 +67,7 @@ export default function LandingView({ slug }: { slug: string }) {
   }, [landing, faqs]);
 
   useSeo({
-    title: landing ? landing.metaTitle || `${landing.title} | Artistic by Khushi` : "Landing | Artistic by Khushi",
+    title: landing ? landing.metaTitle || `${landing.title} | Artistic by Khushiii` : "Landing | Artistic by Khushiii",
     description: landing?.metaDescription || landing?.subheadline || landing?.llmSummary,
     canonical: landing?.canonicalUrl || `${origin}/lp/${slug}`,
     ogImage: landing?.ogImageUrl || landing?.heroImageUrl || undefined,

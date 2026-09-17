@@ -18,7 +18,7 @@ export default function GenericPageView({ slug }: { slug: string }) {
   const is404 = error instanceof ApiError && error.status === 404;
 
   useSeo({
-    title: page?.seoTitle || (page ? `${page.title} | Artistic by Khushi` : "Artistic by Khushi"),
+    title: page?.seoTitle || (page ? `${page.title} | Artistic by Khushiii` : "Artistic by Khushiii"),
     description: page?.metaDescription,
     canonical: `${origin}/page/${slug}`,
   });

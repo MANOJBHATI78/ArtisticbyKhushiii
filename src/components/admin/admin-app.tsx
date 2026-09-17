@@ -174,7 +174,7 @@ function SplashScreen() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background">
       { }
-      <img src="/images/logo.png" alt="Artistic by Khushi" width={72} height={72} className="rounded-2xl border border-gold/40 animate-fade-up" />
+      <img src="/images/logo.png" alt="Artistic by Khushiii" width={72} height={72} className="rounded-2xl border border-gold/40 animate-fade-up" />
       <div className="flex items-center gap-2 text-muted-foreground">
         <Loader2 className="h-4 w-4 animate-spin" />
         <span className="font-display text-lg text-primary">Studio Console</span>

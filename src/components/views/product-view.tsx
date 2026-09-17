@@ -55,7 +55,7 @@ export default function ProductView({ slug }: { slug: string }) {
   const is404 = error instanceof ApiError && error.status === 404;
 
   useSeo({
-    title: product?.seoTitle || (product ? `${product.name} | Artistic by Khushi` : "Product | Artistic by Khushi"),
+    title: product?.seoTitle || (product ? `${product.name} | Artistic by Khushiii` : "Product | Artistic by Khushiii"),
     description: product?.metaDescription || product?.shortDescription,
     canonical: `${origin}/product/${slug}`,
     ogImage: product?.featuredImageUrl,
@@ -294,7 +294,7 @@ export default function ProductView({ slug }: { slug: string }) {
               <WishlistButton slug={product.slug} name={product.name} variant="inline" />
               <ShareRow
                 url={productUrl}
-                title={`${product.name} — Artistic by Khushi`}
+                title={`${product.name} — Artistic by Khushiii`}
                 message={`Look at this handcrafted ${product.name} 👀`}
                 image={product.featuredImageUrl?.startsWith("http") ? product.featuredImageUrl : `${origin}${product.featuredImageUrl}`}
                 context="product"

@@ -403,10 +403,10 @@ export type ApiResponse<T> = ApiOk<T> | ApiErr;
 export const LEAD_STATUSES = ["NEW", "CONTACTED", "FOLLOW_UP", "CONVERTED", "NOT_INTERESTED", "CLOSED"] as const;
 
 export const DEFAULT_SETTINGS: SiteSettings = {
-  brandName: "Artistic by Khushi",
+  brandName: "Artistic by Khushiii",
   tagline: "Handcrafted Resin Art & Personalized Gifting",
   logoUrl: "/images/logo.png",
-  logoText: "Artistic by Khushi",
+  logoText: "Artistic by Khushiii",
   phone: "+91 83201 12554",
   whatsappNumber: "918320112554",
   whatsappMessage: "Hello! I'm interested in your handcrafted resin art. Please share more details.",
@@ -419,10 +419,10 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   facebookUrl: "",
   pinterestUrl: "",
   youtubeUrl: "",
-  footerAbout: "Artistic by Khushi is a handcrafted resin art studio creating personalized nameplates, home décor, memory keepsakes and custom gifts — made with love, one piece at a time.",
-  copyrightText: "Artistic by Khushi. All rights reserved.",
-  defaultSeoTitle: "Artistic by Khushi | Handcrafted Personalized Resin Art & Gifts",
-  defaultMetaDescription: "Discover handcrafted resin nameplates, wall art, trays, jewellery and memory preservation keepsakes by Artistic by Khushi. Personalized designs made with love. Enquire on WhatsApp.",
+  footerAbout: "Artistic by Khushiii is a handcrafted resin art studio creating personalized nameplates, home décor, memory keepsakes and custom gifts — made with love, one piece at a time.",
+  copyrightText: "Artistic by Khushiii. All rights reserved.",
+  defaultSeoTitle: "Artistic by Khushiii | Handcrafted Personalized Resin Art & Gifts",
+  defaultMetaDescription: "Discover handcrafted resin nameplates, wall art, trays, jewellery and memory preservation keepsakes by Artistic by Khushiii. Personalized designs made with love. Enquire on WhatsApp.",
   defaultOgImage: "/images/og-default.jpg",
   googleAnalyticsId: "",
   googleSearchConsoleToken: "",

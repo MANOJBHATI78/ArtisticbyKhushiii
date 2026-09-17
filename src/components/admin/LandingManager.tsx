@@ -521,7 +521,7 @@ function LandingEditor({
     schemas.push({
       "@context": "https://schema.org",
       "@type": "LocalBusiness",
-      name: "Artistic by Khushi",
+      name: "Artistic by Khushiii",
       url: origin,
       image: `${origin}/images/logo.png`,
       address: {

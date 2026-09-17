@@ -48,9 +48,9 @@ export default function ProductsView() {
   const { data, isLoading, isError, refetch, isFetching } = useProducts(page, PAGE_SIZE, category, q);
 
   useSeo({
-    title: "All Products | Artistic by Khushi",
+    title: "All Products | Artistic by Khushiii",
     description:
-      "Browse every handcrafted resin creation — nameplates, wall art, trays, coasters, keychains, jewellery and custom gifts, made to order by Artistic by Khushi.",
+      "Browse every handcrafted resin creation — nameplates, wall art, trays, coasters, keychains, jewellery and custom gifts, made to order by Artistic by Khushiii.",
     canonical: `${origin}/products`,
   });
 

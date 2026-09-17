@@ -5,6 +5,7 @@ import { Container } from "@/components/site/container";
 import { FadeIn } from "@/components/site/fade-in";
 import { siteOrigin } from "@/components/site/seo-helpers";
 import { useSeo } from "@/lib/seo";
+import { navigate } from "@/lib/router";
 
 const LINKS = [
   { label: "Home", href: "/", icon: Home },
@@ -19,7 +20,7 @@ export default function NotFoundView() {
   const origin = siteOrigin();
 
   useSeo({
-    title: "Page Not Found | Artistic by Khushi",
+    title: "Page Not Found | Artistic by Khushiii",
     description: "The page you're looking for has wandered off. Explore our handcrafted resin art instead.",
     canonical: `${origin}/404`,
     noindex: true,
@@ -42,7 +43,15 @@ export default function NotFoundView() {
             {LINKS.map((link) => (
               <a
                 key={link.href}
-                href={`#${link.href}`}
+                href={link.href === "/" ? "/" : `#${link.href}`}
+                onClick={
+                  link.href === "/"
+                    ? (e) => {
+                        e.preventDefault();
+                        navigate("/");
+                      }
+                    : undefined
+                }
                 className="flex min-h-11 items-center justify-center gap-2 rounded-xl border bg-card px-4 py-3 text-sm font-medium text-foreground/80 transition-all hover:border-gold/50 hover:text-primary hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
               >
                 <link.icon className="size-4" aria-hidden="true" />

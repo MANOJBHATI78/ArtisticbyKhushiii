@@ -234,7 +234,7 @@ export default function HomeView() {
                   <ResponsiveImg
                     src={hero?.imageUrl}
                     mobileSrc={hero?.mobileImageUrl}
-                    alt="Handcrafted resin art pieces by Artistic by Khushi"
+                    alt="Handcrafted resin art pieces by Artistic by Khushiii"
                     eager
                     className="aspect-[4/5] w-full object-cover sm:aspect-square lg:aspect-[4/5] max-sm:aspect-square max-sm:object-contain max-sm:p-3"
                   />
@@ -263,7 +263,7 @@ export default function HomeView() {
                     <ResponsiveImg
                       src={brandIntro?.imageUrl}
                       mobileSrc={brandIntro?.mobileImageUrl}
-                      alt="Artistic by Khushi resin art studio"
+                      alt="Artistic by Khushiii resin art studio"
                       className="aspect-[4/3] w-full object-cover max-sm:object-contain max-sm:p-3"
                     />
                   </div>

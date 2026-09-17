@@ -32,10 +32,10 @@ export default function AboutView() {
   );
 
   useSeo({
-    title: page?.seoTitle || "About Us | Artistic by Khushi",
+    title: page?.seoTitle || "About Us | Artistic by Khushiii",
     description:
       page?.metaDescription ||
-      "The story of Artistic by Khushi — a small-batch resin art studio from Surat crafting personalized nameplates, décor and memory keepsakes by hand.",
+      "The story of Artistic by Khushiii — a small-batch resin art studio from Surat crafting personalized nameplates, décor and memory keepsakes by hand.",
     canonical: `${origin}/about`,
   });
 
@@ -50,14 +50,14 @@ export default function AboutView() {
   return (
     <>
       {/* Hero band */}
-      <section aria-label="About Artistic by Khushi" className="bg-secondary/50 py-12 md:py-16">
+      <section aria-label="About Artistic by Khushiii" className="bg-secondary/50 py-12 md:py-16">
         <Container>
           <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "About" }]} />
           <div className="mt-4 grid items-center gap-8 lg:grid-cols-2">
             <FadeIn>
               <p className="mb-2 text-xs font-medium uppercase tracking-widest text-terracotta">Our story</p>
               <h1 className="font-display text-3xl leading-tight text-foreground md:text-5xl">
-                {page?.title || "About Artistic by Khushi"}
+                {page?.title || "About Artistic by Khushiii"}
               </h1>
               <p className="mt-4 max-w-xl text-base text-foreground/80 md:text-lg">
                 A one-woman resin art studio from Surat — where wedding bouquets, family names and little

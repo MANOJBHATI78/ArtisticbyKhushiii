@@ -77,7 +77,7 @@ export default function BlogPostView({ slug }: { slug: string }) {
   const tags = post ? splitList(post.tags) : [];
 
   useSeo({
-    title: post?.seoTitle || (post ? `${post.title} | Artistic by Khushi` : "Journal | Artistic by Khushi"),
+    title: post?.seoTitle || (post ? `${post.title} | Artistic by Khushiii` : "Journal | Artistic by Khushiii"),
     description: post?.metaDescription || post?.excerpt,
     canonical: `${origin}/blog/${slug}`,
     ogImage: post?.coverImage,
@@ -96,7 +96,7 @@ export default function BlogPostView({ slug }: { slug: string }) {
           author: { "@type": "Person", name: post.author || "Khushi" },
           publisher: {
             "@type": "Organization",
-            name: "Artistic by Khushi",
+            name: "Artistic by Khushiii",
             logo: { "@type": "ImageObject", url: `${origin}/images/logo.png` },
           },
           mainEntityOfPage: `${origin}/blog/${post.slug}`,
@@ -265,7 +265,7 @@ export default function BlogPostView({ slug }: { slug: string }) {
               <ShareRow
                 url={`/blog/${post.slug}`}
                 title={post.title}
-                message={`A lovely read from Artistic by Khushi: "${post.title}"`}
+                message={`A lovely read from Artistic by Khushiii: "${post.title}"`}
                 image={post.coverImage?.startsWith("http") ? post.coverImage : `${window.location.origin}${post.coverImage}`}
                 context="blog"
                 label={null}

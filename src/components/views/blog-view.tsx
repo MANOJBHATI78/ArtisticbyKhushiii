@@ -90,9 +90,9 @@ export default function BlogView() {
   const allTags = useAllBlogTags();
 
   useSeo({
-    title: "Blog | Artistic by Khushi — Resin Art Journal",
+    title: "Blog | Artistic by Khushiii — Resin Art Journal",
     description:
-      "Care guides, design ideas and behind-the-scenes stories from the Artistic by Khushi resin art studio in Surat.",
+      "Care guides, design ideas and behind-the-scenes stories from the Artistic by Khushiii resin art studio in Surat.",
     canonical: `${origin}/blog`,
   });
 

@@ -419,9 +419,9 @@ function BlogForm({ id, onBack }: { id: string | null; onBack: () => void }) {
   function generateSeoDefaults() {
     setForm((f) => ({
       ...f,
-      seoTitle: f.seoTitle || `${f.title || "Blog post"} | Artistic by Khushi`,
+      seoTitle: f.seoTitle || `${f.title || "Blog post"} | Artistic by Khushiii`,
       metaDescription: f.metaDescription || f.excerpt.slice(0, 155),
-      ogTitle: f.ogTitle || `${f.title} | Artistic by Khushi`,
+      ogTitle: f.ogTitle || `${f.title} | Artistic by Khushiii`,
       ogDescription: f.ogDescription || f.excerpt.slice(0, 155),
     }));
     toast({ title: "SEO defaults filled" });

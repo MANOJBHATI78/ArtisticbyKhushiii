@@ -159,7 +159,7 @@ function SectionCard({ section }: { section: HomepageSection }) {
               {visible ? <Eye className="h-4 w-4 text-green-700" /> : <EyeOff className="h-4 w-4 text-muted-foreground" />}
             </Button>
             <a
-              href="#/"
+              href="/"
               target="_blank"
               rel="noreferrer"
               className="hidden h-8 w-8 items-center justify-center rounded-md hover:bg-secondary sm:inline-flex"

@@ -49,14 +49,14 @@ export default function AdminLogin() {
           { }
           <img
             src="/images/logo.png"
-            alt="Artistic by Khushi logo"
+            alt="Artistic by Khushiii logo"
             width={64}
             height={64}
             className="rounded-xl border border-gold/40 shadow-sm"
           />
           <div>
             <h1 className="font-display text-2xl font-semibold text-primary">Studio Console</h1>
-            <p className="text-sm text-muted-foreground">Artistic by Khushi · website manager</p>
+            <p className="text-sm text-muted-foreground">Artistic by Khushiii · website manager</p>
           </div>
         </div>
 
@@ -125,7 +125,7 @@ export default function AdminLogin() {
         </form>
 
         <p className="mt-6 text-center text-xs text-muted-foreground/70">
-          © Artistic by Khushi — handcrafted resin art studio
+          © Artistic by Khushiii — handcrafted resin art studio
         </p>
       </div>
     </main>

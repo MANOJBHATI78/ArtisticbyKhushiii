@@ -16,7 +16,7 @@ export default function CategoriesView() {
   const origin = siteOrigin();
 
   useSeo({
-    title: "Categories | Artistic by Khushi",
+    title: "Categories | Artistic by Khushiii",
     description:
       "Explore our handcrafted resin art collections — nameplates, mantra frames, wall art, trays, coasters, keychains, jewellery, memory preservation keepsakes and custom orders.",
     canonical: `${origin}/categories`,

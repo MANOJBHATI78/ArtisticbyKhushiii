@@ -17,10 +17,10 @@ export default function ServicesView() {
   const origin = siteOrigin();
 
   useSeo({
-    title: page?.seoTitle || "Our Services | Artistic by Khushi",
+    title: page?.seoTitle || "Our Services | Artistic by Khushiii",
     description:
       page?.metaDescription ||
-      "Custom resin art commissions, memory preservation, bulk & corporate gifting and worldwide shipping — services offered by Artistic by Khushi.",
+      "Custom resin art commissions, memory preservation, bulk & corporate gifting and worldwide shipping — services offered by Artistic by Khushiii.",
     canonical: `${origin}/services`,
   });
 

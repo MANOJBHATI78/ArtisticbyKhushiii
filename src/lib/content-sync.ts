@@ -132,7 +132,7 @@ export async function exportBackup(opts?: { includeLeads?: boolean }): Promise<C
       db.mediaAsset.findMany({ orderBy: { createdAt: "desc" } }),
     ]);
 
-  const brand = settings.find((x) => x.key === "brandName")?.value ?? "Artistic by Khushi";
+  const brand = settings.find((x) => x.key === "brandName")?.value ?? "Artistic by Khushiii";
 
   return {
     version: 1,

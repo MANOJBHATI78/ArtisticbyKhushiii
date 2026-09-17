@@ -3,6 +3,7 @@
 import { Facebook, Instagram, Youtube } from "lucide-react";
 import { useCategories } from "@/lib/queries";
 import { useSiteStore, whatsappLink } from "@/lib/store";
+import { navigate } from "@/lib/router";
 import { trackCallClick, trackWhatsAppClick } from "@/lib/track";
 import { Img } from "@/components/site/img";
 import { Container } from "@/components/site/container";
@@ -54,10 +55,18 @@ export function SiteFooter() {
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
           {/* Brand */}
           <div>
-            <a href="#/" className="inline-block rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold" aria-label="Artistic by Khushi — home">
+            <a
+              href="/"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate("/");
+              }}
+              className="inline-block rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+              aria-label={`${settings.brandName || "Artistic by Khushiii"} — home`}
+            >
               <Img
                 src={settings.logoUrl}
-                alt="Artistic by Khushi logo"
+                alt={`${settings.brandName || "Artistic by Khushiii"} logo`}
                 eager
                 fallbackIcon={false}
                 className="size-16 rounded-lg bg-cream p-1 object-contain"
@@ -72,7 +81,7 @@ export function SiteFooter() {
                     href={social.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={`Artistic by Khushi on ${social.label}`}
+                    aria-label={`${settings.brandName || "Artistic by Khushiii"} on ${social.label}`}
                     className="flex size-11 items-center justify-center rounded-full bg-cream/10 text-cream/80 transition-all hover:scale-105 hover:bg-gold hover:text-espresso focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
                   >
                     <social.icon className="size-5" />
@@ -88,9 +97,22 @@ export function SiteFooter() {
             <ul className="mt-4 space-y-2.5">
               {EXPLORE_LINKS.map((link) => (
                 <li key={link.href}>
-                  <a href={`#${link.href}`} className={`${footerLinkClass} inline-block py-0.5 text-sm`}>
-                    {link.label}
-                  </a>
+                  {link.href === "/" ? (
+                    <a
+                      href="/"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigate("/");
+                      }}
+                      className={`${footerLinkClass} inline-block py-0.5 text-sm`}
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <a href={`#${link.href}`} className={`${footerLinkClass} inline-block py-0.5 text-sm`}>
+                      {link.label}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>

@@ -235,7 +235,7 @@ export function ProductsManager({
           </SelectContent>
         </Select>
         <div className="flex gap-2">
-          <ExhibitionSheetButton settings={settings} brandName={settings?.brandName || "Artistic by Khushi"} />
+          <ExhibitionSheetButton settings={settings} brandName={settings?.brandName || "Artistic by Khushiii"} />
           <Button onClick={() => { setEditingId(null); setView("form"); }}>
             <Plus className="mr-1 h-4 w-4" /> Add Product
           </Button>
@@ -541,9 +541,9 @@ function ProductForm({ id, onBack }: { id: string | null; onBack: () => void }) 
   function generateSeoDefaults() {
     setForm((f) => ({
       ...f,
-      seoTitle: f.seoTitle || `${f.name || "Product"} | Artistic by Khushi`,
+      seoTitle: f.seoTitle || `${f.name || "Product"} | Artistic by Khushiii`,
       metaDescription: f.metaDescription || f.shortDescription.slice(0, 155),
-      ogTitle: f.ogTitle || `${f.name} | Artistic by Khushi`,
+      ogTitle: f.ogTitle || `${f.name} | Artistic by Khushiii`,
       ogDescription: f.ogDescription || f.shortDescription.slice(0, 155),
     }));
     toast({ title: "SEO defaults filled", description: "Empty SEO fields were auto-filled from the product name and short description." });

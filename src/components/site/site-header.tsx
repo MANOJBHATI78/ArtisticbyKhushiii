@@ -119,14 +119,18 @@ export function SiteHeader() {
           <div className="flex h-16 items-center justify-between gap-3 md:h-20">
             {/* Logo + wordmark */}
             <a
-              href="#/"
+              href="/"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate("/");
+              }}
               className="flex items-center gap-3 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
-              aria-label="Artistic by Khushi — home"
+              aria-label={`${settings.brandName || "Artistic by Khushiii"} — home`}
             >
               {settingsLoaded ? (
                 <Img
                   src={settings.logoUrl}
-                  alt="Artistic by Khushi logo"
+                  alt={`${settings.brandName || "Artistic by Khushiii"} logo`}
                   eager
                   fallbackIcon={false}
                   className="size-11 rounded-lg bg-primary object-cover"
@@ -135,7 +139,7 @@ export function SiteHeader() {
                 <div className="size-11 animate-shimmer rounded-lg bg-secondary" aria-hidden="true" />
               )}
               <span className="hidden font-display text-lg leading-tight text-foreground min-[420px]:block sm:text-xl">
-                {settings.brandName || "Artistic by Khushi"}
+                {settings.brandName || "Artistic by Khushiii"}
               </span>
             </a>
 
@@ -144,7 +148,15 @@ export function SiteHeader() {
               {NAV_LINKS.map((link) => (
                 <a
                   key={link.href}
-                  href={`#${link.href}`}
+                  href={link.href === "/" ? "/" : `#${link.href}`}
+                  onClick={
+                    link.href === "/"
+                      ? (e) => {
+                          e.preventDefault();
+                          navigate("/");
+                        }
+                      : undefined
+                  }
                   aria-current={isActive(link.href) ? "page" : undefined}
                   className={cn(
                     "rounded-md px-3 py-2 text-sm font-medium transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold",
@@ -232,8 +244,14 @@ export function SiteHeader() {
             {NAV_LINKS.map((link) => (
               <a
                 key={link.href}
-                href={`#${link.href}`}
-                onClick={() => setMobileOpen(false)}
+                href={link.href === "/" ? "/" : `#${link.href}`}
+                onClick={(e) => {
+                  setMobileOpen(false);
+                  if (link.href === "/") {
+                    e.preventDefault();
+                    navigate("/");
+                  }
+                }}
                 className={cn(
                   "flex min-h-11 items-center rounded-md px-3 py-3 text-base font-medium transition-colors hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold",
                   isActive(link.href) ? "bg-gold-soft/60 text-primary" : "text-foreground"

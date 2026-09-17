@@ -17,11 +17,11 @@ const jost = Jost({
 
 export const metadata: Metadata = {
   title: {
-    default: "Artistic by Khushi | Handcrafted Personalized Resin Art & Gifts",
-    template: "%s | Artistic by Khushi",
+    default: "Artistic by Khushiii | Handcrafted Personalized Resin Art & Gifts",
+    template: "%s | Artistic by Khushiii",
   },
   description:
-    "Discover handcrafted resin nameplates, wall art, trays, coasters, keychains, jewellery and memory preservation keepsakes by Artistic by Khushi. Personalized designs made with love. Enquire on WhatsApp.",
+    "Discover handcrafted resin nameplates, wall art, trays, coasters, keychains, jewellery and memory preservation keepsakes by Artistic by Khushiii. Personalized designs made with love. Enquire on WhatsApp.",
   keywords: [
     "resin art", "personalized resin nameplate", "resin nameplate India", "memory preservation",
     "resin gifts", "handcrafted resin art", "Lippan art", "custom resin art", "resin coasters", "resin tray",
@@ -32,10 +32,10 @@ export const metadata: Metadata = {
     apple: "/images/logo.png",
   },
   openGraph: {
-    title: "Artistic by Khushi | Handcrafted Personalized Resin Art & Gifts",
+    title: "Artistic by Khushiii | Handcrafted Personalized Resin Art & Gifts",
     description:
       "Premium handcrafted resin art — personalized nameplates, décor, memory keepsakes and custom gifts, made to order with love. Surat studio, pan-India delivery & worldwide shipping.",
-    siteName: "Artistic by Khushi",
+    siteName: "Artistic by Khushiii",
     type: "website",
   },
   robots: { index: true, follow: true },
