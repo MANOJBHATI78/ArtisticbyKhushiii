@@ -251,6 +251,12 @@
 }
 .animate-gold-shimmer { animation: gold-shimmer 3.2s ease-in-out infinite; }
 
+/* Sparkle ring — celebratory ripple (thank-you check icon). */
+@keyframes sparkle-ring {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(1.55); opacity: 0; }
+}
+
 /* ---------- Brand flourishes ---------- */
 ::selection {
   background: var(--gold-soft);
