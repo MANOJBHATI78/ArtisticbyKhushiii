@@ -14,6 +14,7 @@ import type {
   Faq,
   Paginated,
   BlogCategory,
+  Testimonial,
 } from "@/lib/types";
 
 // Keys for cache invalidation
@@ -32,6 +33,7 @@ export const qk = {
   page: (slug: string) => ["page", slug] as const,
   landing: (slug: string) => ["landing", slug] as const,
   faqs: ["faqs"] as const,
+  testimonials: ["testimonials"] as const,
   search: (q: string) => ["search", q] as const,
 };
 
@@ -155,6 +157,15 @@ export function useFaqs() {
   return useQuery<Faq[]>({
     queryKey: qk.faqs,
     queryFn: () => api.get<Faq[]>("/api/public/faqs"),
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+/** Published customer testimonials for the homepage social-proof section. */
+export function useTestimonials(limit = 6) {
+  return useQuery<Testimonial[]>({
+    queryKey: [...qk.testimonials, limit],
+    queryFn: () => api.get<Testimonial[]>(`/api/public/testimonials?limit=${limit}`),
     staleTime: 1000 * 60 * 5,
   });
 }

@@ -25,7 +25,16 @@ export default function ThankYouView() {
     <Container className="flex flex-col items-center justify-center py-20 text-center md:py-28">
       <FadeIn>
         <div className="mx-auto flex max-w-xl flex-col items-center">
-          <span className="flex size-20 items-center justify-center rounded-full bg-gold-soft">
+          {/* Celebratory check — soft gold ring ripples outward (motion-safe). */}
+          <span className="relative flex size-20 items-center justify-center rounded-full bg-gold-soft">
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 rounded-full border-2 border-gold/60 motion-safe:animate-[sparkle-ring_2.4s_ease-out_infinite]"
+            />
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 rounded-full border border-gold/40 motion-safe:animate-[sparkle-ring_2.4s_ease-out_infinite_0.8s]"
+            />
             <CheckCircle2 className="size-10 text-gold" aria-hidden="true" />
           </span>
           <h1 className="mt-6 font-display text-3xl leading-tight text-foreground md:text-4xl">
@@ -58,6 +67,15 @@ export default function ThankYouView() {
             >
               Continue Browsing
             </Button>
+          </div>
+
+          {/* Gentle reassurance row */}
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
+            <span>✦ Handmade to order</span>
+            <span aria-hidden="true" className="opacity-40">•</span>
+            <span>✦ Pan-India & worldwide shipping</span>
+            <span aria-hidden="true" className="opacity-40">•</span>
+            <span>✦ Surat, Gujarat studio</span>
           </div>
         </div>
       </FadeIn>

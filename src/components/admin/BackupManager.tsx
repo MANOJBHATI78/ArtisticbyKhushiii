@@ -110,7 +110,7 @@ export function BackupManager() {
   }
 
   function snapshotCounts(snap: Record<string, unknown>) {
-    const keys = ["products", "categories", "blogs", "pages", "faqs", "homepageSections", "landingPages", "leads", "mediaAssets"];
+    const keys = ["products", "categories", "blogs", "pages", "faqs", "testimonials", "homepageSections", "landingPages", "leads", "mediaAssets"];
     return keys
       .map((k) => ({ k, n: Array.isArray(snap[k]) ? (snap[k] as unknown[]).length : 0 }))
       .filter((x) => x.n > 0);

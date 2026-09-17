@@ -201,6 +201,22 @@ CREATE TABLE "MediaAsset" (
 );
 
 -- CreateTable
+CREATE TABLE "Testimonial" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "location" TEXT NOT NULL DEFAULT '',
+    "rating" INTEGER NOT NULL DEFAULT 5,
+    "quote" TEXT NOT NULL,
+    "avatarUrl" TEXT NOT NULL DEFAULT '',
+    "productName" TEXT NOT NULL DEFAULT '',
+    "featured" BOOLEAN NOT NULL DEFAULT false,
+    "published" BOOLEAN NOT NULL DEFAULT true,
+    "displayOrder" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
 CREATE TABLE "SiteSetting" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "key" TEXT NOT NULL,

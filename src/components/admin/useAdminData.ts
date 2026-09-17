@@ -17,6 +17,7 @@ import type {
   PublicPage,
   PublicProduct,
   SiteSettings,
+  Testimonial,
 } from "@/lib/types";
 import type { AdminUser } from "./admin-utils";
 
@@ -226,6 +227,15 @@ export function useAdminLandings(q = "") {
   return useQuery<AdminLandingPage[]>({
     queryKey: ["admin", "landing", q],
     queryFn: () => api.get<AdminLandingPage[]>(q ? `/api/admin/landing?q=${encodeURIComponent(q)}` : "/api/admin/landing"),
+  });
+}
+
+// ---------------- testimonials ----------------
+
+export function useAdminTestimonials(q = "") {
+  return useQuery<Testimonial[]>({
+    queryKey: ["admin", "testimonials", q],
+    queryFn: () => api.get<Testimonial[]>(q ? `/api/admin/testimonials?q=${encodeURIComponent(q)}` : "/api/admin/testimonials"),
   });
 }
 

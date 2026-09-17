@@ -195,6 +195,20 @@ const TABLE_MIGRATIONS: string[] = [
     "updatedAt" DATETIME NOT NULL
   );`,
   `CREATE UNIQUE INDEX IF NOT EXISTS "LandingPage_slug_key" ON "LandingPage"("slug");`,
+  `CREATE TABLE IF NOT EXISTS "Testimonial" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "location" TEXT NOT NULL DEFAULT '',
+    "rating" INTEGER NOT NULL DEFAULT 5,
+    "quote" TEXT NOT NULL,
+    "avatarUrl" TEXT NOT NULL DEFAULT '',
+    "productName" TEXT NOT NULL DEFAULT '',
+    "featured" BOOLEAN NOT NULL DEFAULT false,
+    "published" BOOLEAN NOT NULL DEFAULT true,
+    "displayOrder" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+  );`,
 ];
 
 async function migrateSchema(client: Client): Promise<void> {

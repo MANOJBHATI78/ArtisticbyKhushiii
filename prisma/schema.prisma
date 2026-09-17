@@ -219,6 +219,21 @@ model MediaAsset {
   createdAt DateTime @default(now())
 }
 
+model Testimonial {
+  id           String   @id @default(cuid())
+  name         String
+  location     String   @default("")
+  rating       Int      @default(5)
+  quote        String
+  avatarUrl    String   @default("")
+  productName  String   @default("")
+  featured     Boolean  @default(false)
+  published    Boolean  @default(true)
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
 model SiteSetting {
   id    String @id @default(cuid())
   key   String @unique

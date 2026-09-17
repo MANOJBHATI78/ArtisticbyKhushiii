@@ -392,3 +392,43 @@ export function parseFaqFields(body: Record<string, unknown>): Parsed<FaqFields>
   if (has(body, "published")) fields.published = bool(body.published, true);
   return { ok: true, fields };
 }
+
+// ---------------- testimonials ----------------
+
+export type TestimonialFields = {
+  name?: string;
+  location?: string;
+  rating?: number;
+  quote?: string;
+  avatarUrl?: string;
+  productName?: string;
+  featured?: boolean;
+  published?: boolean;
+  displayOrder?: number;
+};
+
+export function parseTestimonialFields(body: Record<string, unknown>): Parsed<TestimonialFields> {
+  const fields: TestimonialFields = {};
+  if (has(body, "name")) {
+    const name = str(body.name);
+    if (!name) return { ok: false, error: "Customer name is required." };
+    fields.name = name;
+  }
+  if (has(body, "quote")) {
+    const quote = str(body.quote);
+    if (!quote) return { ok: false, error: "Testimonial quote is required." };
+    fields.quote = quote;
+  }
+  if (has(body, "location")) fields.location = str(body.location);
+  if (has(body, "rating")) {
+    const rating = int(body.rating, 5);
+    if (rating < 1 || rating > 5) return { ok: false, error: "Rating must be between 1 and 5 stars." };
+    fields.rating = rating;
+  }
+  if (has(body, "avatarUrl")) fields.avatarUrl = str(body.avatarUrl);
+  if (has(body, "productName")) fields.productName = str(body.productName);
+  if (has(body, "featured")) fields.featured = bool(body.featured, false);
+  if (has(body, "published")) fields.published = bool(body.published, true);
+  if (has(body, "displayOrder")) fields.displayOrder = int(body.displayOrder, 0);
+  return { ok: true, fields };
+}

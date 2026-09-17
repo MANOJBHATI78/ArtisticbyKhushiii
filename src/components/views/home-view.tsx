@@ -27,6 +27,7 @@ import { SectionHeading } from "@/components/site/section-heading";
 import { CategoryGridSkeleton, HeroSkeleton, ProductGridSkeleton } from "@/components/site/skeletons";
 import { ErrorState } from "@/components/site/empty-state";
 import { RecentlyViewed } from "@/components/site/recently-viewed";
+import { TestimonialsSection } from "@/components/site/testimonials-section";
 import { siteOrigin, socialSameAs } from "@/components/site/seo-helpers";
 import { useHome } from "@/lib/queries";
 import { navigate } from "@/lib/router";
@@ -389,6 +390,9 @@ export default function HomeView() {
           </Container>
         </section>
       ) : null}
+
+      {/* ============ 5b. TESTIMONIALS (admin-managed social proof) ============ */}
+      <TestimonialsSection />
 
       {/* ============ 6. CUSTOM ORDERS ============ */}
       {customOrders?.visible !== false && customOrders ? (

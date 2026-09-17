@@ -257,6 +257,24 @@ export interface SearchResults {
   query: string;
 }
 
+// ---------------- testimonials (social proof) ----------------
+
+/** Customer testimonial — shown on the homepage and shareable per product name. */
+export interface Testimonial {
+  id: string;
+  name: string;
+  location: string;
+  rating: number;
+  quote: string;
+  avatarUrl: string;
+  productName: string;
+  featured: boolean;
+  published: boolean;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Lead {
   id: string;
   name: string;

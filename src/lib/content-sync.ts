@@ -30,6 +30,7 @@ export interface SyncCounts {
   blogs: number;
   pages: number;
   faqs: number;
+  testimonials: number;
   homepageSections: number;
   landingPages: number;
   leads: number;
@@ -57,6 +58,7 @@ export interface ContentSnapshot {
   blogs: Array<Record<string, unknown>>;
   pages: Array<Record<string, unknown>>;
   faqs: Array<Record<string, unknown>>;
+  testimonials: Array<Record<string, unknown>>;
   homepageSections: Array<Record<string, unknown>>;
   landingPages: Array<Record<string, unknown>>;
   leads: Array<Record<string, unknown>>;
@@ -65,7 +67,7 @@ export interface ContentSnapshot {
 
 const emptyCounts = (): SyncCounts => ({
   settings: 0, categories: 0, blogCategories: 0, products: 0, productImages: 0,
-  blogs: 0, pages: 0, faqs: 0, homepageSections: 0, landingPages: 0, leads: 0, mediaAssets: 0,
+  blogs: 0, pages: 0, faqs: 0, testimonials: 0, homepageSections: 0, landingPages: 0, leads: 0, mediaAssets: 0,
 });
 
 // ---------------- helpers ----------------
@@ -102,6 +104,7 @@ function collectUploadUrls(snap: Partial<ContentSnapshot>): string[] {
     add(p.featuredImageUrl);
   });
   (snap.blogs ?? []).forEach((x) => add(x.coverImage));
+  (snap.testimonials ?? []).forEach((x) => add(x.avatarUrl));
   (snap.homepageSections ?? []).forEach((x) => { add(x.imageUrl); add(x.mobileImageUrl); });
   (snap.landingPages ?? []).forEach((x) => { add(x.heroImageUrl); add(x.heroMobileImageUrl); add(x.ogImageUrl); });
   (snap.mediaAssets ?? []).forEach((x) => add(x.url));
@@ -113,7 +116,7 @@ function collectUploadUrls(snap: Partial<ContentSnapshot>): string[] {
 
 export async function exportBackup(opts?: { includeLeads?: boolean }): Promise<ContentSnapshot> {
   const includeLeads = opts?.includeLeads !== false;
-  const [settings, categories, blogCategories, products, blogs, pages, faqs, sections, landings, leads, media] =
+  const [settings, categories, blogCategories, products, blogs, pages, faqs, testimonials, sections, landings, leads, media] =
     await Promise.all([
       db.siteSetting.findMany(),
       db.category.findMany({ orderBy: { displayOrder: "asc" } }),
@@ -122,6 +125,7 @@ export async function exportBackup(opts?: { includeLeads?: boolean }): Promise<C
       db.blogPost.findMany({ orderBy: { createdAt: "desc" }, include: { blogCategory: { select: { slug: true } } } }),
       db.page.findMany({ orderBy: { displayOrder: "asc" } }),
       db.faq.findMany({ orderBy: { displayOrder: "asc" } }),
+      db.testimonial.findMany({ orderBy: { displayOrder: "asc" } }),
       db.homepageSection.findMany({ orderBy: { displayOrder: "asc" } }),
       db.landingPage.findMany({ orderBy: { displayOrder: "asc" } }),
       includeLeads ? db.lead.findMany({ orderBy: { createdAt: "desc" } }) : Promise.resolve([]),
@@ -172,6 +176,11 @@ export async function exportBackup(opts?: { includeLeads?: boolean }): Promise<C
     faqs: faqs.map((f) => ({
       question: f.question, answer: f.answer, entityType: f.entityType, entityId: f.entityId,
       displayOrder: f.displayOrder, published: f.published,
+    })),
+    testimonials: testimonials.map((t) => ({
+      name: t.name, location: t.location, rating: t.rating, quote: t.quote,
+      avatarUrl: t.avatarUrl, productName: t.productName, featured: t.featured,
+      published: t.published, displayOrder: t.displayOrder,
     })),
     homepageSections: sections.map((x) => ({
       sectionKey: x.sectionKey, heading: x.heading, subheading: x.subheading, body: x.body,
@@ -254,7 +263,7 @@ export async function applyContentSnapshot(
         introContent: s(c.introContent), bottomContent: s(c.bottomContent),
         featured: b(c.featured), displayOrder: n(c.displayOrder), published: b(c.published, true),
         seoTitle: s(c.seoTitle), metaDescription: s(c.metaDescription), focusKeyword: s(c.focusKeyword),
-        secondaryKeywords: s(c.secondaryKeywords), ogTitle: s(s.ogTitle), ogDescription: s(c.ogDescription),
+        secondaryKeywords: s(c.secondaryKeywords), ogTitle: s(c.ogTitle), ogDescription: s(c.ogDescription),
         canonicalUrl: s(c.canonicalUrl),
       },
     });
@@ -412,6 +421,26 @@ export async function applyContentSnapshot(
         },
       });
       counts.faqs++;
+    }
+  }
+
+  // --- testimonials (rebuild — no unique key, wholesale replace) ---
+  const testimonials = snap.testimonials ?? [];
+  if (testimonials.length > 0 || opts?.downloadMediaFrom) {
+    await db.testimonial.deleteMany({});
+    for (const t of testimonials) {
+      const name = s(t.name);
+      const quote = s(t.quote);
+      if (!name || !quote) continue;
+      const rating = Math.min(5, Math.max(1, n(t.rating, 5)));
+      await db.testimonial.create({
+        data: {
+          name, quote, rating, location: s(t.location), avatarUrl: s(t.avatarUrl),
+          productName: s(t.productName), featured: b(t.featured),
+          published: b(t.published, true), displayOrder: n(t.displayOrder),
+        },
+      });
+      counts.testimonials++;
     }
   }
 
@@ -602,7 +631,7 @@ export async function pullFromLive(
   if (!token) warnings.push("Admin login failed — falling back to public APIs (drafts & leads will be skipped).");
   const cookie = token;
 
-  const [settingsRes, categoriesRes, productsRes, blogsRes, pagesRes, faqsRes, homepageRes, landingRes, leadsRes, mediaRes, blogCatsRes] =
+  const [settingsRes, categoriesRes, productsRes, blogsRes, pagesRes, faqsRes, testimonialsRes, homepageRes, landingRes, leadsRes, mediaRes, blogCatsRes] =
     await Promise.all([
       apiGet<Record<string, string>>(base, "/api/admin/settings", cookie, timeoutMs),
       apiGet<Array<Record<string, unknown>>>(base, "/api/admin/categories", cookie, timeoutMs),
@@ -610,6 +639,7 @@ export async function pullFromLive(
       apiGet<Paginated<Record<string, unknown>>>(base, "/api/admin/blogs?pageSize=100&page=1", cookie, timeoutMs),
       apiGet<Array<Record<string, unknown>>>(base, "/api/admin/pages", cookie, timeoutMs),
       apiGet<Array<Record<string, unknown>>>(base, "/api/admin/faqs", cookie, timeoutMs),
+      apiGet<Array<Record<string, unknown>>>(base, "/api/admin/testimonials", cookie, timeoutMs),
       apiGet<Array<Record<string, unknown>>>(base, "/api/admin/homepage", cookie, timeoutMs),
       apiGet<Array<Record<string, unknown>>>(base, "/api/admin/landing?pageSize=100", cookie, timeoutMs),
       opts?.includeLeads !== false && cookie
@@ -638,8 +668,9 @@ export async function pullFromLive(
     blogs: blogsRes?.items ?? [],
     pages: pagesRes ?? [],
     faqs: (faqsRes ?? []).map((f) => ({ ...f })),
+    testimonials: testimonialsRes ?? [],
     homepageSections: homepageRes ?? [],
-    landingPages: landingRes?.items ?? landingRes ?? [],
+    landingPages: Array.isArray(landingRes) ? landingRes : (landingRes as { items?: Array<Record<string, unknown>> } | null)?.items ?? [],
     leads: leadsRes?.items ?? [],
     mediaAssets: mediaRes ?? [],
   };

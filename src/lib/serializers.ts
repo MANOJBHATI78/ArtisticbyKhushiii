@@ -14,6 +14,7 @@ import type {
   PublicCategory,
   PublicPage,
   PublicProduct,
+  Testimonial,
 } from "@/lib/types";
 
 type PrismaProduct = {
@@ -487,4 +488,35 @@ export function clientIp(request: Request): string {
   const fwd = request.headers.get("x-forwarded-for") || "";
   const first = fwd.split(",")[0].trim();
   return first || "local";
+}
+
+/** Serialize a Testimonial row → Testimonial (dates ISO). */
+export function toTestimonial(t: {
+  id: string;
+  name: string;
+  location: string;
+  rating: number;
+  quote: string;
+  avatarUrl: string;
+  productName: string;
+  featured: boolean;
+  published: boolean;
+  displayOrder: number;
+  createdAt: Date;
+  updatedAt: Date;
+}): Testimonial {
+  return {
+    id: t.id,
+    name: t.name,
+    location: t.location,
+    rating: t.rating,
+    quote: t.quote,
+    avatarUrl: t.avatarUrl,
+    productName: t.productName,
+    featured: t.featured,
+    published: t.published,
+    displayOrder: t.displayOrder,
+    createdAt: t.createdAt.toISOString(),
+    updatedAt: t.updatedAt.toISOString(),
+  };
 }

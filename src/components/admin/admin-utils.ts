@@ -21,6 +21,7 @@ export type AdminModuleKey =
   | "blogs"
   | "pages"
   | "faqs"
+  | "testimonials"
   | "leads"
   | "media"
   | "homepage"

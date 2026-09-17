@@ -384,3 +384,33 @@ Stage Summary:
 - Wishlist/recent are per-device localStorage (privacy-safe, noindex) — new GA events (wishlist_add/remove/clear_all/share_whatsapp) flow into existing analytics when GA ID is set
 - Open items (unchanged from Task 11-c): owner should set siteUrl in live settings (sitemap absolute URLs) + change admin password; LandingManager quick-add not in global Add menu (minor); VLM visual review unavailable this round (CLI 401 missing X-Token) — relied on DOM-geometry verification instead
 - Next-phase candidates: Quick View modal on product cards, product image zoom-on-hover magnifier, admin wishlist/export analytics if GA fills, testimonials section, font-display polish pass on long titles
+
+---
+Task ID: 13
+Agent: lead (Z.ai Code main) — periodic webDevReview round
+Task: QA assessment, then feature round: Quick View modal, full-stack Testimonials system, styling polish
+
+Work Log:
+- Read worklog (Tasks 1–12); verified health (file mode, 23 products/17 cats/6 blogs), lint 0, dev.log clean
+- QA regression sweep BEFORE changes: home, wishlist badge + hearts + recently-viewed strip, product page (lightbox zoom btn, saved-state aria-pressed), blog reading progress, admin login → dashboard, mobile 375px (hearts, no h-scroll, sticky CTA) → ALL Task 12 features intact, 0 bugs
+- NEW FEATURE — Quick View modal (src/components/site/quick-view.tsx): image + category badge + name + short description + top-4 highlights + material/occasion chips + Enquire (opens inquiry modal w/ context) + Full Details (navigates); uses cached useProduct query; loading spinner + graceful error state; GA events quick_view_open/full_details/enquire; ProductCard restructured — image area now its own relative wrapper (heart self-anchors, Quick View pill bottom-center: hover-revealed on desktop via sm:opacity-0 group-hover:opacity-100, ALWAYS visible on touch devices); mobile dialog = 353px single-column with object-contain image
+- NEW FEATURE — Testimonials (full stack, admin-managed social proof):
+  * Prisma Testimonial model (name, location, rating 1-5, quote, avatarUrl, productName, featured, published, displayOrder) + db:push
+  * Migration-safe: db.ts TABLE_MIGRATIONS += CREATE TABLE IF NOT EXISTS Testimonial (live Turso auto-migrates on next deploy cold start); scripts/schema.sql updated for netlify-init
+  * Public API GET /api/public/testimonials?featured&limit (published, display-ordered, capped 24)
+  * Admin API /api/admin/testimonials (GET list w/ search, POST) + [id] (GET/PUT/DELETE) + parseTestimonialFields in _lib.ts (rating 1-5 validation)
+  * TestimonialsManager.tsx: table (desktop) + cards (mobile), optimistic published/featured toggles w/ rollback, star ratings, confirm-delete, form dialog with interactive 5-star picker (role=radiogroup), MediaPickField avatar picker, product-name chip, display order, featured/published switches
+  * Module registered: AdminModuleKey + NAV + TITLES (MessageSquareQuote icon) + admin-app render + useAdminTestimonials hook
+  * Public: TestimonialsSection ("Words from happy hearts / Loved by Customers Everywhere") — gold stars, oversized Quote mark flourish, avatar-or-initials circles, product chips, hover lift, FadeIn stagger; renders between Why-Choose-Us and Custom-Orders on home; self-hides when empty
+  * Seeded 6 realistic testimonials (scripts/seed-testimonials.ts, idempotent)
+  * Backup & Sync integration: SyncCounts + ContentSnapshot + export + apply (rebuild) + pullFromLive (/api/admin/testimonials) + BackupManager counts grid
+- BUG FOUND + FIXED DURING ROUND: admin panel crashed client-side ("Application error") — root cause: MessageSquareQuote used in AdminLayout NAV but NOT imported from lucide-react (tsc caught it: TS2304). Also fixed 2 pre-existing content-sync bugs uncovered by tsc: (1) ogTitle: s(s.ogTitle) → s(c.ogTitle) typo in category restore (og titles silently lost on sync), (2) landingRes?.items type error on array response. Required dev server restart to pick up regenerated Prisma client (stale client = db.testimonial undefined → 500s)
+- STYLING POLISH: thank-you view celebration (dual gold sparkle-ring ripples around check icon, motion-safe, staggered 0.8s + reassurance row "Handmade to order · worldwide shipping · Surat studio"); inquiry modal warm gradient strip (gold-soft→gold→terracotta) at top; InquiryForm trust bar upgraded ("✦ Replies within a few hours · ✦ Details stay private · ✦ Made by hand in Surat" — appears in both modal + contact page); sparkle-ring keyframes added to globals.css
+- VERIFICATION (agent-browser): Quick View — 12 buttons on products grid, opens w/ 4 highlights + both CTAs, Enquire → inquiry modal w/ product chip + trust bar + gradient strip, mobile 353px works; Testimonials — home renders 6 cards w/ stars + ornaments, admin module full CRUD cycle (create "QA Test Customer" → 7 rows → edit city persisted → confirm-delete → 6 rows), published/featured toggles optimistic, backup JSON includes testimonials:6; thank-you sparkle-ring animationName verified + trust row; final sweeps: home 45 headings/0 broken/no errors, mobile no h-scroll, admin loads clean, health ok, lint 0, tsc 0 in all touched files, dev.log clean; all QA artifacts cleaned (testimonials back to 6 seed rows, localStorage cleared)
+
+Stage Summary:
+- Delivered 2 major features (Quick View e-commerce UX + admin-managed Testimonials social proof) + styling polish round — testimonials is the first new DB-backed entity since Landing Pages, fully wired into the owner's "easy solution" (auto-migrates on live deploy, included in backup/restore/pull-from-live, zero re-entry needed)
+- Testimonial seeding means the homepage shows social proof immediately after deploy; owner can edit/replace with real customer WhatsApp messages from the Testimonials admin module
+- Quick View + wishlist + recently-viewed now form a complete browsing layer over the catalogue
+- Open items (unchanged): owner should set siteUrl in live settings + change admin password; LandingManager quick-add not in global Add menu; testimonials not yet shown on product pages (future: filter by productName match)
+- Next-phase candidates: product-page testimonials ("Reviews for this piece"), testimonial submission form w/ moderation, image zoom-on-hover magnifier, GA4 dashboard for wishlist/quick-view events, offers/festive banner with countdown

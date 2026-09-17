@@ -25,7 +25,12 @@ export function InquiryModal() {
 
   return (
     <Dialog open={inquiryOpen} onOpenChange={(open) => (open ? null : closeInquiry())}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto custom-scroll sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] gap-0 overflow-y-auto custom-scroll sm:max-w-lg">
+        {/* Warm brand gradient strip — ties the dialog to the studio palette. */}
+        <div
+          aria-hidden="true"
+          className="-mx-6 -mt-6 mb-5 h-1.5 rounded-t-lg bg-gradient-to-r from-gold-soft via-gold to-terracotta"
+        />
         <DialogHeader>
           <DialogTitle className="font-display text-2xl">Enquire Now</DialogTitle>
           <DialogDescription>

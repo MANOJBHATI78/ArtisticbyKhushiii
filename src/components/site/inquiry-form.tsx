@@ -325,9 +325,14 @@ export function InquiryForm({ className, submitLabel = "Send Inquiry" }: Inquiry
           submitLabel
         )}
       </Button>
-      <p className="text-center text-xs text-muted-foreground">
-        We usually reply within a few hours. Your details stay private — no spam, ever.
-      </p>
+      {/* Trust bar — quiet reassurance under the form (modal + contact page). */}
+      <div className="flex flex-wrap items-center justify-center gap-x-3.5 gap-y-1 text-[11px] text-muted-foreground">
+        <span>✦ Replies within a few hours</span>
+        <span aria-hidden="true" className="opacity-40">•</span>
+        <span>✦ Details stay private</span>
+        <span aria-hidden="true" className="opacity-40">•</span>
+        <span>✦ Made by hand in Surat</span>
+      </div>
     </form>
   );
 }

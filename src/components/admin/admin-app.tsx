@@ -14,6 +14,7 @@ import { CategoriesManager } from "./CategoriesManager";
 import { BlogsManager } from "./BlogsManager";
 import { PagesManager } from "./PagesManager";
 import { FaqsManager } from "./FaqsManager";
+import { TestimonialsManager } from "./TestimonialsManager";
 import { LeadsManager } from "./LeadsManager";
 import { MediaLibrary } from "./MediaLibrary";
 import { HomepageManager } from "./HomepageManager";
@@ -56,7 +57,7 @@ function AdminGate() {
   const [module, setModule] = useState<AdminModuleKey>(() => {
     if (typeof window === "undefined") return "dashboard";
     const saved = window.sessionStorage.getItem("abk_admin_module");
-    const keys: AdminModuleKey[] = ["dashboard", "products", "categories", "blogs", "pages", "faqs", "leads", "media", "homepage", "landing", "backup", "settings"];
+    const keys: AdminModuleKey[] = ["dashboard", "products", "categories", "blogs", "pages", "faqs", "testimonials", "leads", "media", "homepage", "landing", "backup", "settings"];
     return keys.includes(saved as AdminModuleKey) ? (saved as AdminModuleKey) : "dashboard";
   });
   const [jump, setJump] = useState<JumpSignal | undefined>();
@@ -148,6 +149,10 @@ function AdminGate() {
 
       {module === "faqs" ? (
         <FaqsManager key={`faqs|c${createSig?.module === "faqs" ? createSig.n : 0}`} createSignal={createSig?.module === "faqs" ? createSig.n : 0} />
+      ) : null}
+
+      {module === "testimonials" ? (
+        <TestimonialsManager key={`testimonials|c${createSig?.module === "testimonials" ? createSig.n : 0}`} createSignal={createSig?.module === "testimonials" ? createSig.n : 0} />
       ) : null}
 
       {module === "leads" ? (
