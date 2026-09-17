@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Img } from "@/components/site/img";
+import { WishlistButton } from "@/components/site/wishlist-button";
 import { useSiteStore } from "@/lib/store";
 import type { PublicProduct } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -21,7 +22,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
   return (
     <Card
       className={cn(
-        "group flex h-full flex-col overflow-hidden pt-0 transition-all duration-300 hover:-translate-y-1 hover:border-gold/40 hover:shadow-lg",
+        "group relative flex h-full flex-col overflow-hidden pt-0 transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-gold/40 hover:shadow-xl hover:shadow-espresso/10",
         className
       )}
     >
@@ -34,15 +35,27 @@ export function ProductCard({ product, className }: ProductCardProps) {
           <Img
             src={product.featuredImageUrl}
             alt={product.featuredImageAlt || product.name}
-            className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.02] max-sm:object-contain max-sm:transition-none max-sm:group-hover:scale-100"
+            className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06] max-sm:object-contain max-sm:transition-none max-sm:group-hover:scale-100"
           />
         </div>
+        {/* Soft warm veil on hover — depth without hiding the piece. */}
+        <span
+          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-espresso/25 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+          aria-hidden="true"
+        />
         {product.categoryName ? (
-          <span className="absolute left-3 top-3 rounded-full bg-gold-soft px-2 py-0.5 text-xs font-medium text-accent-foreground shadow-sm">
+          <span className="absolute left-3 top-3 rounded-full bg-gold-soft px-2.5 py-1 text-xs font-medium text-accent-foreground shadow-sm backdrop-blur-sm transition-transform duration-300 group-hover:-translate-y-0.5">
             {product.categoryName}
           </span>
         ) : null}
       </a>
+
+      {/* Heart — sits above the image, outside the <a> so clicking it doesn't navigate. */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10">
+        <div className="pointer-events-auto flex justify-end pt-2.5 pr-2.5">
+          <WishlistButton slug={product.slug} name={product.name} />
+        </div>
+      </div>
 
       <CardHeader className="pb-2">
         <a href={`#${detailHref}`} className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold">

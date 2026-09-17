@@ -20,22 +20,27 @@ export function BlogCard({ post, className }: BlogCardProps) {
   return (
     <Card
       className={cn(
-        "group h-full overflow-hidden pt-0 transition-all duration-300 hover:-translate-y-1 hover:border-gold/40 hover:shadow-lg",
+        "group h-full overflow-hidden pt-0 transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-gold/40 hover:shadow-xl hover:shadow-espresso/10",
         className
       )}
     >
       <a
         href={`#/blog/${post.slug}`}
-        className="block focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-gold"
+        className="relative block focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-gold"
         aria-label={`Read ${post.title}`}
       >
         <div className="aspect-[16/10] overflow-hidden bg-secondary">
           <Img
             src={post.coverImage}
             alt={post.coverAlt || post.title}
-            className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+            className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
           />
         </div>
+        {/* Soft editorial veil on hover. */}
+        <span
+          className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-espresso/25 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+          aria-hidden="true"
+        />
         <CardContent>
           <div className="flex flex-wrap items-center gap-2">
             {post.blogCategoryName ? (
@@ -55,9 +60,9 @@ export function BlogCard({ post, className }: BlogCardProps) {
               {dateLabel ? <span className="mx-1.5 opacity-50">•</span> : null}
               {dateLabel}
             </span>
-            <span className="inline-flex shrink-0 items-center gap-1 font-medium text-terracotta transition-transform duration-300 group-hover:translate-x-1">
+            <span className="inline-flex shrink-0 items-center gap-1 font-medium text-terracotta transition-all duration-300 group-hover:translate-x-1.5 group-hover:text-terracotta-deep">
               Read
-              <ArrowRight className="size-3.5" aria-hidden="true" />
+              <ArrowRight className="size-3.5 transition-transform duration-300 group-hover:scale-110" aria-hidden="true" />
             </span>
           </div>
         </CardContent>

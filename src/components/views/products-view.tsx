@@ -10,6 +10,7 @@ import { FadeIn } from "@/components/site/fade-in";
 import { ProductCard } from "@/components/site/product-card";
 import { EmptyState, ErrorState } from "@/components/site/empty-state";
 import { ProductGridSkeleton } from "@/components/site/skeletons";
+import { RecentlyViewed } from "@/components/site/recently-viewed";
 import { siteOrigin } from "@/components/site/seo-helpers";
 import { useCategories, useProducts } from "@/lib/queries";
 import { navigate, useHashRoute } from "@/lib/router";
@@ -90,8 +91,9 @@ export default function ProductsView() {
   }
 
   return (
-    <Container className="py-8 md:py-12">
-      <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: activeCategoryName || "Products" }]} />
+    <>
+      <Container className="py-8 md:py-12">
+        <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: activeCategoryName || "Products" }]} />
 
       <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
@@ -237,6 +239,10 @@ export default function ProductsView() {
           </Button>
         </nav>
       ) : null}
-    </Container>
+      </Container>
+
+      {/* Visitor's browsing history — helps compare pieces across pages. */}
+      <RecentlyViewed context="products" />
+    </>
   );
 }

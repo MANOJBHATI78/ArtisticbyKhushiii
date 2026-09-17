@@ -26,6 +26,7 @@ import { FaqAccordion } from "@/components/site/faq-accordion";
 import { SectionHeading } from "@/components/site/section-heading";
 import { CategoryGridSkeleton, HeroSkeleton, ProductGridSkeleton } from "@/components/site/skeletons";
 import { ErrorState } from "@/components/site/empty-state";
+import { RecentlyViewed } from "@/components/site/recently-viewed";
 import { siteOrigin, socialSameAs } from "@/components/site/seo-helpers";
 import { useHome } from "@/lib/queries";
 import { navigate } from "@/lib/router";
@@ -533,7 +534,10 @@ export default function HomeView() {
         </section>
       ) : null}
 
-      {/* ============ 10. FINAL CTA ============ */}
+      {/* ============ 10. RECENTLY ADMIRED (visitor history) ============ */}
+      <RecentlyViewed context="home" />
+
+      {/* ============ 11. FINAL CTA ============ */}
       {finalCta?.visible !== false && finalCta ? (
         <section aria-label="Get in touch" className="relative overflow-hidden bg-espresso py-20 md:py-28">
           <div className="absolute inset-0 opacity-15" aria-hidden="true">

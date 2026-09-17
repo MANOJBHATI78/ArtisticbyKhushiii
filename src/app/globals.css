@@ -236,3 +236,56 @@
   50% { transform: translateY(-8px); }
 }
 .animate-float-soft { animation: float-soft 5s ease-in-out infinite; }
+
+/* Heart pop — a small joyful bounce whenever a favourite is saved. */
+@keyframes heart-pop {
+  0% { transform: scale(0.6); }
+  55% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+/* Gold dust divider — decorative section ornament. */
+@keyframes gold-shimmer {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+.animate-gold-shimmer { animation: gold-shimmer 3.2s ease-in-out infinite; }
+
+/* ---------- Brand flourishes ---------- */
+::selection {
+  background: var(--gold-soft);
+  color: var(--espresso);
+}
+
+/* Gentle thumb-glide for horizontal strips (recently viewed etc.). */
+.snap-x-strip {
+  scroll-snap-type: x proximity;
+}
+.snap-x-strip > * {
+  scroll-snap-align: start;
+}
+
+/* Ornamental divider — gold line with a diamond, for section headings. */
+.ornament-divider {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.ornament-divider::before,
+.ornament-divider::after {
+  content: "";
+  height: 1px;
+  width: 2.75rem;
+  background: linear-gradient(90deg, transparent, var(--gold));
+}
+.ornament-divider::after {
+  background: linear-gradient(90deg, var(--gold), transparent);
+}
+.ornament-divider > .diamond {
+  width: 7px;
+  height: 7px;
+  transform: rotate(45deg);
+  background: var(--gold);
+  border-radius: 1px;
+  box-shadow: 0 0 0 3px var(--gold-soft);
+}

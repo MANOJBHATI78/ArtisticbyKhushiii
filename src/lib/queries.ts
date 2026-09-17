@@ -86,6 +86,25 @@ export function useProduct(slug: string) {
   });
 }
 
+/** Full catalogue in one cached fetch — powers wishlist & recently-viewed by slug. */
+export function useAllProducts() {
+  return useQuery<Paginated<PublicProduct>>({
+    queryKey: ["products", "all"] as const,
+    // The API caps pageSize at 48 — walk pages until we have the whole catalogue
+    // (single page for the current 23-piece catalogue; future-proof if it grows).
+    queryFn: async () => {
+      const first = await api.get<Paginated<PublicProduct>>("/api/public/products?page=1&pageSize=48");
+      const items = [...first.items];
+      for (let page = 2; page <= Math.min(first.totalPages, 5); page++) {
+        const next = await api.get<Paginated<PublicProduct>>(`/api/public/products?page=${page}&pageSize=48`);
+        items.push(...next.items);
+      }
+      return { ...first, items, page: 1 };
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
 export function useBlogs(page = 1, pageSize = 9, q = "", tag = "", cat = "") {
   const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
   if (q) params.set("q", q);

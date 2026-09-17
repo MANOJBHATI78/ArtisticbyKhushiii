@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, Phone, Search, X } from "lucide-react";
+import { Heart, Menu, Phone, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Container } from "@/components/site/container";
@@ -26,6 +26,7 @@ export function SiteHeader() {
   const settings = useSiteStore((s) => s.settings);
   const settingsLoaded = useSiteStore((s) => s.settingsLoaded);
   const openInquiry = useSiteStore((s) => s.openInquiry);
+  const wishlistCount = useSiteStore((s) => s.wishlistSlugs.length);
   const route = useHashRoute();
   const [mobileOpen, setMobileOpen] = useState(false);
   // Dismissed announcements stay hidden for the whole browsing session.
@@ -114,7 +115,7 @@ export function SiteHeader() {
             </nav>
 
             {/* Right actions */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => navigate("/search")}
@@ -122,6 +123,32 @@ export function SiteHeader() {
                 className="flex size-11 items-center justify-center rounded-full text-foreground/80 transition-colors hover:bg-secondary hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
               >
                 <Search className="size-5" aria-hidden="true" />
+              </button>
+
+              {/* Wishlist with live count badge */}
+              <button
+                type="button"
+                onClick={() => navigate("/wishlist")}
+                aria-label={wishlistCount > 0 ? `My favourites — ${wishlistCount} saved` : "My favourites"}
+                className={cn(
+                  "relative flex size-11 items-center justify-center rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold",
+                  route.path === "/wishlist"
+                    ? "bg-secondary text-terracotta"
+                    : "text-foreground/80 hover:bg-secondary hover:text-terracotta"
+                )}
+              >
+                <Heart
+                  className={cn("size-5 transition-transform duration-300", wishlistCount > 0 && "scale-110 fill-terracotta text-terracotta")}
+                  aria-hidden="true"
+                />
+                {wishlistCount > 0 ? (
+                  <span
+                    aria-hidden="true"
+                    className="absolute -right-0.5 -top-0.5 flex min-w-5 items-center justify-center rounded-full bg-terracotta px-1 py-0.5 text-[10px] font-semibold leading-none tabular-nums text-white shadow-sm"
+                  >
+                    {wishlistCount > 99 ? "99+" : wishlistCount}
+                  </span>
+                ) : null}
               </button>
 
               <Button
@@ -167,6 +194,24 @@ export function SiteHeader() {
                 {link.label}
               </a>
             ))}
+            <a
+              href="#/wishlist"
+              onClick={() => setMobileOpen(false)}
+              className={cn(
+                "flex min-h-11 items-center justify-between rounded-md px-3 py-3 text-base font-medium transition-colors hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold",
+                isActive("/wishlist") ? "bg-gold-soft/60 text-primary" : "text-foreground"
+              )}
+            >
+              <span className="flex items-center gap-2">
+                <Heart className={cn("size-4", wishlistCount > 0 && "fill-terracotta text-terracotta")} aria-hidden="true" />
+                My Favourites
+              </span>
+              {wishlistCount > 0 ? (
+                <span className="rounded-full bg-terracotta px-2 py-0.5 text-xs font-semibold tabular-nums text-white">
+                  {wishlistCount}
+                </span>
+              ) : null}
+            </a>
           </nav>
           <div className="mt-auto flex flex-col gap-3 px-4 pb-6">
             <Button

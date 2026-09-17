@@ -25,6 +25,7 @@ import ThankYouView from "@/components/views/thank-you-view";
 import NotFoundView from "@/components/views/not-found-view";
 import GenericPageView from "@/components/views/page-view";
 import LandingView from "@/components/views/landing-view";
+import WishlistView from "@/components/views/wishlist-view";
 import { useSettings } from "@/lib/queries";
 import { useHashRoute } from "@/lib/router";
 import { useSiteStore } from "@/lib/store";
@@ -87,6 +88,8 @@ function resolveView(route: ReturnType<typeof useHashRoute>) {
       return param ? <LandingView key={param} slug={param} /> : <NotFoundView />;
     case "search":
       return <SearchView />;
+    case "wishlist":
+      return <WishlistView />;
     case "thank-you":
       return <ThankYouView />;
     default:

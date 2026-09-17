@@ -13,6 +13,7 @@ import { FaqAccordion } from "@/components/site/faq-accordion";
 import { EmptyState, ErrorState } from "@/components/site/empty-state";
 import { SectionHeading } from "@/components/site/section-heading";
 import { FadeIn } from "@/components/site/fade-in";
+import { ReadingProgress } from "@/components/site/reading-progress";
 import { siteOrigin } from "@/components/site/seo-helpers";
 import { useBlog } from "@/lib/queries";
 import { ApiError } from "@/lib/api-client";
@@ -173,6 +174,7 @@ export default function BlogPostView({ slug }: { slug: string }) {
 
   return (
     <>
+      <ReadingProgress />
       <Container className="py-8 md:py-12">
         <Breadcrumbs
           items={[

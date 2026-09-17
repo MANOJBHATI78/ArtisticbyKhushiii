@@ -11,6 +11,7 @@ const EXPLORE_LINKS = [
   { label: "Home", href: "/" },
   { label: "All Products", href: "/products" },
   { label: "Categories", href: "/categories" },
+  { label: "My Favourites", href: "/wishlist" },
   { label: "Blog", href: "/blog" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },

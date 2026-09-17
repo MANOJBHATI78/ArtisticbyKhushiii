@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Link2, MessageCircle, Phone, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,6 +14,9 @@ import { EmptyState, ErrorState } from "@/components/site/empty-state";
 import { ProductDetailSkeleton } from "@/components/site/skeletons";
 import { SectionHeading } from "@/components/site/section-heading";
 import { FadeIn } from "@/components/site/fade-in";
+import { Lightbox, ZoomHint, type LightboxImage } from "@/components/site/lightbox";
+import { WishlistButton } from "@/components/site/wishlist-button";
+import { ProductStickyCta } from "@/components/site/product-sticky-cta";
 import { siteOrigin } from "@/components/site/seo-helpers";
 import { useProduct } from "@/lib/queries";
 import { ApiError } from "@/lib/api-client";
@@ -29,12 +32,19 @@ export default function ProductView({ slug }: { slug: string }) {
   const { data, isLoading, isError, error, refetch } = useProduct(slug);
   const settings = useSiteStore((s) => s.settings);
   const openInquiry = useSiteStore((s) => s.openInquiry);
+  const trackRecent = useSiteStore((s) => s.trackRecent);
   const { toast } = useToast();
   const [activeImage, setActiveImage] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const origin = siteOrigin();
 
   const product = data?.product;
   const category = data?.category;
+
+  // Remember this piece for the "Recently admired" strip (skip while loading).
+  useEffect(() => {
+    if (product?.slug) trackRecent(product.slug);
+  }, [product?.slug, trackRecent]);
 
   const is404 = error instanceof ApiError && error.status === 404;
 
@@ -101,6 +111,11 @@ export default function ProductView({ slug }: { slug: string }) {
   const tags = splitList(product.tags);
   const productUrl = `/product/${product.slug}`;
 
+  // Lightbox images = full gallery (or the featured image when there's no gallery).
+  const lightboxImages: LightboxImage[] = gallery.length > 0
+    ? gallery.map((g) => ({ url: g.url, alt: g.alt || product.name, caption: g.caption || undefined }))
+    : [{ url: product.featuredImageUrl, alt: product.featuredImageAlt || product.name }];
+
   const specRows = [
     { label: "Size", value: product.size },
     { label: "Material", value: product.material },
@@ -136,15 +151,23 @@ export default function ProductView({ slug }: { slug: string }) {
         <div className="mt-6 grid gap-8 pb-4 lg:grid-cols-2 lg:gap-12">
           {/* Gallery */}
           <div>
-            <div className="group overflow-hidden rounded-xl border bg-card">
-              <div className="aspect-square overflow-hidden bg-secondary max-sm:p-4">
-                <Img
-                  src={current?.url || product.featuredImageUrl}
-                  alt={current?.alt || product.featuredImageAlt || product.name}
-                  eager
-                  className="size-full object-cover transition-transform duration-300 motion-safe:group-hover:scale-105 max-sm:object-contain max-sm:transition-none"
-                />
-              </div>
+            <div className="group relative overflow-hidden rounded-xl border bg-card">
+              <button
+                type="button"
+                onClick={() => setLightboxOpen(true)}
+                aria-label="Open image in full-screen viewer"
+                className="block w-full cursor-zoom-in focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-gold"
+              >
+                <div className="aspect-square overflow-hidden bg-secondary max-sm:p-4">
+                  <Img
+                    src={current?.url || product.featuredImageUrl}
+                    alt={current?.alt || product.featuredImageAlt || product.name}
+                    eager
+                    className="size-full object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-[1.04] max-sm:object-contain max-sm:transition-none"
+                  />
+                </div>
+                <ZoomHint />
+              </button>
             </div>
             {gallery.length > 1 ? (
               <div className="mt-3 flex gap-3 overflow-x-auto pb-1 custom-scroll" role="group" aria-label="Product images">
@@ -157,7 +180,7 @@ export default function ProductView({ slug }: { slug: string }) {
                     aria-pressed={i === activeImage}
                     className={cn(
                       "size-20 shrink-0 overflow-hidden rounded-lg border-2 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold",
-                      i === activeImage ? "border-primary ring-2 ring-primary" : "border-transparent opacity-80 ring-0 hover:opacity-100"
+                      i === activeImage ? "border-primary ring-2 ring-primary" : "border-transparent opacity-80 ring-0 hover:scale-105 hover:opacity-100"
                     )}
                   >
                     <Img src={image.url} alt={image.alt || `${product.name} — image ${i + 1}`} className="size-full object-cover" />
@@ -234,7 +257,8 @@ export default function ProductView({ slug }: { slug: string }) {
               </Button>
             </div>
 
-            <div className="mt-5 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+            <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              <WishlistButton slug={product.slug} name={product.name} variant="inline" />
               <button
                 type="button"
                 onClick={copyLink}
@@ -243,11 +267,12 @@ export default function ProductView({ slug }: { slug: string }) {
                 <Link2 className="size-4" aria-hidden="true" />
                 Copy link
               </button>
-              <span className="opacity-50">•</span>
-              <span>Made to order in {settings.city}, {settings.state}</span>
-              <span className="opacity-50">•</span>
-              <span>Pan-India & worldwide delivery</span>
             </div>
+            <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+              <span>Made to order in {settings.city}, {settings.state}</span>
+              <span className="opacity-50" aria-hidden="true">•</span>
+              <span>Pan-India & worldwide delivery</span>
+            </p>
           </div>
         </div>
 
@@ -407,6 +432,18 @@ export default function ProductView({ slug }: { slug: string }) {
           </FadeIn>
         </Container>
       </section>
+      {/* Full-screen image viewer (keyboard: ← → Esc) */}
+      <Lightbox
+        images={lightboxImages}
+        index={lightboxOpen ? activeImage : null}
+        onClose={() => setLightboxOpen(false)}
+        onNavigate={(i) => {
+          setActiveImage(i);
+        }}
+      />
+
+      {/* Mobile-only sticky Enquire bar */}
+      <ProductStickyCta product={product} />
     </>
   );
 }
