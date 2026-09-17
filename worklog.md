@@ -477,3 +477,18 @@ Stage Summary:
 - Print styles mean customers/owner can print product pages as clean quote sheets (header/footer/floating buttons hidden)
 - Open items (unchanged): owner should set siteUrl in live settings + change admin password; VLM visual review unavailable (CLI 401 — used DOM/CSS verification instead)
 - Next-phase candidates: announcement bar scheduling (startsAt), review reminder email/WhatsApp digests, product QR codes for physical displays, admin GA4 dashboard once events accumulate, sitemap priority hints, blog author profiles
+
+---
+Task ID: 16
+Agent: lead (Z.ai Code main) — user advisory round
+Task: User asked "project already live hai — changes kaise karu bina live pe effect ke?" — document + explain the zero-risk change workflow
+
+Work Log:
+- Verified current state: dev server healthy (port 3000, file mode, 15 cats/23 products/6 blogs/34 settings), lint 0 problems, git clean through Task 15, 15-min webDevReview cron active (job 392093)
+- Re-read DEPLOYMENT.md (v7.2) + worklog Tasks 11–15 to ground the answer in the actual deployed architecture (Netlify + Turso, auto-migrate, seed-on-empty-only, backup/sync system)
+- Explained to user the 3-tier safe change workflow: (1) content changes = live admin panel only, zero code/risk; (2) code changes = build+QA in this sandbox (live untouched) → download backup → git push → auto-migrate (additive only, data never overwritten); (3) emergency rollback = Netlify previous deploy publish (instant, no rebuild)
+- Reiterated owner action items: set siteUrl in live settings, change default admin password
+
+Stage Summary:
+- No code changes this round — advisory only; all safety mechanisms (auto-migrate, seed-on-empty, backup/restore/pull-from-live, /api/health) already built and verified in Tasks 11–15
+- 15-min auto QA/dev cron confirmed active; project stable
