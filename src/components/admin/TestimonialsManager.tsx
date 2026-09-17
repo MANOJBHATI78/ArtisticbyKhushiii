@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Heart, MapPin, MessageSquareQuote, Pencil, Plus, Save, Search, Star, Trash2 } from "lucide-react";
+import { CheckCircle2, Heart, MapPin, MessageSquareQuote, Pencil, Plus, Save, Search, Star, Trash2 } from "lucide-react";
 import { useAdminTestimonials } from "./useAdminData";
 import { PUBLIC_CACHE_KEYS } from "./useAdminData";
 import { ConfirmDialog, EmptyState, Field, PublishedBadge, Spinner } from "./shared";
@@ -41,6 +41,7 @@ function Stars({ rating, className }: { rating: number; className?: string }) {
 
 export function TestimonialsManager({ createSignal }: { createSignal?: number }) {
   const [q, setQ] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "published" | "pending">("all");
   const { data: testimonials, isLoading } = useAdminTestimonials("");
   const qc = useQueryClient();
   const { toast } = useToast();
@@ -50,7 +51,11 @@ export function TestimonialsManager({ createSignal }: { createSignal?: number })
   const [toDelete, setToDelete] = useState<Testimonial | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  const pendingCount = (testimonials ?? []).filter((t) => !t.published).length;
+
   const filtered = (testimonials ?? []).filter((t) => {
+    if (statusFilter === "published" && !t.published) return false;
+    if (statusFilter === "pending" && t.published) return false;
     const needle = q.trim().toLowerCase();
     if (!needle) return true;
     return (
@@ -60,6 +65,21 @@ export function TestimonialsManager({ createSignal }: { createSignal?: number })
       t.location.toLowerCase().includes(needle)
     );
   });
+
+  function approve(t: Testimonial) {
+    const prev = qc.getQueryData<Testimonial[]>(listKey);
+    if (prev) qc.setQueryData(listKey, prev.map((x) => (x.id === t.id ? { ...x, published: true } : x)));
+    api
+      .put(`/api/admin/testimonials/${t.id}`, { published: true })
+      .then(() => {
+        toast({ title: "Review approved ♥", description: `${t.name}'s review is now live on the website.` });
+        void qc.invalidateQueries({ queryKey: ["testimonials"] });
+      })
+      .catch((e) => {
+        if (prev) qc.setQueryData(listKey, prev);
+        toast({ title: "Approval failed", description: errMsg(e), variant: "destructive" });
+      });
+  }
 
   function togglePublished(t: Testimonial) {
     const prev = qc.getQueryData<Testimonial[]>(listKey);
@@ -110,16 +130,46 @@ export function TestimonialsManager({ createSignal }: { createSignal?: number })
     <div className="space-y-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">
-          Customer love notes — shown in the “Words from Happy Hearts” homepage section.
+          Customer love notes — homepage section, product pages &amp; the on-site review form. New reviews from
+          visitors wait below until you approve them.
         </p>
         <Button onClick={() => setEditing("new")}>
           <Plus className="mr-1 h-4 w-4" /> Add Testimonial
         </Button>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search testimonials…" className="pl-8" aria-label="Search testimonials" />
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="relative w-full max-w-sm flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search testimonials…" className="pl-8" aria-label="Search testimonials" />
+        </div>
+        <div className="flex items-center gap-1 rounded-lg border bg-muted/30 p-1" role="tablist" aria-label="Filter by status">
+          {([
+            ["all", "All", (testimonials ?? []).length],
+            ["published", "Live", (testimonials ?? []).length - pendingCount],
+            ["pending", "Pending", pendingCount],
+          ] as const).map(([key, label, count]) => (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={statusFilter === key}
+              onClick={() => setStatusFilter(key)}
+              className={`flex min-h-8 items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+                statusFilter === key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {label}
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[10px] leading-none tabular-nums ${
+                  key === "pending" && count > 0 ? "bg-terracotta text-white" : "bg-border/60 text-muted-foreground"
+                }`}
+              >
+                {count}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {isLoading ? (
@@ -150,7 +200,7 @@ export function TestimonialsManager({ createSignal }: { createSignal?: number })
               </TableHeader>
               <TableBody>
                 {filtered.map((t) => (
-                  <TableRow key={t.id}>
+                  <TableRow key={t.id} className={t.published ? "" : "bg-gold-soft/20"}>
                     <TableCell>
                       <button type="button" className="text-left" onClick={() => setEditing(t)}>
                         <p className="font-medium hover:text-primary">{t.name}</p>
@@ -162,6 +212,11 @@ export function TestimonialsManager({ createSignal }: { createSignal?: number })
                             </>
                           ) : null}
                         </p>
+                        {t.source === "public" ? (
+                          <Badge variant="outline" className="mt-1 w-fit border-terracotta/40 bg-terracotta/10 text-[9px] text-terracotta-deep">
+                            From website form
+                          </Badge>
+                        ) : null}
                       </button>
                     </TableCell>
                     <TableCell>
@@ -185,7 +240,13 @@ export function TestimonialsManager({ createSignal }: { createSignal?: number })
                       </button>
                     </TableCell>
                     <TableCell>
-                      <Switch checked={t.published} onCheckedChange={() => togglePublished(t)} aria-label={`Toggle visible for ${t.name}`} />
+                      {t.published ? (
+                        <Switch checked onCheckedChange={() => togglePublished(t)} aria-label={`Toggle visible for ${t.name}`} />
+                      ) : (
+                        <Button size="sm" className="h-8 rounded-full bg-terracotta px-3 text-xs hover:bg-terracotta-deep" onClick={() => approve(t)}>
+                          <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Approve
+                        </Button>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-0.5">
@@ -205,12 +266,17 @@ export function TestimonialsManager({ createSignal }: { createSignal?: number })
 
           <div className="space-y-2 md:hidden">
             {filtered.map((t) => (
-              <Card key={t.id}>
+              <Card key={t.id} className={t.published ? "" : "border-gold/50 bg-gold-soft/20"}>
                 <CardContent className="space-y-1.5 p-3">
                   <div className="flex items-start justify-between gap-2">
                     <button type="button" onClick={() => setEditing(t)} className="text-left">
                       <p className="font-medium">{t.name}</p>
                       {t.location ? <p className="text-[11px] text-muted-foreground">{t.location}</p> : null}
+                      {t.source === "public" ? (
+                        <Badge variant="outline" className="mt-1 w-fit border-terracotta/40 bg-terracotta/10 text-[9px] text-terracotta-deep">
+                          From website form
+                        </Badge>
+                      ) : null}
                     </button>
                     <PublishedBadge published={t.published} />
                   </div>
@@ -218,6 +284,11 @@ export function TestimonialsManager({ createSignal }: { createSignal?: number })
                   <div className="flex items-center gap-2">
                     <Stars rating={t.rating} />
                     <span className="flex-1" />
+                    {t.published ? null : (
+                      <Button size="sm" className="h-7 rounded-full bg-terracotta px-2.5 text-[11px] hover:bg-terracotta-deep" onClick={() => approve(t)}>
+                        <CheckCircle2 className="mr-0.5 h-3 w-3" /> Approve
+                      </Button>
+                    )}
                     <button
                       type="button"
                       onClick={() => toggleFeatured(t)}

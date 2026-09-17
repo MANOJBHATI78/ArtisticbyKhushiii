@@ -180,7 +180,7 @@ export async function exportBackup(opts?: { includeLeads?: boolean }): Promise<C
     testimonials: testimonials.map((t) => ({
       name: t.name, location: t.location, rating: t.rating, quote: t.quote,
       avatarUrl: t.avatarUrl, productName: t.productName, featured: t.featured,
-      published: t.published, displayOrder: t.displayOrder,
+      published: t.published, displayOrder: t.displayOrder, source: t.source,
     })),
     homepageSections: sections.map((x) => ({
       sectionKey: x.sectionKey, heading: x.heading, subheading: x.subheading, body: x.body,
@@ -438,6 +438,7 @@ export async function applyContentSnapshot(
           name, quote, rating, location: s(t.location), avatarUrl: s(t.avatarUrl),
           productName: s(t.productName), featured: b(t.featured),
           published: b(t.published, true), displayOrder: n(t.displayOrder),
+          source: s(t.source) === "public" ? "public" : "admin",
         },
       });
       counts.testimonials++;

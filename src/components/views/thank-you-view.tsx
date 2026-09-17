@@ -1,9 +1,11 @@
 "use client";
 
-import { CheckCircle2, MessageCircle, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { CheckCircle2, MessageCircle, PenLine, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/site/container";
 import { FadeIn } from "@/components/site/fade-in";
+import { ReviewFormDialog } from "@/components/site/review-form";
 import { siteOrigin } from "@/components/site/seo-helpers";
 import { navigate } from "@/lib/router";
 import { useSiteStore, whatsappLink } from "@/lib/store";
@@ -13,6 +15,7 @@ export default function ThankYouView() {
   const settings = useSiteStore((s) => s.settings);
   const lastLeadRef = useSiteStore((s) => s.lastLeadRef);
   const origin = siteOrigin();
+  const [reviewOpen, setReviewOpen] = useState(false);
 
   useSeo({
     title: "Thank You | Artistic by Khushi",
@@ -77,8 +80,26 @@ export default function ThankYouView() {
             <span aria-hidden="true" className="opacity-40">•</span>
             <span>✦ Surat, Gujarat studio</span>
           </div>
+
+          {/* Review invite — for customers who already own a piece */}
+          <div className="mt-8 w-full rounded-2xl border border-dashed border-gold/50 bg-gold-soft/30 px-5 py-4">
+            <p className="text-sm text-foreground/80">
+              Already own a piece from the studio?{" "}
+              <button
+                type="button"
+                onClick={() => setReviewOpen(true)}
+                className="inline-flex items-center gap-1 font-medium text-primary underline decoration-gold decoration-2 underline-offset-4 transition-colors hover:text-terracotta-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+              >
+                <PenLine className="size-3.5" aria-hidden="true" />
+                Share your experience
+              </button>{" "}
+              — it helps other gift-lovers find us.
+            </p>
+          </div>
         </div>
       </FadeIn>
+
+      <ReviewFormDialog open={reviewOpen} onOpenChange={setReviewOpen} context="thank_you" />
     </Container>
   );
 }

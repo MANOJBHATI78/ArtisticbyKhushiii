@@ -405,6 +405,7 @@ export type TestimonialFields = {
   featured?: boolean;
   published?: boolean;
   displayOrder?: number;
+  source?: string;
 };
 
 export function parseTestimonialFields(body: Record<string, unknown>): Parsed<TestimonialFields> {
@@ -430,5 +431,9 @@ export function parseTestimonialFields(body: Record<string, unknown>): Parsed<Te
   if (has(body, "featured")) fields.featured = bool(body.featured, false);
   if (has(body, "published")) fields.published = bool(body.published, true);
   if (has(body, "displayOrder")) fields.displayOrder = int(body.displayOrder, 0);
+  if (has(body, "source")) {
+    const source = str(body.source);
+    fields.source = source === "public" ? "public" : "admin";
+  }
   return { ok: true, fields };
 }

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Container } from "@/components/site/container";
 import { Img } from "@/components/site/img";
+import { OfferBanner } from "@/components/site/offer-banner";
 import { navigate, useHashRoute } from "@/lib/router";
 import { useSiteStore, whatsappLink } from "@/lib/store";
 import { trackCallClick, trackWhatsAppClick } from "@/lib/track";
@@ -54,9 +55,27 @@ export function SiteHeader() {
 
   const showAnnouncement = settingsLoaded && settings.announcements && !announcementDismissed;
 
+  // Festive offer banner (admin-managed, with live countdown) — replaces the
+  // plain announcement strip while an offer is running.
+  const offerActive =
+    settingsLoaded &&
+    settings.offerBannerEnabled === "1" &&
+    !!settings.offerBannerText.trim() &&
+    !!settings.offerBannerEndsAt &&
+    Number.isFinite(Date.parse(settings.offerBannerEndsAt)) &&
+    Date.parse(settings.offerBannerEndsAt) > Date.now();
+
   return (
     <header className="sticky top-0 z-40 w-full">
-      {showAnnouncement ? (
+      {offerActive ? (
+        <OfferBanner
+          enabled={settings.offerBannerEnabled}
+          text={settings.offerBannerText}
+          code={settings.offerBannerCode}
+          endsAt={settings.offerBannerEndsAt}
+          linkUrl={settings.offerBannerLinkUrl}
+        />
+      ) : showAnnouncement ? (
         <div className="relative flex items-center justify-center bg-primary px-10 py-1.5 text-center">
           <p className="truncate text-sm text-primary-foreground">{settings.announcements}</p>
           <button

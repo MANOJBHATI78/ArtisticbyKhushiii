@@ -11,11 +11,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, ExternalLink, Facebook, Instagram, MessageCircle, Pin, Radar, Save, SearchCheck, Type, Youtube } from "lucide-react";
+import { BarChart3, ExternalLink, Facebook, Instagram, MessageCircle, PartyPopper, Pin, Radar, Save, SearchCheck, Type, Youtube } from "lucide-react";
 import { useAdminSettings } from "./useAdminData";
 import { Field, Spinner } from "./shared";
 import { MediaPickField } from "./media-picker";
 import { errMsg } from "./admin-utils";
+import { Switch } from "@/components/ui/switch";
+import { OfferBanner } from "@/components/site/offer-banner";
 
 // ============================================================
 // Site settings — brand, contact, social, footer, SEO defaults,
@@ -24,6 +26,22 @@ import { errMsg } from "./admin-utils";
 
 const GA_ID_RE = /^G-[A-Z0-9]{6,12}$/i;
 const CLARITY_ID_RE = /^[A-Z0-9]{6,16}$/i;
+
+/** ISO string → value for <input type="datetime-local"> (local time). */
+function isoToLocalInput(iso: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+/** datetime-local input value → ISO string for storage. */
+function localInputToIso(local: string): string {
+  if (!local) return "";
+  const d = new Date(local);
+  return Number.isNaN(d.getTime()) ? "" : d.toISOString();
+}
 
 function StatusPill({ on, label = "Not set" }: { on: boolean; label?: string }) {
   return (
@@ -49,13 +67,16 @@ export function SettingsManager() {
   useEffect(() => {
     if (settings && !initRef.current) {
       initRef.current = true;
-      setForm({ ...DEFAULT_SETTINGS, ...settings });
+      // The offer deadline is stored as ISO; the input wants datetime-local.
+      setForm({ ...DEFAULT_SETTINGS, ...settings, offerBannerEndsAt: isoToLocalInput(settings.offerBannerEndsAt) });
     }
   }, [settings]);
 
   const dirty = useMemo(() => {
     if (!form || !settings) return false;
-    return JSON.stringify({ ...DEFAULT_SETTINGS, ...settings }) !== JSON.stringify(form);
+    // Compare in the same "form" space (deadline as datetime-local input value).
+    const baseline = { ...DEFAULT_SETTINGS, ...settings, offerBannerEndsAt: isoToLocalInput(settings.offerBannerEndsAt) };
+    return JSON.stringify(baseline) !== JSON.stringify(form);
   }, [form, settings]);
 
   function set<K extends keyof SiteSettings>(key: K, value: SiteSettings[K]) {
@@ -66,9 +87,13 @@ export function SettingsManager() {
     if (!form) return;
     setSaving(true);
     try {
-      const res = await api.put<SiteSettings>("/api/admin/settings", form);
+      // Convert the datetime-local deadline to ISO for storage.
+      const res = await api.put<SiteSettings>("/api/admin/settings", {
+        ...form,
+        offerBannerEndsAt: localInputToIso(form.offerBannerEndsAt),
+      });
       initRef.current = false;
-      setForm({ ...DEFAULT_SETTINGS, ...res });
+      setForm({ ...DEFAULT_SETTINGS, ...res, offerBannerEndsAt: isoToLocalInput(res.offerBannerEndsAt) });
       toast({ title: "Settings saved", description: "The website header, footer and SEO defaults were updated." });
       // refresh the public site caches immediately
       void qc.invalidateQueries({ queryKey: ["settings"] });
@@ -212,7 +237,7 @@ export function SettingsManager() {
           <Field label="Copyright text">
             <Input value={form.copyrightText} onChange={(e) => set("copyrightText", e.target.value)} />
           </Field>
-          <Field label="Announcement bar" hint="Scrolling/ highlight strip under the header — leave empty to hide.">
+          <Field label="Announcement bar" hint="Strip under the header — leave empty to hide. (Hidden while a festive offer banner is running.)">
             <Input value={form.announcements} onChange={(e) => set("announcements", e.target.value)} />
           </Field>
           <Field label="Header CTA text">
@@ -221,6 +246,93 @@ export function SettingsManager() {
           <Field label="Header CTA link">
             <Input value={form.headerCtaUrl} onChange={(e) => set("headerCtaUrl", e.target.value)} placeholder="#/contact" />
           </Field>
+        </CardContent>
+      </Card>
+
+      {/* ---------- Festive offer banner ---------- */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base font-display">
+            <PartyPopper className="h-4 w-4 text-terracotta" />
+            Festive Offer Banner
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Diwali / sale / festivity ke liye header ke upar ek countdown banner chalao —{" "}
+            <strong>no code change needed</strong>. Banner apne aap hide ho jayega jab countdown zero ho jayega.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between gap-4 rounded-lg border bg-muted/30 px-3 py-2.5">
+            <div>
+              <p className="text-sm font-medium">Show offer banner</p>
+              <p className="text-xs text-muted-foreground">While ON, this replaces the normal announcement bar.</p>
+            </div>
+            <Switch
+              checked={form.offerBannerEnabled === "1"}
+              onCheckedChange={(c) => set("offerBannerEnabled", c ? "1" : "0")}
+              aria-label="Show festive offer banner"
+            />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="Offer message" hint="e.g. “Diwali Dhamaka — 15% off on all nameplates!”" className="md:col-span-2">
+              <Input
+                value={form.offerBannerText}
+                onChange={(e) => set("offerBannerText", e.target.value)}
+                placeholder="✨ Diwali Dhamaka — flat 15% off on everything!"
+                maxLength={140}
+              />
+            </Field>
+            <Field label="Coupon code" hint="Optional — visitors tap to copy it.">
+              <Input
+                value={form.offerBannerCode}
+                onChange={(e) => set("offerBannerCode", e.target.value.toUpperCase())}
+                placeholder="DIWALI15"
+                maxLength={20}
+                className="font-semibold uppercase tracking-wider"
+              />
+            </Field>
+            <Field label="Offer ends at" hint="Countdown runs till this moment (your local time).">
+              <Input
+                type="datetime-local"
+                value={form.offerBannerEndsAt}
+                onChange={(e) => set("offerBannerEndsAt", e.target.value)}
+              />
+            </Field>
+            <Field
+              label="Banner button link"
+              hint="Optional — e.g. #/products, #/lp/diwali-gifting or any https:// link."
+              className="md:col-span-2"
+            >
+              <Input
+                value={form.offerBannerLinkUrl}
+                onChange={(e) => set("offerBannerLinkUrl", e.target.value)}
+                placeholder="#/products"
+              />
+            </Field>
+          </div>
+
+          <div>
+            <p className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              Live preview
+              <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground/80">how visitors will see it</span>
+            </p>
+            <div className="overflow-hidden rounded-xl border shadow-inner">
+              <OfferBanner
+                previewMode
+                enabled={form.offerBannerEnabled}
+                text={form.offerBannerText}
+                code={form.offerBannerCode}
+                endsAt={localInputToIso(form.offerBannerEndsAt)}
+                linkUrl={form.offerBannerLinkUrl}
+              />
+            </div>
+            {form.offerBannerEnabled === "1" && !form.offerBannerEndsAt ? (
+              <p className="mt-1.5 text-xs text-amber-600">
+                Tip: set an end date — the banner (and countdown) shows only until then. Preview above uses a sample 3-day timer.
+              </p>
+            ) : null}
+          </div>
         </CardContent>
       </Card>
 

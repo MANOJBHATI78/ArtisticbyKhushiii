@@ -35,6 +35,13 @@ export interface SiteSettings {
   headerCtaUrl: string;
   announcements: string;
   siteUrl: string;
+  // Festive offer banner (header strip with live countdown) — all admin-managed.
+  // Stored as strings (SiteSetting table); "1"/"0" for the switch, ISO date for the deadline.
+  offerBannerEnabled: string;
+  offerBannerText: string;
+  offerBannerCode: string;
+  offerBannerEndsAt: string;
+  offerBannerLinkUrl: string;
 }
 
 export interface ProductImage {
@@ -271,6 +278,8 @@ export interface Testimonial {
   featured: boolean;
   published: boolean;
   displayOrder: number;
+  /** "admin" = added in the admin panel · "public" = customer-submitted via the site (needs moderation). */
+  source: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -418,6 +427,11 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   headerCtaUrl: "#/contact",
   announcements: "✨ Now accepting custom orders for the festive season — book yours early!",
   siteUrl: "",
+  offerBannerEnabled: "0",
+  offerBannerText: "",
+  offerBannerCode: "",
+  offerBannerEndsAt: "",
+  offerBannerLinkUrl: "",
 };
 
 // Parses a JSON list from a string; returns [] on failure.

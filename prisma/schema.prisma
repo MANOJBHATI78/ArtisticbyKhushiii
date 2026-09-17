@@ -230,6 +230,9 @@ model Testimonial {
   featured     Boolean  @default(false)
   published    Boolean  @default(true)
   displayOrder Int      @default(0)
+  // "admin" = added from the admin panel, "public" = submitted by a customer
+  // through the on-site review form (starts unpublished until moderated).
+  source       String   @default("admin")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }

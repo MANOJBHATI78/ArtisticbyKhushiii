@@ -1,16 +1,18 @@
 "use client";
 
-import { MapPin, Quote, Star } from "lucide-react";
+import { useState } from "react";
+import { MapPin, PenLine, Quote, Star } from "lucide-react";
 import { Container } from "@/components/site/container";
 import { SectionHeading } from "@/components/site/section-heading";
 import { FadeIn } from "@/components/site/fade-in";
 import { Img } from "@/components/site/img";
+import { ReviewFormDialog } from "@/components/site/review-form";
 import { useTestimonials } from "@/lib/queries";
 import type { Testimonial } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-/** Gold star row — filled count = rating. */
-function Stars({ rating, className }: { rating: number; className?: string }) {
+/** Gold star row — filled count = rating. (shared with product reviews + admin) */
+export function Stars({ rating, className }: { rating: number; className?: string }) {
   return (
     <span className={cn("inline-flex items-center gap-0.5", className)} role="img" aria-label={`${rating} out of 5 stars`}>
       {Array.from({ length: 5 }).map((_, i) => (
@@ -25,7 +27,7 @@ function Stars({ rating, className }: { rating: number; className?: string }) {
 }
 
 /** Avatar circle — customer photo when available, warm initials otherwise. */
-function Avatar({ t }: { t: Testimonial }) {
+export function Avatar({ t }: { t: Testimonial }) {
   const initials = t.name
     .split(/\s+/)
     .map((w) => w[0])
@@ -59,6 +61,7 @@ function Avatar({ t }: { t: Testimonial }) {
  */
 export function TestimonialsSection({ className }: { className?: string }) {
   const { data: testimonials, isLoading } = useTestimonials(6);
+  const [formOpen, setFormOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -85,6 +88,16 @@ export function TestimonialsSection({ className }: { className?: string }) {
             title="Loved by Customers Everywhere"
             subtext="Real notes from real people who gifted (or kept) a handmade piece."
           />
+          <div className="-mt-2 mb-8 flex justify-center md:mb-10">
+            <button
+              type="button"
+              onClick={() => setFormOpen(true)}
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-gold/50 bg-card px-4 py-1.5 text-xs font-medium text-primary transition-all hover:border-gold hover:bg-gold-soft/40 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+            >
+              <PenLine className="size-3.5" aria-hidden="true" />
+              Received a piece? Share your experience
+            </button>
+          </div>
         </FadeIn>
 
         <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
@@ -124,6 +137,8 @@ export function TestimonialsSection({ className }: { className?: string }) {
           ))}
         </div>
       </Container>
+
+      <ReviewFormDialog open={formOpen} onOpenChange={setFormOpen} context="home" />
     </section>
   );
 }

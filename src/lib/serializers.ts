@@ -502,6 +502,7 @@ export function toTestimonial(t: {
   featured: boolean;
   published: boolean;
   displayOrder: number;
+  source?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }): Testimonial {
@@ -516,6 +517,7 @@ export function toTestimonial(t: {
     featured: t.featured,
     published: t.published,
     displayOrder: t.displayOrder,
+    source: t.source || "admin",
     createdAt: t.createdAt.toISOString(),
     updatedAt: t.updatedAt.toISOString(),
   };

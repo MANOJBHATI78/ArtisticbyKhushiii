@@ -112,6 +112,7 @@ async function ensureSchema() {
   const migrations = [
     ["HomepageSection", { mobileImageUrl: "TEXT NOT NULL DEFAULT ''" }],
     ["Category", { mobileImageUrl: "TEXT NOT NULL DEFAULT ''" }],
+    ["Testimonial", { source: "TEXT NOT NULL DEFAULT 'admin'" }],
   ];
   for (const [table, cols] of migrations) {
     if (!(await tableExists(table))) continue;

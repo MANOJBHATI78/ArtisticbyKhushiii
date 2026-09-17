@@ -152,6 +152,7 @@ function resolveTarget(): DbTarget {
 const COLUMN_MIGRATIONS: Record<string, Record<string, string>> = {
   HomepageSection: { mobileImageUrl: "TEXT NOT NULL DEFAULT ''" },
   Category: { mobileImageUrl: "TEXT NOT NULL DEFAULT ''" },
+  Testimonial: { source: "TEXT NOT NULL DEFAULT 'admin'" },
 };
 
 const TABLE_MIGRATIONS: string[] = [
@@ -206,6 +207,7 @@ const TABLE_MIGRATIONS: string[] = [
     "featured" BOOLEAN NOT NULL DEFAULT false,
     "published" BOOLEAN NOT NULL DEFAULT true,
     "displayOrder" INTEGER NOT NULL DEFAULT 0,
+    "source" TEXT NOT NULL DEFAULT 'admin',
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
   );`,

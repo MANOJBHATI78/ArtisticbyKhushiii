@@ -64,6 +64,7 @@ export async function POST(request: Request) {
         featured: fields.featured ?? false,
         published: fields.published ?? true,
         displayOrder: fields.displayOrder ?? 0,
+        source: "admin",
       } as Prisma.TestimonialUncheckedCreateInput,
     });
     return ok({ testimonial: toTestimonial(row) });

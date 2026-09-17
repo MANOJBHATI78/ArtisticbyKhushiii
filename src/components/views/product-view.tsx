@@ -17,6 +17,7 @@ import { FadeIn } from "@/components/site/fade-in";
 import { Lightbox, ZoomHint, type LightboxImage } from "@/components/site/lightbox";
 import { WishlistButton } from "@/components/site/wishlist-button";
 import { ProductStickyCta } from "@/components/site/product-sticky-cta";
+import { ProductTestimonials, useProductTestimonials } from "@/components/site/product-testimonials";
 import { siteOrigin } from "@/components/site/seo-helpers";
 import { useProduct } from "@/lib/queries";
 import { ApiError } from "@/lib/api-client";
@@ -41,6 +42,9 @@ export default function ProductView({ slug }: { slug: string }) {
   const product = data?.product;
   const category = data?.category;
 
+  // Same query key as the reviews section → one cached fetch, reused for JSON-LD.
+  const { data: reviews } = useProductTestimonials(product?.name ?? "");
+
   // Remember this piece for the "Recently admired" strip (skip while loading).
   useEffect(() => {
     if (product?.slug) trackRecent(product.slug);
@@ -56,6 +60,18 @@ export default function ProductView({ slug }: { slug: string }) {
     ogType: "product",
     jsonLd: useMemo(() => {
       if (!product) return undefined;
+      // Aggregate rating from published reviews → star ratings in Google results.
+      const reviewed = (reviews ?? []).filter((t) => t.rating >= 1);
+      const aggregateRating =
+        reviewed.length > 0
+          ? {
+              "@type": "AggregateRating",
+              ratingValue: Math.round((reviewed.reduce((s, t) => s + t.rating, 0) / reviewed.length) * 10) / 10,
+              reviewCount: reviewed.length,
+              bestRating: 5,
+              worstRating: 1,
+            }
+          : undefined;
       return [
         {
           "@context": "https://schema.org",
@@ -68,9 +84,10 @@ export default function ProductView({ slug }: { slug: string }) {
           category: product.categoryName,
           material: product.material,
           url: `${origin}/product/${product.slug}`,
+          ...(aggregateRating ? { aggregateRating } : {}),
         },
       ];
-    }, [product, origin, settings.brandName]),
+    }, [product, origin, settings.brandName, reviews]),
   });
 
   if (isLoading) {
@@ -386,6 +403,9 @@ export default function ProductView({ slug }: { slug: string }) {
           </Container>
         </section>
       ) : null}
+
+      {/* Reviews for this piece (piece-specific first, general studio love fills) */}
+      <ProductTestimonials productName={product.name} />
 
       {/* Final CTA */}
       <section aria-label="Enquire" className="relative overflow-hidden bg-espresso py-16 md:py-24">

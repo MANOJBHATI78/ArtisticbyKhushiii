@@ -257,6 +257,12 @@
   100% { transform: scale(1.55); opacity: 0; }
 }
 
+/* Offer banner — soft light sweep travelling across the strip. */
+@keyframes offer-sweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* ---------- Brand flourishes ---------- */
 ::selection {
   background: var(--gold-soft);
