@@ -25,17 +25,19 @@ import {
   Package,
   Pencil,
   Plus,
+  QrCode,
   Save,
   Search,
   Star,
   Trash2,
   X,
 } from "lucide-react";
-import { useAdminCategories, useAdminFaqs, useAdminProduct, useAdminProducts } from "./useAdminData";
+import { useAdminCategories, useAdminFaqs, useAdminProduct, useAdminProducts, useAdminSettings } from "./useAdminData";
 import { PUBLIC_CACHE_KEYS } from "./useAdminData";
 import { CharCount, ConfirmDialog, EmptyState, Field, GooglePreview, ImageThumb, PaginationBar, PublishedBadge, SlugInput, Spinner } from "./shared";
 import { RichTextEditor } from "./rich-text-editor";
 import { MediaPickerDialog } from "./media-picker";
+import { ExhibitionSheetButton, QrDialog } from "./qr-tools";
 import { errMsg, timeAgo, useDebounced } from "./admin-utils";
 
 // ============================================================
@@ -132,6 +134,7 @@ export function ProductsManager({
   const params = { page, pageSize, q: debouncedQ, category, status };
   const { data, isLoading, isFetching } = useAdminProducts(params);
   const { data: categories } = useAdminCategories();
+  const { data: settings } = useAdminSettings();
   const qc = useQueryClient();
   const { toast } = useToast();
 
@@ -166,6 +169,7 @@ export function ProductsManager({
   // ---------- delete ----------
   const [toDelete, setToDelete] = useState<PublicProduct | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [qrProduct, setQrProduct] = useState<PublicProduct | null>(null);
 
   function confirmDelete() {
     if (!toDelete) return;
@@ -230,9 +234,12 @@ export function ProductsManager({
             <SelectItem value="featured">Featured</SelectItem>
           </SelectContent>
         </Select>
-        <Button onClick={() => { setEditingId(null); setView("form"); }}>
-          <Plus className="mr-1 h-4 w-4" /> Add Product
-        </Button>
+        <div className="flex gap-2">
+          <ExhibitionSheetButton settings={settings} brandName={settings?.brandName || "Artistic by Khushi"} />
+          <Button onClick={() => { setEditingId(null); setView("form"); }}>
+            <Plus className="mr-1 h-4 w-4" /> Add Product
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -318,6 +325,15 @@ export function ProductsManager({
                         >
                           <Eye className="h-4 w-4" />
                         </a>
+                        <button
+                          type="button"
+                          onClick={() => setQrProduct(p)}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-foreground/70 hover:bg-secondary hover:text-foreground"
+                          title="QR code"
+                          aria-label={`QR code for ${p.name}`}
+                        >
+                          <QrCode className="h-4 w-4" />
+                        </button>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" title="Delete" onClick={() => setToDelete(p)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -357,6 +373,9 @@ export function ProductsManager({
                       <a href={`#/product/${p.slug}`} target="_blank" rel="noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-secondary" aria-label="Preview">
                         <Eye className="h-4 w-4" />
                       </a>
+                      <button type="button" onClick={() => setQrProduct(p)} className="inline-flex h-8 w-8 items-center justify-center rounded-md text-foreground/70 hover:bg-secondary hover:text-foreground" aria-label="QR code" title="QR code">
+                        <QrCode className="h-4 w-4" />
+                      </button>
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setToDelete(p)} aria-label="Delete">
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -380,6 +399,8 @@ export function ProductsManager({
         onConfirm={confirmDelete}
         pending={deleting}
       />
+
+      <QrDialog product={qrProduct} onClose={() => setQrProduct(null)} />
     </div>
   );
 }

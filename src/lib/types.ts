@@ -34,6 +34,9 @@ export interface SiteSettings {
   headerCtaText: string;
   headerCtaUrl: string;
   announcements: string;
+  /** Optional schedule window for the announcement bar (ISO strings, "" = unset). */
+  announcementStartsAt: string;
+  announcementEndsAt: string;
   siteUrl: string;
   // Festive offer banner (header strip with live countdown) — all admin-managed.
   // Stored as strings (SiteSetting table); "1"/"0" for the switch, ISO date for the deadline.
@@ -428,6 +431,8 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   headerCtaText: "Enquire Now",
   headerCtaUrl: "#/contact",
   announcements: "✨ Now accepting custom orders for the festive season — book yours early!",
+  announcementStartsAt: "",
+  announcementEndsAt: "",
   siteUrl: "",
   offerBannerEnabled: "0",
   offerBannerText: "",

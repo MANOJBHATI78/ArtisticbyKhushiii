@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Heart, Menu, Phone, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Container } from "@/components/site/container";
 import { Img } from "@/components/site/img";
 import { OfferBanner } from "@/components/site/offer-banner";
+import { SearchOverlay } from "@/components/site/search-overlay";
 import { navigate, useHashRoute } from "@/lib/router";
 import { useSiteStore, whatsappLink } from "@/lib/store";
 import { trackCallClick, trackWhatsAppClick } from "@/lib/track";
@@ -30,6 +31,7 @@ export function SiteHeader() {
   const wishlistCount = useSiteStore((s) => s.wishlistSlugs.length);
   const route = useHashRoute();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   // Dismissed announcements stay hidden for the whole browsing session.
   const [announcementDismissed, setAnnouncementDismissed] = useState(() => {
     try {
@@ -48,12 +50,35 @@ export function SiteHeader() {
     setAnnouncementDismissed(true);
   };
 
+  // Global Esc handler for the search overlay (the overlay also handles it
+  // while its input is focused — this covers clicks elsewhere first).
+  useEffect(() => {
+    if (!searchOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSearchOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [searchOpen]);
+
   const isActive = (href: string) => {
     if (href === "/") return route.path === "/";
     return route.path === href || route.path.startsWith(`${href}/`);
   };
 
-  const showAnnouncement = settingsLoaded && settings.announcements && !announcementDismissed;
+  // Announcement bar respects its optional schedule window (admin-managed):
+  // hidden before startsAt and after endsAt; unset bounds are open-ended.
+  const now = Date.now();
+  const announcementInWindow = (() => {
+    const start = settings.announcementStartsAt ? Date.parse(settings.announcementStartsAt) : NaN;
+    const end = settings.announcementEndsAt ? Date.parse(settings.announcementEndsAt) : NaN;
+    if (Number.isFinite(start) && now < start) return false;
+    if (Number.isFinite(end) && now > end) return false;
+    return true;
+  })();
+
+  const showAnnouncement =
+    settingsLoaded && settings.announcements && announcementInWindow && !announcementDismissed;
 
   // Festive offer banner (admin-managed, with live countdown) — replaces the
   // plain announcement strip while an offer is running.
@@ -137,8 +162,9 @@ export function SiteHeader() {
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
-                onClick={() => navigate("/search")}
+                onClick={() => setSearchOpen(true)}
                 aria-label="Search the site"
+                aria-expanded={searchOpen}
                 className="flex size-11 items-center justify-center rounded-full text-foreground/80 transition-colors hover:bg-secondary hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
               >
                 <Search className="size-5" aria-hidden="true" />
@@ -191,6 +217,9 @@ export function SiteHeader() {
           </div>
         </Container>
       </div>
+
+      {/* Instant search overlay (command palette) */}
+      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
 
       {/* Mobile navigation sheet */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
