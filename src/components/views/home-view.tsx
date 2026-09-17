@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/site/container";
 import { FadeIn } from "@/components/site/fade-in";
 import { Img } from "@/components/site/img";
+import { ResponsiveImg } from "@/components/site/responsive-img";
 import { CategoryCard } from "@/components/site/category-card";
 import { ProductCard, ViewAllLink } from "@/components/site/product-card";
 import { BlogCard } from "@/components/site/blog-card";
@@ -228,11 +229,12 @@ export default function HomeView() {
               >
                 <div className="absolute -right-3 -top-3 size-full rounded-2xl border-2 border-gold/50" aria-hidden="true" />
                 <div className="relative overflow-hidden rounded-2xl shadow-xl">
-                  <Img
+                  <ResponsiveImg
                     src={hero?.imageUrl}
+                    mobileSrc={hero?.mobileImageUrl}
                     alt="Handcrafted resin art pieces by Artistic by Khushi"
                     eager
-                    className="aspect-[4/5] w-full object-cover sm:aspect-square lg:aspect-[4/5]"
+                    className="aspect-[4/5] w-full object-cover sm:aspect-square lg:aspect-[4/5] max-sm:aspect-square max-sm:object-contain max-sm:p-3"
                   />
                 </div>
                 <div className="animate-float-soft absolute -bottom-5 -left-3 rounded-xl bg-card p-4 shadow-lg border border-gold/30 sm:-left-6">
@@ -256,10 +258,11 @@ export default function HomeView() {
               <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
                 <div className="relative mx-auto w-full max-w-md lg:max-w-none">
                   <div className="overflow-hidden rounded-2xl shadow-md">
-                    <Img
+                    <ResponsiveImg
                       src={brandIntro?.imageUrl}
+                      mobileSrc={brandIntro?.mobileImageUrl}
                       alt="Artistic by Khushi resin art studio"
-                      className="aspect-[4/3] w-full object-cover"
+                      className="aspect-[4/3] w-full object-cover max-sm:object-contain max-sm:p-3"
                     />
                   </div>
                   {brandIntro?.subheading ? (
@@ -430,10 +433,11 @@ export default function HomeView() {
                 </div>
                 <div className="order-1 mx-auto w-full max-w-md lg:order-2 lg:max-w-none">
                   <div className="overflow-hidden rounded-2xl shadow-md">
-                    <Img
+                    <ResponsiveImg
                       src={customOrders.imageUrl}
+                      mobileSrc={customOrders.mobileImageUrl}
                       alt="Custom resin art order being crafted"
-                      className="aspect-[4/3] w-full object-cover"
+                      className="aspect-[4/3] w-full object-cover max-sm:object-contain max-sm:p-3"
                     />
                   </div>
                 </div>

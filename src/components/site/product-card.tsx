@@ -30,11 +30,11 @@ export function ProductCard({ product, className }: ProductCardProps) {
         className="relative block overflow-hidden rounded-t-lg focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-gold"
         aria-label={`View ${product.name}`}
       >
-        <div className="aspect-[4/5] overflow-hidden bg-secondary">
+        <div className="aspect-[4/5] overflow-hidden bg-secondary max-sm:aspect-square max-sm:p-3">
           <Img
             src={product.featuredImageUrl}
             alt={product.featuredImageAlt || product.name}
-            className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+            className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.02] max-sm:object-contain max-sm:transition-none max-sm:group-hover:scale-100"
           />
         </div>
         {product.categoryName ? (

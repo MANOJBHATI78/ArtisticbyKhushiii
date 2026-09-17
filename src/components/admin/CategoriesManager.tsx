@@ -323,6 +323,7 @@ interface CategoryFormState {
   name: string;
   slug: string;
   imageUrl: string;
+  mobileImageUrl: string;
   imageAlt: string;
   shortDescription: string;
   longDescription: string;
@@ -345,6 +346,7 @@ const EMPTY_CATEGORY: CategoryFormState = {
   name: "",
   slug: "",
   imageUrl: "",
+  mobileImageUrl: "",
   imageAlt: "",
   shortDescription: "",
   longDescription: "",
@@ -386,6 +388,7 @@ function CategoryFormDialog({
         name: category.name,
         slug: category.slug,
         imageUrl: category.imageUrl,
+        mobileImageUrl: (category as { mobileImageUrl?: string }).mobileImageUrl ?? "",
         imageAlt: category.imageAlt,
         shortDescription: category.shortDescription,
         longDescription: category.longDescription,
@@ -422,6 +425,7 @@ function CategoryFormDialog({
       name: form.name.trim(),
       slug: form.slug,
       imageUrl: form.imageUrl,
+      mobileImageUrl: form.mobileImageUrl,
       imageAlt: form.imageAlt,
       shortDescription: form.shortDescription,
       longDescription: form.longDescription,
@@ -510,6 +514,14 @@ function CategoryFormDialog({
                   set("imageUrl", "");
                   set("imageAlt", "");
                 }}
+              />
+            </Field>
+            <Field label="Mobile image (optional)" hint="Sirf mobile pe dikhega — portrait/square crop best hai. Khali chhodo to wahi image puri dikhti hai.">
+              <MediaPickField
+                value={form.mobileImageUrl}
+                alt={form.imageAlt}
+                onPick={(pick) => set("mobileImageUrl", pick.url)}
+                onClear={() => set("mobileImageUrl", "")}
               />
             </Field>
             <Field label="Image alt text">

@@ -13,6 +13,7 @@ function toSection(s: {
   subheading: string;
   body: string;
   imageUrl: string;
+  mobileImageUrl: string;
   ctaText: string;
   ctaUrl: string;
   ctaText2: string;
@@ -27,6 +28,7 @@ function toSection(s: {
     subheading: s.subheading,
     body: s.body,
     imageUrl: s.imageUrl,
+    mobileImageUrl: s.mobileImageUrl ?? "",
     ctaText: s.ctaText,
     ctaUrl: s.ctaUrl,
     ctaText2: s.ctaText2,
@@ -51,7 +53,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ sect
     if (!body) return fail("Invalid request body.", 400);
 
     const fields: Record<string, string | number | boolean> = {};
-    for (const key of ["heading", "subheading", "imageUrl", "ctaText", "ctaUrl", "ctaText2", "ctaUrl2"] as const) {
+    for (const key of ["heading", "subheading", "imageUrl", "mobileImageUrl", "ctaText", "ctaUrl", "ctaText2", "ctaUrl2"] as const) {
       if (has(body, key)) fields[key] = str(body[key]);
     }
     if (has(body, "body")) fields.body = sanitizeHtml(str(body.body));

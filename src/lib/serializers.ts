@@ -125,6 +125,7 @@ type PrismaCategory = {
   shortDescription: string;
   longDescription: string;
   imageUrl: string;
+  mobileImageUrl: string;
   imageAlt: string;
   introContent: string;
   bottomContent: string;
@@ -149,6 +150,7 @@ export function toPublicCategory(c: PrismaCategory, productCount: number): Publi
     shortDescription: c.shortDescription,
     longDescription: c.longDescription,
     imageUrl: c.imageUrl,
+    mobileImageUrl: c.mobileImageUrl ?? "",
     imageAlt: c.imageAlt,
     introContent: c.introContent,
     bottomContent: c.bottomContent,

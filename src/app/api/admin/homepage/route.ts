@@ -19,6 +19,7 @@ export async function GET(request: Request) {
         subheading: s.subheading,
         body: s.body,
         imageUrl: s.imageUrl,
+        mobileImageUrl: s.mobileImageUrl ?? "",
         ctaText: s.ctaText,
         ctaUrl: s.ctaUrl,
         ctaText2: s.ctaText2,

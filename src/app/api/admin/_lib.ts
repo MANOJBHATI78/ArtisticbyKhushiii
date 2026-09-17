@@ -107,7 +107,7 @@ export async function uniqueProductSlug(base: string, excludeId?: string): Promi
 // ---------------- categories ----------------
 
 const CATEGORY_TEXT_FIELDS = [
-  "shortDescription", "longDescription", "imageUrl", "imageAlt",
+  "shortDescription", "longDescription", "imageUrl", "mobileImageUrl", "imageAlt",
   "seoTitle", "metaDescription", "focusKeyword", "secondaryKeywords",
   "ogTitle", "ogDescription", "canonicalUrl",
 ] as const;

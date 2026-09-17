@@ -137,12 +137,12 @@ export default function ProductView({ slug }: { slug: string }) {
           {/* Gallery */}
           <div>
             <div className="group overflow-hidden rounded-xl border bg-card">
-              <div className="aspect-square overflow-hidden bg-secondary">
+              <div className="aspect-square overflow-hidden bg-secondary max-sm:p-4">
                 <Img
                   src={current?.url || product.featuredImageUrl}
                   alt={current?.alt || product.featuredImageAlt || product.name}
                   eager
-                  className="size-full object-cover transition-transform duration-300 motion-safe:group-hover:scale-105"
+                  className="size-full object-cover transition-transform duration-300 motion-safe:group-hover:scale-105 max-sm:object-contain max-sm:transition-none"
                 />
               </div>
             </div>

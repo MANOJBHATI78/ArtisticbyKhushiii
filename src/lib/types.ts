@@ -90,6 +90,7 @@ export interface PublicCategory {
   shortDescription: string;
   longDescription: string;
   imageUrl: string;
+  mobileImageUrl: string;
   imageAlt: string;
   introContent: string;
   bottomContent: string;
@@ -170,6 +171,7 @@ export interface HomepageSection {
   subheading: string;
   body: string;
   imageUrl: string;
+  mobileImageUrl: string;
   ctaText: string;
   ctaUrl: string;
   ctaText2: string;

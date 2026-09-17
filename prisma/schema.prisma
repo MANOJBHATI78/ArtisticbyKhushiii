@@ -43,6 +43,7 @@ model Category {
   shortDescription  String     @default("")
   longDescription   String     @default("")
   imageUrl          String     @default("")
+  mobileImageUrl    String     @default("")
   imageAlt          String     @default("")
   introContent      String     @default("")
   bottomContent     String     @default("")
@@ -225,13 +226,14 @@ model SiteSetting {
 }
 
 model HomepageSection {
-  id           String   @id @default(cuid())
-  sectionKey   String   @unique
-  heading      String   @default("")
-  subheading   String   @default("")
-  body         String   @default("")
-  imageUrl     String   @default("")
-  ctaText      String   @default("")
+  id             String   @id @default(cuid())
+  sectionKey     String   @unique
+  heading        String   @default("")
+  subheading     String   @default("")
+  body           String   @default("")
+  imageUrl       String   @default("")
+  mobileImageUrl String   @default("")
+  ctaText        String   @default("")
   ctaUrl       String   @default("")
   ctaText2     String   @default("")
   ctaUrl2      String   @default("")
@@ -239,6 +241,52 @@ model HomepageSection {
   visible      Boolean  @default(true)
   displayOrder Int      @default(0)
   updatedAt    DateTime @updatedAt
+}
+
+// ---------------- LANDING PAGES ----------------
+// SEO/GEO/LLM-targeted marketing pages the owner builds from the admin panel
+// (e.g. "resin-nameplates-surat", "diwali-gifts-mumbai"). Each page has its
+// own slug, full meta/OG/GEO tags, FAQ schema, hand-picked products and
+// optional custom HTML/CSS/JS for complete design freedom.
+
+model LandingPage {
+  id                 String   @id @default(cuid())
+  slug               String   @unique
+  title              String
+  headline           String   @default("")
+  subheadline        String   @default("")
+  heroImageUrl       String   @default("")
+  heroMobileImageUrl String   @default("")
+  bodyHtml           String   @default("")
+  customHtml         String   @default("")
+  customCss          String   @default("")
+  customJs           String   @default("")
+  schemaJson         String   @default("")
+  faqsJson           String   @default("[]")
+  productIds         String   @default("[]")
+  categoryIds        String   @default("[]")
+  metaTitle          String   @default("")
+  metaDescription    String   @default("")
+  focusKeyword       String   @default("")
+  secondaryKeywords  String   @default("")
+  canonicalUrl       String   @default("")
+  ogTitle            String   @default("")
+  ogDescription      String   @default("")
+  ogImageUrl         String   @default("")
+  geoRegion          String   @default("")
+  geoPlacename       String   @default("")
+  geoPosition        String   @default("")
+  targetLocations    String   @default("")
+  llmSummary         String   @default("")
+  llmKeywords        String   @default("")
+  ctaText            String   @default("")
+  ctaUrl             String   @default("")
+  noindex            Boolean  @default(false)
+  published          Boolean  @default(false)
+  displayOrder       Int      @default(0)
+  views              Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }
 
 // ---------------- MEDIA BLOB STORAGE ----------------

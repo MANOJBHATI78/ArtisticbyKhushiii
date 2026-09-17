@@ -59,6 +59,7 @@ export async function GET() {
         subheading: s.subheading,
         body: s.body,
         imageUrl: s.imageUrl,
+        mobileImageUrl: s.mobileImageUrl ?? "",
         ctaText: s.ctaText,
         ctaUrl: s.ctaUrl,
         ctaText2: s.ctaText2,

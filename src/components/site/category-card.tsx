@@ -25,11 +25,11 @@ export function CategoryCard({ category, className }: CategoryCardProps) {
         className="block focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-gold"
         aria-label={`Explore ${category.name}`}
       >
-        <div className="aspect-[4/3] overflow-hidden bg-secondary">
+        <div className="aspect-[4/3] overflow-hidden bg-secondary max-sm:aspect-square max-sm:p-3">
           <Img
             src={category.imageUrl}
             alt={category.imageAlt || category.name}
-            className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+            className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.02] max-sm:object-contain max-sm:transition-none max-sm:group-hover:scale-100"
           />
         </div>
         <CardContent className="flex h-full flex-col">
