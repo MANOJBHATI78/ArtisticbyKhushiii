@@ -1,0 +1,332 @@
+     1→PS C:\Users\Admin\Downloads\site-repo> Get-ChildItem C:\Users\Admin\Downloads, C:\Users\Admin\Desktop -Recurse -Depth 3 -Filter "netlify.toml" -ErrorAction SilentlyContinue | Select-Object FullName
+     2→
+     3→FullName
+     4→--------
+     5→C:\Users\Admin\Downloads\AAbk\netlify.toml
+     6→C:\Users\Admin\Downloads\AlphalOgix\public\site\netlify.toml
+     7→C:\Users\Admin\Downloads\ARBK\netlify.toml
+     8→C:\Users\Admin\Downloads\artistic-by-khushi\artistic-by-khushi\netlify.toml
+     9→C:\Users\Admin\Downloads\final abk\netlify.toml
+    10→
+    11→
+    12→PS C:\Users\Admin\Downloads\site-repo> Copy-Item -Path "..\final abk\*" -Destination . -Recurse -Force
+    13→PS C:\Users\Admin\Downloads\site-repo> Copy-Item -Path "C:\Users\Admin\Desktop\final\*" -Destination . -Recurse -Force
+    14→Copy-Item : Cannot find path 'C:\Users\Admin\Desktop\final' because it does not exist.
+    15→At line:1 char:1
+    16→+ Copy-Item -Path "C:\Users\Admin\Desktop\final\*" -Destination . -Recu ...
+    17→+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    18→    + CategoryInfo          : ObjectNotFound: (C:\Users\Admin\Desktop\final:String) [Copy-Item], ItemNotFoundException
+    19→    + FullyQualifiedErrorId : PathNotFound,Microsoft.PowerShell.Commands.CopyItemCommand
+    20→
+    21→PS C:\Users\Admin\Downloads\site-repo> C:\Users\Admin\Downloads\final abk\*
+    22→C:\Users\Admin\Downloads\final : The term 'C:\Users\Admin\Downloads\final' is not recognized as the name of a cmdlet,
+    23→function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the
+    24→path is correct and try again.
+    25→At line:1 char:1
+    26→+ C:\Users\Admin\Downloads\final abk\*
+    27→+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    28→    + CategoryInfo          : ObjectNotFound: (C:\Users\Admin\Downloads\final:String) [], CommandNotFoundException
+    29→    + FullyQualifiedErrorId : CommandNotFoundException
+    30→
+    31→PS C:\Users\Admin\Downloads\site-repo> Copy-Item -Path "C:\Users\Admin\Downloads\final abk\*" -Destination . -Recurse -Force
+    32→PS C:\Users\Admin\Downloads\site-repo> Get-ChildItem .\netlify.toml
+    33→
+    34→
+    35→    Directory: C:\Users\Admin\Downloads\site-repo
+    36→
+    37→
+    38→Mode                 LastWriteTime         Length Name
+    39→----                 -------------         ------ ----
+    40→-a----        09-09-2026  09:56 PM            577 netlify.toml
+    41→
+    42→
+    43→PS C:\Users\Admin\Downloads\site-repo> v
+    44→v : The term 'v' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was
+    45→included, verify that the path is correct and try again.
+    46→At line:1 char:1
+    47→+ v
+    48→+ ~
+    49→    + CategoryInfo          : ObjectNotFound: (v:String) [], CommandNotFoundException
+    50→    + FullyQualifiedErrorId : CommandNotFoundException
+    51→
+    52→PS C:\Users\Admin\Downloads\site-repo> git add -A
+    53→warning: in the working copy of '.dockerignore', LF will be replaced by CRLF the next time Git touches it
+    54→warning: in the working copy of '.env', LF will be replaced by CRLF the next time Git touches it
+    55→warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+    56→warning: in the working copy of '.zscripts/build.sh', LF will be replaced by CRLF the next time Git touches it
+    57→warning: in the working copy of '.zscripts/database-runtime-build.sh', LF will be replaced by CRLF the next time Git touches it
+    58→warning: in the working copy of '.zscripts/dev.pid', LF will be replaced by CRLF the next time Git touches it
+    59→warning: in the working copy of '.zscripts/dev.sh', LF will be replaced by CRLF the next time Git touches it
+    60→warning: in the working copy of '.zscripts/mini-services-build.sh', LF will be replaced by CRLF the next time Git touches it
+    61→warning: in the working copy of '.zscripts/mini-services-install.sh', LF will be replaced by CRLF the next time Git touches it
+    62→warning: in the working copy of '.zscripts/mini-services-start.sh', LF will be replaced by CRLF the next time Git touches it
+    63→warning: in the working copy of '.zscripts/python-runtime-build.sh', LF will be replaced by CRLF the next time Git touches it
+    64→warning: in the working copy of '.zscripts/start.sh', LF will be replaced by CRLF the next time Git touches it
+    65→warning: in the working copy of 'Caddyfile', LF will be replaced by CRLF the next time Git touches it
+    66→warning: in the working copy of 'DEPLOYMENT.md', LF will be replaced by CRLF the next time Git touches it
+    67→warning: in the working copy of 'Dockerfile', LF will be replaced by CRLF the next time Git touches it
+    68→warning: in the working copy of 'agent-ctx/2-a-full-stack-developer.md', LF will be replaced by CRLF the next time Git touches it
+    69→warning: in the working copy of 'agent-ctx/3-a-public-website-frontend.md', LF will be replaced by CRLF the next time Git touches it
+    70→warning: in the working copy of 'agent-ctx/3-b-admin-panel-frontend.md', LF will be replaced by CRLF the next time Git touches it
+    71→warning: in the working copy of 'bun.lock', LF will be replaced by CRLF the next time Git touches it
+    72→warning: in the working copy of 'components.json', LF will be replaced by CRLF the next time Git touches it
+    73→warning: in the working copy of 'docker-entrypoint.sh', LF will be replaced by CRLF the next time Git touches it
+    74→warning: in the working copy of 'download/README.md', LF will be replaced by CRLF the next time Git touches it
+    75→warning: in the working copy of 'eslint.config.mjs', LF will be replaced by CRLF the next time Git touches it
+    76→warning: in the working copy of 'examples/websocket/frontend.tsx', LF will be replaced by CRLF the next time Git touches it
+    77→warning: in the working copy of 'examples/websocket/server.ts', LF will be replaced by CRLF the next time Git touches it
+    78→warning: in the working copy of 'netlify.toml', LF will be replaced by CRLF the next time Git touches it
+    79→warning: in the working copy of 'next.config.ts', LF will be replaced by CRLF the next time Git touches it
+    80→warning: in the working copy of 'package.json', LF will be replaced by CRLF the next time Git touches it
+    81→warning: in the working copy of 'postcss.config.mjs', LF will be replaced by CRLF the next time Git touches it
+    82→warning: in the working copy of 'prisma/schema.prisma', LF will be replaced by CRLF the next time Git touches it
+    83→warning: in the working copy of 'public/logo.svg', LF will be replaced by CRLF the next time Git touches it
+    84→warning: in the working copy of 'public/robots.txt', LF will be replaced by CRLF the next time Git touches it
+    85→warning: in the working copy of 'render.yaml', LF will be replaced by CRLF the next time Git touches it
+    86→warning: in the working copy of 'scripts/enhance-error-messages.ts', LF will be replaced by CRLF the next time Git touches it
+    87→warning: in the working copy of 'scripts/gen-db-snapshot.ts', LF will be replaced by CRLF the next time Git touches it
+    88→warning: in the working copy of 'scripts/gen-images.sh', LF will be replaced by CRLF the next time Git touches it
+    89→warning: in the working copy of 'scripts/netlify-init.mjs', LF will be replaced by CRLF the next time Git touches it
+    90→warning: in the working copy of 'scripts/schema.sql', LF will be replaced by CRLF the next time Git touches it
+    91→warning: in the working copy of 'scripts/seed-testimonials.ts', LF will be replaced by CRLF the next time Git touches it
+    92→warning: in the working copy of 'scripts/seed.ts', LF will be replaced by CRLF the next time Git touches it
+    93→warning: in the working copy of 'scripts/sync-from-live.ts', LF will be replaced by CRLF the next time Git touches it
+    94→warning: in the working copy of 'scripts/test-db-init.ts', LF will be replaced by CRLF the next time Git touches it
+    95→warning: in the working copy of 'src/app/api/admin/_guard.ts', LF will be replaced by CRLF the next time Git touches it
+    96→warning: in the working copy of 'src/app/api/admin/_lib.ts', LF will be replaced by CRLF the next time Git touches it
+    97→warning: in the working copy of 'src/app/api/admin/backup/pull/route.ts', LF will be replaced by CRLF the next time Git touches it
+    98→warning: in the working copy of 'src/app/api/admin/backup/route.ts', LF will be replaced by CRLF the next time Git touches it
+    99→warning: in the working copy of 'src/app/api/admin/blogs/[id]/route.ts', LF will be replaced by CRLF the next time Git touches it
+   100→warning: in the working copy of 'src/app/api/admin/blogs/route.ts', LF will be replaced by CRLF the next time Git touches it
+   101→warning: in the working copy of 'src/app/api/admin/categories/[id]/route.ts', LF will be replaced by CRLF the next time Git touches it
+   102→warning: in the working copy of 'src/app/api/admin/categories/route.ts', LF will be replaced by CRLF the next time Git touches it
+   103→warning: in the working copy of 'src/app/api/admin/dashboard/route.ts', LF will be replaced by CRLF the next time Git touches it
+   104→warning: in the working copy of 'src/app/api/admin/faqs/[id]/route.ts', LF will be replaced by CRLF the next time Git touches it
+   105→warning: in the working copy of 'src/app/api/admin/faqs/route.ts', LF will be replaced by CRLF the next time Git touches it
+   106→warning: in the working copy of 'src/app/api/admin/homepage/[sectionKey]/route.ts', LF will be replaced by CRLF the next time Git touches it
+   107→warning: in the working copy of 'src/app/api/admin/homepage/route.ts', LF will be replaced by CRLF the next time Git touches it
+   108→warning: in the working copy of 'src/app/api/admin/landing/[id]/route.ts', LF will be replaced by CRLF the next time Git touches it
+   109→warning: in the working copy of 'src/app/api/admin/landing/route.ts', LF will be replaced by CRLF the next time Git touches it
+   110→warning: in the working copy of 'src/app/api/admin/leads/[id]/route.ts', LF will be replaced by CRLF the next time Git touches it
+   111→warning: in the working copy of 'src/app/api/admin/leads/route.ts', LF will be replaced by CRLF the next time Git touches it
+   112→warning: in the working copy of 'src/app/api/admin/leads/stats/route.ts', LF will be replaced by CRLF the next time Git touches it
+   113→warning: in the working copy of 'src/app/api/admin/login/route.ts', LF will be replaced by CRLF the next time Git touches it
+   114→warning: in the working copy of 'src/app/api/admin/logout/route.ts', LF will be replaced by CRLF the next time Git touches it
+   115→warning: in the working copy of 'src/app/api/admin/me/route.ts', LF will be replaced by CRLF the next time Git touches it
+   116→warning: in the working copy of 'src/app/api/admin/media/[id]/route.ts', LF will be replaced by CRLF the next time Git touches it
+   117→warning: in the working copy of 'src/app/api/admin/media/route.ts', LF will be replaced by CRLF the next time Git touches it
+   118→warning: in the working copy of 'src/app/api/admin/pages/[id]/route.ts', LF will be replaced by CRLF the next time Git touches it
+   119→warning: in the working copy of 'src/app/api/admin/pages/route.ts', LF will be replaced by CRLF the next time Git touches it
+   120→warning: in the working copy of 'src/app/api/admin/products/[id]/route.ts', LF will be replaced by CRLF the next time Git touches it
+   121→warning: in the working copy of 'src/app/api/admin/products/route.ts', LF will be replaced by CRLF the next time Git touches it
+   122→warning: in the working copy of 'src/app/api/admin/settings/route.ts', LF will be replaced by CRLF the next time Git touches it
+   123→warning: in the working copy of 'src/app/api/admin/testimonials/[id]/route.ts', LF will be replaced by CRLF the next time Git touches it
+   124→warning: in the working copy of 'src/app/api/admin/testimonials/route.ts', LF will be replaced by CRLF the next time Git touches it
+   125→warning: in the working copy of 'src/app/api/health/route.ts', LF will be replaced by CRLF the next time Git touches it
+   126→warning: in the working copy of 'src/app/api/media/[...path]/route.ts', LF will be replaced by CRLF the next time Git touches it
+   127→warning: in the working copy of 'src/app/api/public/blog-categories/route.ts', LF will be replaced by CRLF the next time Git touches it
+   128→warning: in the working copy of 'src/app/api/public/blogs/[slug]/route.ts', LF will be replaced by CRLF the next time Git touches it
+   129→warning: in the working copy of 'src/app/api/public/blogs/route.ts', LF will be replaced by CRLF the next time Git touches it
+   130→warning: in the working copy of 'src/app/api/public/bootstrap/route.ts', LF will be replaced by CRLF the next time Git touches it
+   131→warning: in the working copy of 'src/app/api/public/categories/[slug]/route.ts', LF will be replaced by CRLF the next time Git touches it
+   132→warning: in the working copy of 'src/app/api/public/categories/route.ts', LF will be replaced by CRLF the next time Git touches it
+   133→warning: in the working copy of 'src/app/api/public/faqs/route.ts', LF will be replaced by CRLF the next time Git touches it
+   134→warning: in the working copy of 'src/app/api/public/home/route.ts', LF will be replaced by CRLF the next time Git touches it
+   135→warning: in the working copy of 'src/app/api/public/landing/[slug]/route.ts', LF will be replaced by CRLF the next time Git touches it
+   136→warning: in the working copy of 'src/app/api/public/leads/route.ts', LF will be replaced by CRLF the next time Git touches it
+   137→warning: in the working copy of 'src/app/api/public/pages/[slug]/route.ts', LF will be replaced by CRLF the next time Git touches it
+   138→warning: in the working copy of 'src/app/api/public/products/[slug]/route.ts', LF will be replaced by CRLF the next time Git touches it
+   139→warning: in the working copy of 'src/app/api/public/products/route.ts', LF will be replaced by CRLF the next time Git touches it
+   140→warning: in the working copy of 'src/app/api/public/search/route.ts', LF will be replaced by CRLF the next time Git touches it
+   141→warning: in the working copy of 'src/app/api/public/testimonials/route.ts', LF will be replaced by CRLF the next time Git touches it
+   142→warning: in the working copy of 'src/app/api/qr/route.ts', LF will be replaced by CRLF the next time Git touches it
+   143→warning: in the working copy of 'src/app/api/robots/route.ts', LF will be replaced by CRLF the next time Git touches it
+   144→warning: in the working copy of 'src/app/api/route.ts', LF will be replaced by CRLF the next time Git touches it
+   145→warning: in the working copy of 'src/app/api/sitemap/route.ts', LF will be replaced by CRLF the next time Git touches it
+   146→warning: in the working copy of 'src/app/globals.css', LF will be replaced by CRLF the next time Git touches it
+   147→warning: in the working copy of 'src/app/layout.tsx', LF will be replaced by CRLF the next time Git touches it
+   148→warning: in the working copy of 'src/app/page.tsx', LF will be replaced by CRLF the next time Git touches it
+   149→warning: in the working copy of 'src/components/admin/AdminLayout.tsx', LF will be replaced by CRLF the next time Git touches it
+   150→warning: in the working copy of 'src/components/admin/AdminLogin.tsx', LF will be replaced by CRLF the next time Git touches it
+   151→warning: in the working copy of 'src/components/admin/BackupManager.tsx', LF will be replaced by CRLF the next time Git touches it
+   152→warning: in the working copy of 'src/components/admin/BlogsManager.tsx', LF will be replaced by CRLF the next time Git touches it
+   153→warning: in the working copy of 'src/components/admin/CategoriesManager.tsx', LF will be replaced by CRLF the next time Git touches it
+   154→warning: in the working copy of 'src/components/admin/Dashboard.tsx', LF will be replaced by CRLF the next time Git touches it
+   155→warning: in the working copy of 'src/components/admin/DbModeBanner.tsx', LF will be replaced by CRLF the next time Git touches it
+   156→warning: in the working copy of 'src/components/admin/FaqsManager.tsx', LF will be replaced by CRLF the next time Git touches it
+   157→warning: in the working copy of 'src/components/admin/HomepageManager.tsx', LF will be replaced by CRLF the next time Git touches it
+   158→warning: in the working copy of 'src/components/admin/LandingManager.tsx', LF will be replaced by CRLF the next time Git touches it
+   159→warning: in the working copy of 'src/components/admin/LeadsManager.tsx', LF will be replaced by CRLF the next time Git touches it
+   160→warning: in the working copy of 'src/components/admin/MediaLibrary.tsx', LF will be replaced by CRLF the next time Git touches it
+   161→warning: in the working copy of 'src/components/admin/PagesManager.tsx', LF will be replaced by CRLF the next time Git touches it
+   162→warning: in the working copy of 'src/components/admin/ProductsManager.tsx', LF will be replaced by CRLF the next time Git touches it
+   163→warning: in the working copy of 'src/components/admin/SettingsManager.tsx', LF will be replaced by CRLF the next time Git touches it
+   164→warning: in the working copy of 'src/components/admin/TestimonialsManager.tsx', LF will be replaced by CRLF the next time Git touches it
+   165→warning: in the working copy of 'src/components/admin/admin-app.tsx', LF will be replaced by CRLF the next time Git touches it
+   166→warning: in the working copy of 'src/components/admin/admin-utils.ts', LF will be replaced by CRLF the next time Git touches it
+   167→warning: in the working copy of 'src/components/admin/media-picker.tsx', LF will be replaced by CRLF the next time Git touches it
+   168→warning: in the working copy of 'src/components/admin/qr-tools.tsx', LF will be replaced by CRLF the next time Git touches it
+   169→warning: in the working copy of 'src/components/admin/rich-text-editor.tsx', LF will be replaced by CRLF the next time Git touches it
+   170→warning: in the working copy of 'src/components/admin/shared.tsx', LF will be replaced by CRLF the next time Git touches it
+   171→warning: in the working copy of 'src/components/admin/useAdminAuth.ts', LF will be replaced by CRLF the next time Git touches it
+   172→warning: in the working copy of 'src/components/admin/useAdminData.ts', LF will be replaced by CRLF the next time Git touches it
+   173→warning: in the working copy of 'src/components/providers.tsx', LF will be replaced by CRLF the next time Git touches it
+   174→warning: in the working copy of 'src/components/site/analytics.tsx', LF will be replaced by CRLF the next time Git touches it
+   175→warning: in the working copy of 'src/components/site/back-to-top.tsx', LF will be replaced by CRLF the next time Git touches it
+   176→warning: in the working copy of 'src/components/site/blog-card.tsx', LF will be replaced by CRLF the next time Git touches it
+   177→warning: in the working copy of 'src/components/site/breadcrumbs.tsx', LF will be replaced by CRLF the next time Git touches it
+   178→warning: in the working copy of 'src/components/site/category-card.tsx', LF will be replaced by CRLF the next time Git touches it
+   179→warning: in the working copy of 'src/components/site/container.tsx', LF will be replaced by CRLF the next time Git touches it
+   180→warning: in the working copy of 'src/components/site/empty-state.tsx', LF will be replaced by CRLF the next time Git touches it
+   181→warning: in the working copy of 'src/components/site/fade-in.tsx', LF will be replaced by CRLF the next time Git touches it
+   182→warning: in the working copy of 'src/components/site/faq-accordion.tsx', LF will be replaced by CRLF the next time Git touches it
+   183→warning: in the working copy of 'src/components/site/img.tsx', LF will be replaced by CRLF the next time Git touches it
+   184→warning: in the working copy of 'src/components/site/inquiry-form.tsx', LF will be replaced by CRLF the next time Git touches it
+   185→warning: in the working copy of 'src/components/site/inquiry-modal.tsx', LF will be replaced by CRLF the next time Git touches it
+   186→warning: in the working copy of 'src/components/site/lightbox.tsx', LF will be replaced by CRLF the next time Git touches it
+   187→warning: in the working copy of 'src/components/site/offer-banner.tsx', LF will be replaced by CRLF the next time Git touches it
+   188→warning: in the working copy of 'src/components/site/product-card.tsx', LF will be replaced by CRLF the next time Git touches it
+   189→warning: in the working copy of 'src/components/site/product-sticky-cta.tsx', LF will be replaced by CRLF the next time Git touches it
+   190→warning: in the working copy of 'src/components/site/product-testimonials.tsx', LF will be replaced by CRLF the next time Git touches it
+   191→warning: in the working copy of 'src/components/site/quick-view.tsx', LF will be replaced by CRLF the next time Git touches it
+   192→warning: in the working copy of 'src/components/site/reading-progress.tsx', LF will be replaced by CRLF the next time Git touches it
+   193→warning: in the working copy of 'src/components/site/recently-viewed.tsx', LF will be replaced by CRLF the next time Git touches it
+   194→warning: in the working copy of 'src/components/site/responsive-img.tsx', LF will be replaced by CRLF the next time Git touches it
+   195→warning: in the working copy of 'src/components/site/review-form.tsx', LF will be replaced by CRLF the next time Git touches it
+   196→warning: in the working copy of 'src/components/site/search-overlay.tsx', LF will be replaced by CRLF the next time Git touches it
+   197→warning: in the working copy of 'src/components/site/section-heading.tsx', LF will be replaced by CRLF the next time Git touches it
+   198→warning: in the working copy of 'src/components/site/seo-helpers.ts', LF will be replaced by CRLF the next time Git touches it
+   199→warning: in the working copy of 'src/components/site/share-row.tsx', LF will be replaced by CRLF the next time Git touches it
+   200→warning: in the working copy of 'src/components/site/site-app.tsx', LF will be replaced by CRLF the next time Git touches it
+   201→warning: in the working copy of 'src/components/site/site-footer.tsx', LF will be replaced by CRLF the next time Git touches it
+   202→warning: in the working copy of 'src/components/site/site-header.tsx', LF will be replaced by CRLF the next time Git touches it
+   203→warning: in the working copy of 'src/components/site/skeletons.tsx', LF will be replaced by CRLF the next time Git touches it
+   204→warning: in the working copy of 'src/components/site/testimonials-section.tsx', LF will be replaced by CRLF the next time Git touches it
+   205→warning: in the working copy of 'src/components/site/whatsapp-float.tsx', LF will be replaced by CRLF the next time Git touches it
+   206→warning: in the working copy of 'src/components/site/wishlist-button.tsx', LF will be replaced by CRLF the next time Git touches it
+   207→warning: in the working copy of 'src/components/ui/accordion.tsx', LF will be replaced by CRLF the next time Git touches it
+   208→warning: in the working copy of 'src/components/ui/alert-dialog.tsx', LF will be replaced by CRLF the next time Git touches it
+   209→warning: in the working copy of 'src/components/ui/alert.tsx', LF will be replaced by CRLF the next time Git touches it
+   210→warning: in the working copy of 'src/components/ui/aspect-ratio.tsx', LF will be replaced by CRLF the next time Git touches it
+   211→warning: in the working copy of 'src/components/ui/avatar.tsx', LF will be replaced by CRLF the next time Git touches it
+   212→warning: in the working copy of 'src/components/ui/badge.tsx', LF will be replaced by CRLF the next time Git touches it
+   213→warning: in the working copy of 'src/components/ui/breadcrumb.tsx', LF will be replaced by CRLF the next time Git touches it
+   214→warning: in the working copy of 'src/components/ui/button.tsx', LF will be replaced by CRLF the next time Git touches it
+   215→warning: in the working copy of 'src/components/ui/calendar.tsx', LF will be replaced by CRLF the next time Git touches it
+   216→warning: in the working copy of 'src/components/ui/card.tsx', LF will be replaced by CRLF the next time Git touches it
+   217→warning: in the working copy of 'src/components/ui/carousel.tsx', LF will be replaced by CRLF the next time Git touches it
+   218→warning: in the working copy of 'src/components/ui/chart.tsx', LF will be replaced by CRLF the next time Git touches it
+   219→warning: in the working copy of 'src/components/ui/checkbox.tsx', LF will be replaced by CRLF the next time Git touches it
+   220→warning: in the working copy of 'src/components/ui/collapsible.tsx', LF will be replaced by CRLF the next time Git touches it
+   221→warning: in the working copy of 'src/components/ui/command.tsx', LF will be replaced by CRLF the next time Git touches it
+   222→warning: in the working copy of 'src/components/ui/context-menu.tsx', LF will be replaced by CRLF the next time Git touches it
+   223→warning: in the working copy of 'src/components/ui/dialog.tsx', LF will be replaced by CRLF the next time Git touches it
+   224→warning: in the working copy of 'src/components/ui/drawer.tsx', LF will be replaced by CRLF the next time Git touches it
+   225→warning: in the working copy of 'src/components/ui/dropdown-menu.tsx', LF will be replaced by CRLF the next time Git touches it
+   226→warning: in the working copy of 'src/components/ui/form.tsx', LF will be replaced by CRLF the next time Git touches it
+   227→warning: in the working copy of 'src/components/ui/hover-card.tsx', LF will be replaced by CRLF the next time Git touches it
+   228→warning: in the working copy of 'src/components/ui/input-otp.tsx', LF will be replaced by CRLF the next time Git touches it
+   229→warning: in the working copy of 'src/components/ui/input.tsx', LF will be replaced by CRLF the next time Git touches it
+   230→warning: in the working copy of 'src/components/ui/label.tsx', LF will be replaced by CRLF the next time Git touches it
+   231→warning: in the working copy of 'src/components/ui/menubar.tsx', LF will be replaced by CRLF the next time Git touches it
+   232→warning: in the working copy of 'src/components/ui/navigation-menu.tsx', LF will be replaced by CRLF the next time Git touches it
+   233→warning: in the working copy of 'src/components/ui/pagination.tsx', LF will be replaced by CRLF the next time Git touches it
+   234→warning: in the working copy of 'src/components/ui/popover.tsx', LF will be replaced by CRLF the next time Git touches it
+   235→warning: in the working copy of 'src/components/ui/progress.tsx', LF will be replaced by CRLF the next time Git touches it
+   236→warning: in the working copy of 'src/components/ui/radio-group.tsx', LF will be replaced by CRLF the next time Git touches it
+   237→warning: in the working copy of 'src/components/ui/resizable.tsx', LF will be replaced by CRLF the next time Git touches it
+   238→warning: in the working copy of 'src/components/ui/scroll-area.tsx', LF will be replaced by CRLF the next time Git touches it
+   239→warning: in the working copy of 'src/components/ui/select.tsx', LF will be replaced by CRLF the next time Git touches it
+   240→warning: in the working copy of 'src/components/ui/separator.tsx', LF will be replaced by CRLF the next time Git touches it
+   241→warning: in the working copy of 'src/components/ui/sheet.tsx', LF will be replaced by CRLF the next time Git touches it
+   242→warning: in the working copy of 'src/components/ui/sidebar.tsx', LF will be replaced by CRLF the next time Git touches it
+   243→warning: in the working copy of 'src/components/ui/skeleton.tsx', LF will be replaced by CRLF the next time Git touches it
+   244→warning: in the working copy of 'src/components/ui/slider.tsx', LF will be replaced by CRLF the next time Git touches it
+   245→warning: in the working copy of 'src/components/ui/sonner.tsx', LF will be replaced by CRLF the next time Git touches it
+   246→warning: in the working copy of 'src/components/ui/switch.tsx', LF will be replaced by CRLF the next time Git touches it
+   247→warning: in the working copy of 'src/components/ui/table.tsx', LF will be replaced by CRLF the next time Git touches it
+   248→warning: in the working copy of 'src/components/ui/tabs.tsx', LF will be replaced by CRLF the next time Git touches it
+   249→warning: in the working copy of 'src/components/ui/textarea.tsx', LF will be replaced by CRLF the next time Git touches it
+   250→warning: in the working copy of 'src/components/ui/toast.tsx', LF will be replaced by CRLF the next time Git touches it
+   251→warning: in the working copy of 'src/components/ui/toaster.tsx', LF will be replaced by CRLF the next time Git touches it
+   252→warning: in the working copy of 'src/components/ui/toggle-group.tsx', LF will be replaced by CRLF the next time Git touches it
+   253→warning: in the working copy of 'src/components/ui/toggle.tsx', LF will be replaced by CRLF the next time Git touches it
+   254→warning: in the working copy of 'src/components/ui/tooltip.tsx', LF will be replaced by CRLF the next time Git touches it
+   255→warning: in the working copy of 'src/components/views/about-view.tsx', LF will be replaced by CRLF the next time Git touches it
+   256→warning: in the working copy of 'src/components/views/blog-post-view.tsx', LF will be replaced by CRLF the next time Git touches it
+   257→warning: in the working copy of 'src/components/views/blog-view.tsx', LF will be replaced by CRLF the next time Git touches it
+   258→warning: in the working copy of 'src/components/views/categories-view.tsx', LF will be replaced by CRLF the next time Git touches it
+   259→warning: in the working copy of 'src/components/views/category-view.tsx', LF will be replaced by CRLF the next time Git touches it
+   260→warning: in the working copy of 'src/components/views/contact-view.tsx', LF will be replaced by CRLF the next time Git touches it
+   261→warning: in the working copy of 'src/components/views/faq-view.tsx', LF will be replaced by CRLF the next time Git touches it
+   262→warning: in the working copy of 'src/components/views/home-view.tsx', LF will be replaced by CRLF the next time Git touches it
+   263→warning: in the working copy of 'src/components/views/landing-view.tsx', LF will be replaced by CRLF the next time Git touches it
+   264→warning: in the working copy of 'src/components/views/not-found-view.tsx', LF will be replaced by CRLF the next time Git touches it
+   265→warning: in the working copy of 'src/components/views/page-view.tsx', LF will be replaced by CRLF the next time Git touches it
+   266→warning: in the working copy of 'src/components/views/product-view.tsx', LF will be replaced by CRLF the next time Git touches it
+   267→warning: in the working copy of 'src/components/views/products-view.tsx', LF will be replaced by CRLF the next time Git touches it
+   268→warning: in the working copy of 'src/components/views/search-view.tsx', LF will be replaced by CRLF the next time Git touches it
+   269→warning: in the working copy of 'src/components/views/services-view.tsx', LF will be replaced by CRLF the next time Git touches it
+   270→warning: in the working copy of 'src/components/views/thank-you-view.tsx', LF will be replaced by CRLF the next time Git touches it
+   271→warning: in the working copy of 'src/components/views/wishlist-view.tsx', LF will be replaced by CRLF the next time Git touches it
+   272→warning: in the working copy of 'src/hooks/use-mobile.ts', LF will be replaced by CRLF the next time Git touches it
+   273→warning: in the working copy of 'src/hooks/use-toast.ts', LF will be replaced by CRLF the next time Git touches it
+   274→warning: in the working copy of 'src/lib/api-client.ts', LF will be replaced by CRLF the next time Git touches it
+   275→warning: in the working copy of 'src/lib/auth.ts', LF will be replaced by CRLF the next time Git touches it
+   276→warning: in the working copy of 'src/lib/content-sync.ts', LF will be replaced by CRLF the next time Git touches it
+   277→warning: in the working copy of 'src/lib/db.ts', LF will be replaced by CRLF the next time Git touches it
+   278→warning: in the working copy of 'src/lib/queries.ts', LF will be replaced by CRLF the next time Git touches it
+   279→warning: in the working copy of 'src/lib/router.ts', LF will be replaced by CRLF the next time Git touches it
+   280→warning: in the working copy of 'src/lib/seo.ts', LF will be replaced by CRLF the next time Git touches it
+   281→warning: in the working copy of 'src/lib/serializers.ts', LF will be replaced by CRLF the next time Git touches it
+   282→warning: in the working copy of 'src/lib/server-utils.ts', LF will be replaced by CRLF the next time Git touches it
+   283→warning: in the working copy of 'src/lib/store.ts', LF will be replaced by CRLF the next time Git touches it
+   284→warning: in the working copy of 'src/lib/track.ts', LF will be replaced by CRLF the next time Git touches it
+   285→warning: in the working copy of 'src/lib/types.ts', LF will be replaced by CRLF the next time Git touches it
+   286→warning: in the working copy of 'src/lib/uploads.ts', LF will be replaced by CRLF the next time Git touches it
+   287→warning: in the working copy of 'src/lib/utils.ts', LF will be replaced by CRLF the next time Git touches it
+   288→warning: in the working copy of 'tailwind.config.ts', LF will be replaced by CRLF the next time Git touches it
+   289→warning: in the working copy of 'tests/database-runtime-build.sh', LF will be replaced by CRLF the next time Git touches it
+   290→warning: in the working copy of 'tests/python-runtime-build.sh', LF will be replaced by CRLF the next time Git touches it
+   291→warning: in the working copy of 'tests/python-runtime-container.sh', LF will be replaced by CRLF the next time Git touches it
+   292→warning: in the working copy of 'tool-results/bash_1789640823607_f27973c7137c.txt', LF will be replaced by CRLF the next time Git touches it
+   293→warning: in the working copy of 'tool-results/bash_1789640963363_b8629624a6fe.txt', LF will be replaced by CRLF the next time Git touches it
+   294→warning: in the working copy of 'tool-results/bash_1789643811200_dcd213ffc853.txt', LF will be replaced by CRLF the next time Git touches it
+   295→warning: in the working copy of 'tool-results/read_1788886280007_5177b4d4d2d7.txt', LF will be replaced by CRLF the next time Git touches it
+   296→warning: in the working copy of 'tool-results/read_1788886282154_2f4e33b455a2.txt', LF will be replaced by CRLF the next time Git touches it
+   297→warning: in the working copy of 'tool-results/read_1788886289151_578900742202.txt', LF will be replaced by CRLF the next time Git touches it
+   298→warning: in the working copy of 'tool-results/read_1788886296395_f313663d3dd7.txt', LF will be replaced by CRLF the next time Git touches it
+   299→warning: in the working copy of 'tool-results/read_1789051917803_29d8c989a893.txt', LF will be replaced by CRLF the next time Git touches it
+   300→warning: in the working copy of 'tool-results/read_1789057764760_29d8c989a893.txt', LF will be replaced by CRLF the next time Git touches it
+   301→warning: in the working copy of 'tool-results/read_1789221941966_443eadca7cd0.txt', LF will be replaced by CRLF the next time Git touches it
+   302→warning: in the working copy of 'tool-results/read_1789628857327_a7e31fb3d644.txt', LF will be replaced by CRLF the next time Git touches it
+   303→warning: in the working copy of 'tool-results/read_1789637416988_e6b2d21ee90c.txt', LF will be replaced by CRLF the next time Git touches it
+   304→warning: in the working copy of 'tool-results/read_1789637420067_430ee51abdb3.txt', LF will be replaced by CRLF the next time Git touches it
+   305→warning: in the working copy of 'tool-results/read_1789640818800_66c09cd12cce.txt', LF will be replaced by CRLF the next time Git touches it
+   306→warning: in the working copy of 'tool-results/read_1789640821260_3df36e32d65c.txt', LF will be replaced by CRLF the next time Git touches it
+   307→warning: in the working copy of 'tool-results/read_1789641963576_f356e33cd134.txt', LF will be replaced by CRLF the next time Git touches it
+   308→warning: in the working copy of 'tool-results/read_1789641975994_d389bf5033a4.txt', LF will be replaced by CRLF the next time Git touches it
+   309→warning: in the working copy of 'tool-results/read_1789641994368_9cb09e84daa5.txt', LF will be replaced by CRLF the next time Git touches it
+   310→warning: in the working copy of 'tool-results/read_1789642005199_6d7beb5f9817.txt', LF will be replaced by CRLF the next time Git touches it
+   311→warning: in the working copy of 'tool-results/read_1789643728559_da2d597122c7.txt', LF will be replaced by CRLF the next time Git touches it
+   312→warning: in the working copy of 'tool-results/read_1789643778067_22239882baf7.txt', LF will be replaced by CRLF the next time Git touches it
+   313→warning: in the working copy of 'tool-results/read_1789643800454_f5a5c9f2e7d2.txt', LF will be replaced by CRLF the next time Git touches it
+   314→warning: in the working copy of 'tool-results/read_1789645226355_da2d597122c7.txt', LF will be replaced by CRLF the next time Git touches it
+   315→warning: in the working copy of 'tsconfig.json', LF will be replaced by CRLF the next time Git touches it
+   316→warning: in the working copy of 'worklog.md', LF will be replaced by CRLF the next time Git touches it
+   317→PS C:\Users\Admin\Downloads\site-repo> git commit -m "New version: clean URLs, Khushiii spelling, mobile fixes"
+   318→Author identity unknown
+   319→
+   320→*** Please tell me who you are.
+   321→
+   322→Run
+   323→
+   324→  git config --global user.email "you@example.com"
+   325→  git config --global user.name "Your Name"
+   326→
+   327→to set your account's default identity.
+   328→Omit --global to set the identity only in this repository.
+   329→
+   330→fatal: unable to auto-detect email address (got 'Admin@DESKTOP-TBOHBFK.(none)')
+   331→PS C:\Users\Admin\Downloads\site-repo> git push origin main
+   332→
