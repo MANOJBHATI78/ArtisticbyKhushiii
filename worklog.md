@@ -513,3 +513,18 @@ Stage Summary:
 - Mobile-image fixes + all Task 12-16 features are in this codebase ready to deploy; live Turso data is safe (seed-on-empty-only + additive auto-migrate + backup/restore system built in Task 11)
 - User given step-by-step deploy guide: (1) live admin → Backup & Sync → Download Backup, (2) push this code to GitHub repo, (3) Netlify auto-rebuilds (~3-5 min), (4) verify /api/health + homepage, (5) rollback plan = Netlify previous deploy Publish (instant) + backup JSON restore
 - Open items (unchanged): owner should set siteUrl in live settings + change admin password; siteUrl still empty on live
+
+---
+Task ID: 18
+Agent: lead (Z.ai Code main) — user advisory round
+Task: User asked how to push code from GitHub to Netlify — prepared deploy-ready ZIP + step-by-step guide
+
+Work Log:
+- Created artistic-khushiii-deploy.zip (8.6MB, 369 files) at project root — includes ALL deploy-critical files (netlify.toml, package.json, bun.lock, prisma/schema.prisma, scripts/netlify-init.mjs, src/lib/db.ts + db-snapshot.json, public images, .gitignore); excludes sandbox junk (node_modules, .next, .git, db/, skills/, tool-results/, upload/, agent-ctx, tests, examples, Caddyfile, dev.log)
+- Verified zip contents: build command chain (npx prisma generate && node scripts/netlify-init.mjs && npm run build) fully covered
+- Gave user step-by-step Hinglish guide: find repo via Netlify Deploys tab → download ZIP from sandbox file browser → GitHub Desktop (recommended) or git CLI push → Netlify auto-build → /api/health verify → rollback = Publish previous deploy
+- Reiterated: backup first via live admin Backup & Sync module
+
+Stage Summary:
+- No code changes — deployment logistics round; deploy artifact ready at /home/z/my-project/artistic-khushiii-deploy.zip
+- Live data safety guaranteed by existing systems (seed-on-empty-only, additive auto-migrate, backup/restore)
