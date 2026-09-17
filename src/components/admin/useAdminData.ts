@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
 import type {
+  AdminLandingPage,
   BlogCategory,
   DashboardStats,
   Faq,
@@ -216,6 +217,35 @@ export function useAdminHomepage() {
   return useQuery<HomepageSection[]>({
     queryKey: ["admin", "homepage"],
     queryFn: () => api.get<HomepageSection[]>("/api/admin/homepage"),
+  });
+}
+
+// ---------------- landing pages ----------------
+
+export function useAdminLandings(q = "") {
+  return useQuery<AdminLandingPage[]>({
+    queryKey: ["admin", "landing", q],
+    queryFn: () => api.get<AdminLandingPage[]>(q ? `/api/admin/landing?q=${encodeURIComponent(q)}` : "/api/admin/landing"),
+  });
+}
+
+/** Lightweight product list for pickers (landing page product selection etc.). */
+export function useAdminProductsLite() {
+  return useQuery<PublicProduct[]>({
+    queryKey: ["admin", "products-lite"],
+    queryFn: async () => {
+      const page1 = await api.get<Paginated<PublicProduct>>("/api/admin/products?pageSize=100");
+      if (page1.totalPages > 1) {
+        const rest = await Promise.all(
+          Array.from({ length: page1.totalPages - 1 }, (_, i) =>
+            api.get<Paginated<PublicProduct>>(`/api/admin/products?page=${i + 2}&pageSize=100`),
+          ),
+        );
+        return [...page1.items, ...rest.flatMap((p) => p.items)];
+      }
+      return page1.items;
+    },
+    staleTime: 60_000,
   });
 }
 

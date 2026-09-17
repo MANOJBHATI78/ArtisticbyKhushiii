@@ -194,6 +194,62 @@ export interface HomeData {
   finalCta: HomepageSection | null;
 }
 
+// ---------------- landing pages (admin-built marketing pages) ----------------
+
+/** One FAQ entry inside a landing page's faqsJson. */
+export interface LandingFaqItem {
+  question: string;
+  answer: string;
+}
+
+/** Full LandingPage row (dates already ISO strings) — admin + public payloads. */
+export interface AdminLandingPage {
+  id: string;
+  slug: string;
+  title: string;
+  headline: string;
+  subheadline: string;
+  heroImageUrl: string;
+  heroMobileImageUrl: string;
+  bodyHtml: string;
+  customHtml: string;
+  customCss: string;
+  customJs: string;
+  schemaJson: string;
+  faqsJson: string;
+  productIds: string;
+  categoryIds: string;
+  metaTitle: string;
+  metaDescription: string;
+  focusKeyword: string;
+  secondaryKeywords: string;
+  canonicalUrl: string;
+  ogTitle: string;
+  ogDescription: string;
+  ogImageUrl: string;
+  geoRegion: string;
+  geoPlacename: string;
+  geoPosition: string;
+  targetLocations: string;
+  llmSummary: string;
+  llmKeywords: string;
+  ctaText: string;
+  ctaUrl: string;
+  noindex: boolean;
+  published: boolean;
+  displayOrder: number;
+  views: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** GET /api/public/landing/[slug] payload — landing + resolved products + parsed FAQs. */
+export interface PublicLandingPage {
+  landing: AdminLandingPage;
+  products: PublicProduct[];
+  faqs: Faq[];
+}
+
 export interface SearchResults {
   products: PublicProduct[];
   categories: PublicCategory[];

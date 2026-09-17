@@ -73,6 +73,7 @@ function SectionCard({ section }: { section: HomepageSection }) {
   const [subheading, setSubheading] = useState(section.subheading);
   const [body, setBody] = useState(section.body);
   const [imageUrl, setImageUrl] = useState(section.imageUrl);
+  const [mobileImageUrl, setMobileImageUrl] = useState(section.mobileImageUrl || "");
   const [ctaText, setCtaText] = useState(section.ctaText);
   const [ctaUrl, setCtaUrl] = useState(section.ctaUrl);
   const [ctaText2, setCtaText2] = useState(section.ctaText2);
@@ -99,6 +100,7 @@ function SectionCard({ section }: { section: HomepageSection }) {
         subheading,
         body,
         imageUrl,
+        mobileImageUrl,
         ctaText,
         ctaUrl,
         ctaText2,
@@ -193,8 +195,11 @@ function SectionCard({ section }: { section: HomepageSection }) {
               </Field>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Image">
+                <Field label="Image (Desktop)" hint="Landscape / square crop — dikheta hai desktop + tablet pe.">
                   <MediaPickField value={imageUrl} alt={heading} onPick={(p) => setImageUrl(p.url)} onClear={() => setImageUrl("")} />
+                </Field>
+                <Field label="Image (Mobile) — optional" hint="Phone pe alag portrait crop chahte ho to yahan daalo. Khali chhodo to desktop image hi phone pe poori dikhegi (no crop).">
+                  <MediaPickField value={mobileImageUrl} alt={heading ? `${heading} mobile` : "mobile"} onPick={(p) => setMobileImageUrl(p.url)} onClear={() => setMobileImageUrl("")} />
                 </Field>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-2">

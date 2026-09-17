@@ -297,3 +297,67 @@ Stage Summary:
 - SITE IS LIVE AND FULLY FUNCTIONAL at https://artisticbykhushiii.com — Turso cloud DB + all 22 products/6 blogs + admin panel verified end-to-end from sandbox browser
 - REMAINING OWNER ACTIONS: (1) Admin → Site Settings → Site URL = https://artisticbykhushiii.com → Save (fixes sitemap/SEO canonical), (2) change admin password (still default), (3) optionally paste GA/GSC/Clarity IDs, (4) hard-refresh browser to see the site
 - No code changes required this round.
+
+---
+Task ID: 11-a
+Agent: lead (Z.ai Code main)
+Task: User request: (1) mobile image fix + banner option complete karo, (2) LANDING PAGE BUILDER banao (custom slug, AIO/GEO/LLM-SEO, schema markup, FAQ, product selection), (3) "live pe bohot kuch change kiya — bar bar redo na karna pade" ka EASY SOLUTION
+
+Work Log:
+- Surveyed state: ResponsiveImg + max-sm:object-contain fix already in home-view; HomepageSection.mobileImageUrl in schema/DB/APIs; LandingPage model + table exist (0 rows) but NO code anywhere; HomepageManager had NO mobile image picker UI
+- HomepageManager.tsx: added "Image (Mobile)" MediaPickField (desktop + mobile dono pickers, Hinglish hints) + mobileImageUrl in save payload — banner mobile option ab admin se control hota hai
+- NEW src/lib/content-sync.ts (the easy-solution engine): exportBackup() (all 11 content tables + settings as JSON), applyContentSnapshot() (upsert by natural keys: slug/key/sectionKey/url; product images recreated; relatedProductIds + category/blog/faq FKs remapped via slug maps; leads by id; media assets by url; media files downloaded to disk+DB chunks via storeUpload with skip-if-exists), pullFromLive() (admin login to source site → fetch all admin APIs incl. drafts/leads/media → apply; falls back gracefully)
+- NEW API /api/admin/backup (GET = downloadable JSON backup w/ content-disposition, POST = restore/import with shape validation + admin-count sanity check) and /api/admin/backup/pull (POST {sourceUrl, email, password, includeMedia, includeLeads} → pullFromLive)
+- NEW scripts/sync-from-live.ts: `bun scripts/sync-from-live.ts [url]` (--no-media/--no-leads flags) — CLI live→local mirror
+- NEW BackupManager.tsx admin UI: 3 cards (Download Backup + last-backup stamp, Restore from JSON w/ preview badges, Pull from Live w/ creds + media/leads switches) + full sync-report card (counts grid, media stats, warnings) + query invalidation
+- Registered "backup" + "landing" modules: admin-utils AdminModuleKey, AdminLayout NAV/TITLES (DatabaseBackup + Megaphone icons), admin-app import/render/keys
+- Migration safety (CRITICAL for live Turso deploy): db.ts migrateSchema() — runs every cold start BEFORE seed check; ALTER TABLE ADD COLUMN mobileImageUrl on HomepageSection+Category (PRAGMA-guarded), CREATE TABLE IF NOT EXISTS LandingPage + slug index; scripts/schema.sql updated with mobileImageUrl columns + LandingPage DDL + index; netlify-init.mjs ensureSchema() now always runs column migrations + IF-NOT-EXISTS table ensures on existing DBs (old code skipped DDL entirely when tables existed)
+- Restarted dev server + prisma generate (stale client had no landingPage model); verified: login 200, backup GET 200 (10 cats/6 blogcats/22 products+galleries/6 blogs/5 pages/14 faqs/6 sections/0 landing/3 leads/44 media/29 settings, content-disposition attachment header ✓), health 200, lint 0 problems
+
+Stage Summary:
+- Banner mobile image: fully editable from admin now; deploy pe live Turso DB ko khud naye columns/table mil jayenge (migrateSchema + netlify-init) — data kabhi overwrite nahi hota
+- Backup & Sync system complete: owner apne live changes ka JSON backup 1-click le sakta hai, restore kar sakta hai, ya live site se pull kar sakta hai (local ya nayi deployment pe) — "bar bar redo" ka darr khatam
+- Next: 11-b = Landing Page Builder (subagent), phir live se real content pull + QA
+
+---
+Task ID: 11-b
+Agent: full-stack-developer subagent (verified + credited by lead)
+Task: Landing Page Builder — API + admin editor + public view + routing + sitemap (AIO/GEO/LLM-SEO)
+
+Work Log:
+- Built by subagent (timed out mid-verification; lead completed QA + cleanup):
+- NEW src/app/api/public/landing/[slug]/route.ts: published-only fetch, productIds resolved to published products PRESERVING landing order, faqsJson parsed, fire-and-forget view increment
+- NEW src/app/api/admin/landing/route.ts (GET list + POST create w/ auto slug) + [id]/route.ts (GET/PUT/DELETE); uniqueLandingSlug helper in admin/_lib.ts; bodyHtml sanitized, custom power-user fields NOT sanitized
+- NEW src/components/admin/LandingManager.tsx: list (table: landing/URL/status switch/views/order/preview+edit+delete, search) + editor with 7 tabs — Content (slug auto-suggest + URL preview, hero desktop+mobile MediaPickFields, rich body, CTA), Products (searchable checkbox multi-select, ordered chips), FAQ (repeater), SEO (meta fields + counters + noindex warning), GEO (region/placename/position/targetLocations w/ Hinglish hints), AI/LLM (llmSummary + llmKeywords), Advanced (customHtml/Css/Js + schemaJson editor + Auto-Generate Schema button producing WebPage+FAQPage+ItemList+LocalBusiness JSON-LD)
+- NEW src/components/views/landing-view.tsx: hero (ResponsiveImg mobile-aware, eager), Quick Summary card (llmSummary — GEO-friendly), bodyHtml prose, Featured Pieces product grid, FaqAccordion, final CTA + WhatsApp, customHtml/Css/Js injection, sticky mobile CTA bar, breadcrumbs
+- Wiring: site-app.tsx #/lp/[slug] route; sitemap includes published non-noindex landings; admin-app + useAdminData (useAdminLandings) + types/queries (useLandingPage)
+- Demo landing "diwali-gifting" created+published (6 products, 4 FAQs, GEO+LLM fields, 4KB schema)
+
+Lead verification (after subagent timeout):
+- API e2e: create→auto-slug dedupe (diwali-gifting-2)→PUT→DELETE→404 ✓; public GET resolves 6 products + 4 FAQs ✓; duplicate test row cleaned ✓
+- Browser QA: #/lp/diwali-gifting renders hero/summary/body/6 products/4 FAQs/CTA/footer, FAQ accordion expands, JSON-LD = [WebPage,FAQPage,ItemList,LocalBusiness]+BreadcrumbList, title = custom metaTitle, console clean ✓
+- Admin: Landing Pages module → editor 7 tabs verified (Content/Products/FAQ/SEO/GEO/AI-LLM/Advanced), Auto-Generate Schema produces valid 4.2KB JSON-LD ✓; sticky mobile CTA doesn't clash with WhatsApp float ✓
+- Mobile 375px: hero object-fit:contain + 12px padding (NO crop), VLM-verified full image visible, no horizontal scroll ✓
+
+Stage Summary:
+- Landing Page Builder 100% functional end-to-end; owner can now create unlimited marketing pages with full SEO/GEO/AI-SEO from admin — zero code changes needed
+- Demo page live at #/lp/diwali-gifting (also in sitemap)
+
+---
+Task ID: 11-c
+Agent: lead (Z.ai Code main)
+Task: Live-sync execution + full QA + wrap-up
+
+Work Log:
+- Pulled user's REAL live content into local dev via the new Backup & Sync admin UI (browser click-through) AND via `bun scripts/sync-from-live.ts` CLI (both paths proven): 29 settings, 15 categories (user added 5 live), 22 products/25 images, 6 blogs, 5 pages, 14 FAQs, 6 homepage sections, 3 leads, 21 media assets + 21 image FILES downloaded from live (0 failed), 5.4s CLI runtime, idempotent re-run ✓
+- Discovered live brand changed to "Artistic by Khushiii" (title synced correctly); siteUrl still empty on live (owner action item remains)
+- Homepage post-sync: 44 headings/24 imgs/0 broken, desktop + mobile 375px verified; hero contain+padding (no crop) VLM-verified
+- HomepageManager "Image (Mobile)" field browser-verified present in hero section editor
+- Categories after sync: 17 (15 live + 2 stale local-only from renames — upsert-never-deletes by design, safe)
+- Lint 0 problems, dev.log clean, /api/health ok
+- Commit: all Task 11 changes (backup/sync system, landing builder, migrations, mobile UI) + live media files
+
+Stage Summary:
+- USER'S "EASY SOLUTION" DELIVERED: (1) deploys NEVER overwrite live Turso data (seed only on empty DB — existing guarantee), (2) new code auto-adds required columns/tables to live DB on deploy (migrateSchema + netlify-init), (3) one-click Backup Download / Restore / Pull-from-Live in admin (Backup & Sync module), (4) CLI `bun scripts/sync-from-live.ts` for dev mirroring, (5) Landing Page Builder = new pages without code changes
+- Owner workflow from now: edit on live admin → (optional) Download Backup for safety → git push new features → live data stays intact & auto-migrates
+- Open items: owner should set siteUrl in live settings (sitemap absolute URLs), change admin password (still default), LandingManager "landing" quick-add not in global Add menu (minor), 2 stale local categories from live renames (cosmetic, dev-only)

@@ -264,6 +264,106 @@ export async function uniquePageSlug(base: string, excludeId?: string): Promise<
   }
 }
 
+// ---------------- landing pages ----------------
+
+const LANDING_TEXT_FIELDS = [
+  "headline", "subheadline", "heroImageUrl", "heroMobileImageUrl",
+  "customHtml", "customCss", "customJs", "schemaJson",
+  "metaTitle", "metaDescription", "focusKeyword", "secondaryKeywords",
+  "canonicalUrl", "ogTitle", "ogDescription", "ogImageUrl",
+  "geoRegion", "geoPlacename", "geoPosition", "targetLocations",
+  "llmSummary", "llmKeywords", "ctaText", "ctaUrl",
+] as const;
+
+export type LandingFields = Record<string, string | number | boolean>;
+
+/**
+ * Coerces a JSON-array-of-objects field (e.g. faqsJson) into a validated,
+ * normalized JSON string. Returns null when invalid.
+ * `validateItem` optionally checks each array entry and returns an error reason.
+ */
+export function toJsonArrayOfObjects(
+  v: unknown,
+  validateItem?: (item: Record<string, unknown>, i: number) => string | null,
+): string | null {
+  let parsed: unknown;
+  if (typeof v === "string") {
+    const s = v.trim();
+    if (s === "") return "[]";
+    try {
+      parsed = JSON.parse(s);
+    } catch {
+      return null;
+    }
+  } else {
+    parsed = v;
+  }
+  if (parsed == null) return "[]";
+  if (!Array.isArray(parsed)) return null;
+  if (validateItem) {
+    for (let i = 0; i < parsed.length; i++) {
+      const item = parsed[i];
+      if (!item || typeof item !== "object" || Array.isArray(item)) {
+        return null;
+      }
+      const err = validateItem(item as Record<string, unknown>, i);
+      if (err) return null;
+    }
+  }
+  return JSON.stringify(parsed);
+}
+
+export function parseLandingFields(body: Record<string, unknown>): Parsed<LandingFields> {
+  const fields: LandingFields = {};
+  if (has(body, "title")) {
+    const title = str(body.title);
+    if (!title) return { ok: false, error: "Landing title is required." };
+    fields.title = title;
+  }
+  for (const key of LANDING_TEXT_FIELDS) {
+    if (has(body, key)) fields[key] = str(body[key]);
+  }
+  // Rich body — sanitized like homepage/product bodies (custom* stay raw, power-user fields).
+  if (has(body, "bodyHtml")) fields.bodyHtml = sanitizeHtml(str(body.bodyHtml));
+  if (has(body, "noindex")) fields.noindex = bool(body.noindex, false);
+  if (has(body, "published")) fields.published = bool(body.published, false);
+  if (has(body, "displayOrder")) fields.displayOrder = int(body.displayOrder, 0);
+  if (has(body, "faqsJson")) {
+    const arr = toJsonArrayOfObjects(body.faqsJson, (item) => {
+      const question = str(item.question);
+      const answer = str(item.answer);
+      if (!question || !answer) return "question and answer are required";
+      return null;
+    });
+    if (arr === null) return { ok: false, error: "faqsJson must be a JSON array of {question, answer} objects." };
+    fields.faqsJson = arr;
+  }
+  if (has(body, "productIds")) {
+    const arr = toJsonArrayString(body.productIds);
+    if (arr === null) return { ok: false, error: "productIds must be a JSON array of product ids." };
+    fields.productIds = arr;
+  }
+  if (has(body, "categoryIds")) {
+    const arr = toJsonArrayString(body.categoryIds);
+    if (arr === null) return { ok: false, error: "categoryIds must be a JSON array of category ids." };
+    fields.categoryIds = arr;
+  }
+  return { ok: true, fields };
+}
+
+export async function uniqueLandingSlug(base: string, excludeId?: string): Promise<string> {
+  const root = slugify(base);
+  let candidate = root;
+  let n = 2;
+  while (true) {
+    const existing = await db.landingPage.findUnique({ where: { slug: candidate } });
+    if (!existing || existing.id === excludeId) return candidate;
+    candidate = `${root}-${n}`;
+    n += 1;
+    if (n > 200) return `${root}-${Date.now()}`;
+  }
+}
+
 // ---------------- faqs ----------------
 
 export type FaqFields = Record<string, string | number | boolean | null>;

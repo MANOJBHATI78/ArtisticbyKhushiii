@@ -6,6 +6,7 @@ import type {
   HomeData,
   PublicCategory,
   PublicBlogPost,
+  PublicLandingPage,
   PublicPage,
   PublicProduct,
   SearchResults,
@@ -29,6 +30,7 @@ export const qk = {
   blog: (slug: string) => ["blog", slug] as const,
   blogCategories: ["blogCategories"] as const,
   page: (slug: string) => ["page", slug] as const,
+  landing: (slug: string) => ["landing", slug] as const,
   faqs: ["faqs"] as const,
   search: (q: string) => ["search", q] as const,
 };
@@ -117,6 +119,16 @@ export function usePage(slug: string) {
     queryFn: () => api.get(`/api/public/pages/${slug}`),
     enabled: !!slug,
     retry: false,
+  });
+}
+
+export function useLandingPage(slug: string) {
+  return useQuery<PublicLandingPage>({
+    queryKey: qk.landing(slug),
+    queryFn: () => api.get<PublicLandingPage>(`/api/public/landing/${slug}`),
+    enabled: !!slug,
+    retry: false,
+    staleTime: 1000 * 60 * 2,
   });
 }
 

@@ -107,9 +107,40 @@ async function tableExists(name) {
 }
 
 async function ensureSchema() {
+  // Always run column migrations first — existing databases created by older
+  // code need new columns/tables (never touches existing data).
+  const migrations = [
+    ["HomepageSection", { mobileImageUrl: "TEXT NOT NULL DEFAULT ''" }],
+    ["Category", { mobileImageUrl: "TEXT NOT NULL DEFAULT ''" }],
+  ];
+  for (const [table, cols] of migrations) {
+    if (!(await tableExists(table))) continue;
+    const info = await dest.execute(`PRAGMA table_info("${table}");`);
+    const existing = new Set(info.rows.map((r) => String(r.name)).filter(Boolean));
+    for (const [col, ddl] of Object.entries(cols)) {
+      if (!existing.has(col)) {
+        await dest.execute(`ALTER TABLE "${table}" ADD COLUMN "${col}" ${ddl};`);
+        console.log(`[netlify-init] Migrated ${table}: added ${col}.`);
+      }
+    }
+  }
+
   const hasAdmin = await tableExists("AdminUser");
   if (hasAdmin) {
-    console.log("[netlify-init] Tables already exist — skipping DDL.");
+    // New tables must still be created on existing databases (IF NOT EXISTS).
+    const ddlAll = await readFile(path.join(ROOT, "scripts/schema.sql"), "utf8");
+    const createStatements = ddlAll
+      .split("\n")
+      .filter((l) => !l.trim().startsWith("--"))
+      .join("\n")
+      .split(";")
+      .map((s) => s.trim())
+      .filter((s) => /^CREATE (TABLE|UNIQUE INDEX)/i.test(s))
+      .map((s) => s.replace(/^CREATE TABLE/i, "CREATE TABLE IF NOT EXISTS").replace(/^CREATE UNIQUE INDEX/i, "CREATE UNIQUE INDEX IF NOT EXISTS"));
+    for (const stmt of createStatements) {
+      if (stmt) await dest.execute(stmt + ";").catch(() => {});
+    }
+    console.log("[netlify-init] Tables already exist — new tables ensured, skipping full DDL.");
     return;
   }
   const ddl = await readFile(path.join(ROOT, "scripts/schema.sql"), "utf8");

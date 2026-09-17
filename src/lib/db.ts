@@ -142,9 +142,89 @@ function resolveTarget(): DbTarget {
   };
 }
 
+// ---------------- schema migrations (idempotent, always run) ----------------
+
+/**
+ * Column/table additions for databases created by OLDER code (e.g. the live
+ * Turso DB). Runs on every cold start BEFORE the seed check, so an existing
+ * populated database gains new tables/columns without touching any data.
+ */
+const COLUMN_MIGRATIONS: Record<string, Record<string, string>> = {
+  HomepageSection: { mobileImageUrl: "TEXT NOT NULL DEFAULT ''" },
+  Category: { mobileImageUrl: "TEXT NOT NULL DEFAULT ''" },
+};
+
+const TABLE_MIGRATIONS: string[] = [
+  `CREATE TABLE IF NOT EXISTS "LandingPage" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "slug" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "headline" TEXT NOT NULL DEFAULT '',
+    "subheadline" TEXT NOT NULL DEFAULT '',
+    "heroImageUrl" TEXT NOT NULL DEFAULT '',
+    "heroMobileImageUrl" TEXT NOT NULL DEFAULT '',
+    "bodyHtml" TEXT NOT NULL DEFAULT '',
+    "customHtml" TEXT NOT NULL DEFAULT '',
+    "customCss" TEXT NOT NULL DEFAULT '',
+    "customJs" TEXT NOT NULL DEFAULT '',
+    "schemaJson" TEXT NOT NULL DEFAULT '',
+    "faqsJson" TEXT NOT NULL DEFAULT '[]',
+    "productIds" TEXT NOT NULL DEFAULT '[]',
+    "categoryIds" TEXT NOT NULL DEFAULT '[]',
+    "metaTitle" TEXT NOT NULL DEFAULT '',
+    "metaDescription" TEXT NOT NULL DEFAULT '',
+    "focusKeyword" TEXT NOT NULL DEFAULT '',
+    "secondaryKeywords" TEXT NOT NULL DEFAULT '',
+    "canonicalUrl" TEXT NOT NULL DEFAULT '',
+    "ogTitle" TEXT NOT NULL DEFAULT '',
+    "ogDescription" TEXT NOT NULL DEFAULT '',
+    "ogImageUrl" TEXT NOT NULL DEFAULT '',
+    "geoRegion" TEXT NOT NULL DEFAULT '',
+    "geoPlacename" TEXT NOT NULL DEFAULT '',
+    "geoPosition" TEXT NOT NULL DEFAULT '',
+    "targetLocations" TEXT NOT NULL DEFAULT '',
+    "llmSummary" TEXT NOT NULL DEFAULT '',
+    "llmKeywords" TEXT NOT NULL DEFAULT '',
+    "ctaText" TEXT NOT NULL DEFAULT '',
+    "ctaUrl" TEXT NOT NULL DEFAULT '',
+    "noindex" BOOLEAN NOT NULL DEFAULT false,
+    "published" BOOLEAN NOT NULL DEFAULT false,
+    "displayOrder" INTEGER NOT NULL DEFAULT 0,
+    "views" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+  );`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "LandingPage_slug_key" ON "LandingPage"("slug");`,
+];
+
+async function migrateSchema(client: Client): Promise<void> {
+  try {
+    for (const [table, columns] of Object.entries(COLUMN_MIGRATIONS)) {
+      const info = await client.execute(`PRAGMA table_info("${table}");`);
+      if (info.rows.length === 0) continue; // table will be created by the DDL below
+      const existing = new Set(info.rows.map((r) => String((r as { name?: unknown }).name ?? "")));
+      for (const [column, ddl] of Object.entries(columns)) {
+        if (!existing.has(column)) {
+          await client.execute(`ALTER TABLE "${table}" ADD COLUMN "${column}" ${ddl};`);
+          console.log(`[db] Migrated ${table}: added column ${column}.`);
+        }
+      }
+    }
+    for (const ddl of TABLE_MIGRATIONS) {
+      await client.execute(ddl);
+    }
+  } catch (e) {
+    // Migration is best-effort: a failure here should never take the site down.
+    console.warn("[db] Schema migration skipped:", e instanceof Error ? e.message : e);
+  }
+}
+
 // ---------------- snapshot bootstrap ----------------
 
 async function runSnapshotInit(client: Client): Promise<boolean> {
+  // 0. Upgrade older databases (new columns/tables) — never touches data.
+  await migrateSchema(client);
+
   // 1. Do we already have content?
   const check = await client.execute(
     "SELECT name FROM sqlite_master WHERE type='table' AND name='AdminUser';",

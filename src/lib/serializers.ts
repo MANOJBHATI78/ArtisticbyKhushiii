@@ -5,7 +5,9 @@
 // ============================================================
 
 import type {
+  AdminLandingPage,
   Faq,
+  LandingFaqItem,
   Lead,
   MediaAsset,
   PublicBlogPost,
@@ -247,6 +249,52 @@ export function toPublicPage(p: {
     seoTitle: p.seoTitle,
     metaDescription: p.metaDescription,
   };
+}
+
+// ---------------- landing pages ----------------
+
+type PrismaLandingPage = Omit<AdminLandingPage, "createdAt" | "updatedAt"> & {
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+/** Serialize a LandingPage row → AdminLandingPage (string dates). */
+export function toLanding(l: PrismaLandingPage): AdminLandingPage {
+  return {
+    ...l,
+    createdAt: l.createdAt.toISOString(),
+    updatedAt: l.updatedAt.toISOString(),
+  };
+}
+
+/** faqsJson → validated [{question, answer}] (bad entries dropped). */
+export function parseLandingFaqs(raw: string): LandingFaqItem[] {
+  try {
+    const parsed = JSON.parse(raw || "[]");
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((f): f is Record<string, unknown> => !!f && typeof f === "object" && !Array.isArray(f))
+      .map((f) => ({ question: String(f.question ?? "").trim(), answer: String(f.answer ?? "").trim() }))
+      .filter((f) => f.question && f.answer);
+  } catch {
+    return [];
+  }
+}
+
+/** productIds / categoryIds JSON string → string[] (deduped, order preserved). */
+export function parseIdList(raw: string): string[] {
+  try {
+    const parsed = JSON.parse(raw || "[]");
+    if (!Array.isArray(parsed)) return [];
+    const ids: string[] = [];
+    for (const v of parsed) {
+      const id = typeof v === "string" ? v.trim() : "";
+      if (id && !ids.includes(id)) ids.push(id);
+    }
+    return ids;
+  } catch {
+    return [];
+  }
 }
 
 /** Serialize a Faq row → Faq. */

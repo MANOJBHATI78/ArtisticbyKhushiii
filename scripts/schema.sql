@@ -27,6 +27,7 @@ CREATE TABLE "Category" (
     "shortDescription" TEXT NOT NULL DEFAULT '',
     "longDescription" TEXT NOT NULL DEFAULT '',
     "imageUrl" TEXT NOT NULL DEFAULT '',
+    "mobileImageUrl" TEXT NOT NULL DEFAULT '',
     "imageAlt" TEXT NOT NULL DEFAULT '',
     "introContent" TEXT NOT NULL DEFAULT '',
     "bottomContent" TEXT NOT NULL DEFAULT '',
@@ -214,6 +215,7 @@ CREATE TABLE "HomepageSection" (
     "subheading" TEXT NOT NULL DEFAULT '',
     "body" TEXT NOT NULL DEFAULT '',
     "imageUrl" TEXT NOT NULL DEFAULT '',
+    "mobileImageUrl" TEXT NOT NULL DEFAULT '',
     "ctaText" TEXT NOT NULL DEFAULT '',
     "ctaUrl" TEXT NOT NULL DEFAULT '',
     "ctaText2" TEXT NOT NULL DEFAULT '',
@@ -221,6 +223,47 @@ CREATE TABLE "HomepageSection" (
     "itemsJson" TEXT NOT NULL DEFAULT '[]',
     "visible" BOOLEAN NOT NULL DEFAULT true,
     "displayOrder" INTEGER NOT NULL DEFAULT 0,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "LandingPage" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "slug" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "headline" TEXT NOT NULL DEFAULT '',
+    "subheadline" TEXT NOT NULL DEFAULT '',
+    "heroImageUrl" TEXT NOT NULL DEFAULT '',
+    "heroMobileImageUrl" TEXT NOT NULL DEFAULT '',
+    "bodyHtml" TEXT NOT NULL DEFAULT '',
+    "customHtml" TEXT NOT NULL DEFAULT '',
+    "customCss" TEXT NOT NULL DEFAULT '',
+    "customJs" TEXT NOT NULL DEFAULT '',
+    "schemaJson" TEXT NOT NULL DEFAULT '',
+    "faqsJson" TEXT NOT NULL DEFAULT '[]',
+    "productIds" TEXT NOT NULL DEFAULT '[]',
+    "categoryIds" TEXT NOT NULL DEFAULT '[]',
+    "metaTitle" TEXT NOT NULL DEFAULT '',
+    "metaDescription" TEXT NOT NULL DEFAULT '',
+    "focusKeyword" TEXT NOT NULL DEFAULT '',
+    "secondaryKeywords" TEXT NOT NULL DEFAULT '',
+    "canonicalUrl" TEXT NOT NULL DEFAULT '',
+    "ogTitle" TEXT NOT NULL DEFAULT '',
+    "ogDescription" TEXT NOT NULL DEFAULT '',
+    "ogImageUrl" TEXT NOT NULL DEFAULT '',
+    "geoRegion" TEXT NOT NULL DEFAULT '',
+    "geoPlacename" TEXT NOT NULL DEFAULT '',
+    "geoPosition" TEXT NOT NULL DEFAULT '',
+    "targetLocations" TEXT NOT NULL DEFAULT '',
+    "llmSummary" TEXT NOT NULL DEFAULT '',
+    "llmKeywords" TEXT NOT NULL DEFAULT '',
+    "ctaText" TEXT NOT NULL DEFAULT '',
+    "ctaUrl" TEXT NOT NULL DEFAULT '',
+    "noindex" BOOLEAN NOT NULL DEFAULT false,
+    "published" BOOLEAN NOT NULL DEFAULT false,
+    "displayOrder" INTEGER NOT NULL DEFAULT 0,
+    "views" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );
 
@@ -259,6 +302,7 @@ CREATE UNIQUE INDEX "SiteSetting_key_key" ON "SiteSetting"("key");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "HomepageSection_sectionKey_key" ON "HomepageSection"("sectionKey");
+CREATE UNIQUE INDEX "LandingPage_slug_key" ON "LandingPage"("slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "MediaBlob_filename_chunkIndex_key" ON "MediaBlob"("filename", "chunkIndex");

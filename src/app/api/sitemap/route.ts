@@ -18,11 +18,12 @@ export async function GET() {
     const settings = await getSettings();
     const base = (settings.siteUrl || "").trim().replace(/\/+$/, "");
 
-    const [categories, products, blogs, pages] = await Promise.all([
+    const [categories, products, blogs, pages, landings] = await Promise.all([
       db.category.findMany({ where: { published: true }, select: { slug: true, updatedAt: true } }),
       db.product.findMany({ where: { published: true }, select: { slug: true, updatedAt: true } }),
       db.blogPost.findMany({ where: visiblePostWhere(), select: { slug: true, updatedAt: true } }),
       db.page.findMany({ where: { published: true }, select: { slug: true, updatedAt: true } }),
+      db.landingPage.findMany({ where: { published: true, noindex: false }, select: { slug: true, updatedAt: true } }),
     ]);
 
     type Entry = { loc: string; lastmod?: Date };
@@ -40,6 +41,7 @@ export async function GET() {
     for (const p of products) entries.push({ loc: `${base}/product/${p.slug}`, lastmod: p.updatedAt });
     for (const b of blogs) entries.push({ loc: `${base}/blog/${b.slug}`, lastmod: b.updatedAt });
     for (const p of pages) entries.push({ loc: `${base}/page/${p.slug}`, lastmod: p.updatedAt });
+    for (const l of landings) entries.push({ loc: `${base}/lp/${l.slug}`, lastmod: l.updatedAt });
 
     const xml =
       `<?xml version="1.0" encoding="UTF-8"?>\n` +

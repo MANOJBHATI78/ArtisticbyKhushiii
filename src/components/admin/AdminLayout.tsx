@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
   ChevronDown,
+  DatabaseBackup,
   ExternalLink,
   FileText,
   FolderTree,
@@ -27,6 +28,7 @@ import {
   LayoutDashboard,
   LayoutTemplate,
   LogOut,
+  Megaphone,
   Menu,
   MoreHorizontal,
   Newspaper,
@@ -56,6 +58,8 @@ const NAV: { key: AdminModuleKey; label: string; icon: typeof LayoutDashboard }[
   { key: "leads", label: "Leads", icon: Inbox },
   { key: "media", label: "Media Library", icon: Image },
   { key: "homepage", label: "Homepage Sections", icon: LayoutTemplate },
+  { key: "landing", label: "Landing Pages", icon: Megaphone },
+  { key: "backup", label: "Backup & Sync", icon: DatabaseBackup },
   { key: "settings", label: "Site Settings", icon: SettingsIcon },
 ];
 
@@ -69,6 +73,8 @@ const TITLES: Record<AdminModuleKey, string> = {
   leads: "Leads",
   media: "Media Library",
   homepage: "Homepage Sections",
+  landing: "Landing Pages",
+  backup: "Backup & Sync",
   settings: "Site Settings",
 };
 

@@ -17,6 +17,8 @@ import { FaqsManager } from "./FaqsManager";
 import { LeadsManager } from "./LeadsManager";
 import { MediaLibrary } from "./MediaLibrary";
 import { HomepageManager } from "./HomepageManager";
+import { LandingManager } from "./LandingManager";
+import { BackupManager } from "./BackupManager";
 import { SettingsManager } from "./SettingsManager";
 import type { AdminModuleKey } from "./admin-utils";
 
@@ -54,7 +56,7 @@ function AdminGate() {
   const [module, setModule] = useState<AdminModuleKey>(() => {
     if (typeof window === "undefined") return "dashboard";
     const saved = window.sessionStorage.getItem("abk_admin_module");
-    const keys: AdminModuleKey[] = ["dashboard", "products", "categories", "blogs", "pages", "faqs", "leads", "media", "homepage", "settings"];
+    const keys: AdminModuleKey[] = ["dashboard", "products", "categories", "blogs", "pages", "faqs", "leads", "media", "homepage", "landing", "backup", "settings"];
     return keys.includes(saved as AdminModuleKey) ? (saved as AdminModuleKey) : "dashboard";
   });
   const [jump, setJump] = useState<JumpSignal | undefined>();
@@ -154,6 +156,10 @@ function AdminGate() {
 
       {module === "media" ? <MediaLibrary /> : null}
       {module === "homepage" ? <HomepageManager /> : null}
+      {module === "landing" ? (
+        <LandingManager key={`landing|c${createSig?.module === "landing" ? createSig.n : 0}`} createSignal={createSig?.module === "landing" ? createSig.n : 0} />
+      ) : null}
+      {module === "backup" ? <BackupManager /> : null}
       {module === "settings" ? <SettingsManager /> : null}
     </AdminLayout>
   );

@@ -24,6 +24,8 @@ export type AdminModuleKey =
   | "leads"
   | "media"
   | "homepage"
+  | "landing"
+  | "backup"
   | "settings";
 
 /** Extracts a human readable message from an error (ApiError or anything). */
