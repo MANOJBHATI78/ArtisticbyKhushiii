@@ -301,3 +301,34 @@
   border-radius: 1px;
   box-shadow: 0 0 0 3px var(--gold-soft);
 }
+
+/* ---------- Print (product pages → clean quote sheets) ---------- */
+@media print {
+  /* Hide chrome: header, footer, floating buttons, CTAs, sticky bars. */
+  header,
+  footer,
+  [data-print="hide"],
+  .print-hide {
+    display: none !important;
+  }
+  /* Neutral palette + full-width text on white. */
+  body {
+    background: #fff !important;
+    color: #1c1917 !important;
+  }
+  main {
+    padding-top: 0 !important;
+  }
+  a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+  /* Keep product imagery crisp, never split across pages. */
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+  section {
+    page-break-inside: avoid;
+  }
+}

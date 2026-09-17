@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
-import { Link2, ListTree, MessageCircle } from "lucide-react";
+import { ListTree } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/site/container";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
@@ -14,13 +14,13 @@ import { EmptyState, ErrorState } from "@/components/site/empty-state";
 import { SectionHeading } from "@/components/site/section-heading";
 import { FadeIn } from "@/components/site/fade-in";
 import { ReadingProgress } from "@/components/site/reading-progress";
+import { ShareRow } from "@/components/site/share-row";
 import { siteOrigin } from "@/components/site/seo-helpers";
 import { useBlog } from "@/lib/queries";
 import { ApiError } from "@/lib/api-client";
 import { navigate } from "@/lib/router";
 import { splitList } from "@/lib/types";
 import { useSeo } from "@/lib/seo";
-import { useToast } from "@/hooks/use-toast";
 
 interface TocItem {
   id: string;
@@ -65,7 +65,6 @@ function processHeadings(html: string): { html: string; toc: TocItem[] } {
 
 export default function BlogPostView({ slug }: { slug: string }) {
   const { data, isLoading, isError, error, refetch } = useBlog(slug);
-  const { toast } = useToast();
   const origin = siteOrigin();
   const [showTocMobile, setShowTocMobile] = useState(false);
   const is404 = error instanceof ApiError && error.status === 404;
@@ -154,23 +153,10 @@ export default function BlogPostView({ slug }: { slug: string }) {
     .slice(0, 2)
     .toUpperCase();
 
-  const postUrl = `${window.location.origin}/blog/${post.slug}`;
-
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
     setShowTocMobile(false);
   };
-
-  const copyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(postUrl);
-      toast({ title: "Link copied", description: "Share this story with a fellow art lover." });
-    } catch {
-      toast({ title: "Couldn't copy", description: postUrl, duration: 8000 });
-    }
-  };
-
-  const shareHref = `https://wa.me/?text=${encodeURIComponent(`${post.title} — ${postUrl}`)}`;
 
   return (
     <>
@@ -276,16 +262,14 @@ export default function BlogPostView({ slug }: { slug: string }) {
 
             <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-border pt-6">
               <span className="text-sm font-medium text-foreground">Share this story:</span>
-              <Button variant="outline" className="h-11 text-[#128C7E] hover:bg-[#25D366]/10" asChild>
-                <a href={shareHref} target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp">
-                  <MessageCircle aria-hidden="true" />
-                  WhatsApp
-                </a>
-              </Button>
-              <Button variant="outline" className="h-11" onClick={copyLink}>
-                <Link2 aria-hidden="true" />
-                Copy link
-              </Button>
+              <ShareRow
+                url={`/blog/${post.slug}`}
+                title={post.title}
+                message={`A lovely read from Artistic by Khushi: "${post.title}"`}
+                image={post.coverImage?.startsWith("http") ? post.coverImage : `${window.location.origin}${post.coverImage}`}
+                context="blog"
+                label={null}
+              />
             </div>
           </div>
         </div>

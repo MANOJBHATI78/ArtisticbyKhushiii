@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Link2, MessageCircle, Phone, Wand2 } from "lucide-react";
+import { CheckCircle2, MessageCircle, MousePointer2, Phone, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Container } from "@/components/site/container";
@@ -15,6 +15,7 @@ import { ProductDetailSkeleton } from "@/components/site/skeletons";
 import { SectionHeading } from "@/components/site/section-heading";
 import { FadeIn } from "@/components/site/fade-in";
 import { Lightbox, ZoomHint, type LightboxImage } from "@/components/site/lightbox";
+import { ShareRow } from "@/components/site/share-row";
 import { WishlistButton } from "@/components/site/wishlist-button";
 import { ProductStickyCta } from "@/components/site/product-sticky-cta";
 import { ProductTestimonials, useProductTestimonials } from "@/components/site/product-testimonials";
@@ -26,7 +27,6 @@ import { useSiteStore, whatsappLink } from "@/lib/store";
 import { splitList } from "@/lib/types";
 import { trackCallClick, trackWhatsAppClick } from "@/lib/track";
 import { useSeo } from "@/lib/seo";
-import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 export default function ProductView({ slug }: { slug: string }) {
@@ -34,9 +34,11 @@ export default function ProductView({ slug }: { slug: string }) {
   const settings = useSiteStore((s) => s.settings);
   const openInquiry = useSiteStore((s) => s.openInquiry);
   const trackRecent = useSiteStore((s) => s.trackRecent);
-  const { toast } = useToast();
   const [activeImage, setActiveImage] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  // Hover magnifier (desktop only): 2× zoom that follows the cursor.
+  const [zoomed, setZoomed] = useState(false);
+  const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
   const origin = siteOrigin();
 
   const product = data?.product;
@@ -142,16 +144,6 @@ export default function ProductView({ slug }: { slug: string }) {
     { label: "SKU", value: product.sku },
   ].filter((row) => row.value);
 
-  const copyLink = async () => {
-    const url = `${window.location.origin}${productUrl}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      toast({ title: "Link copied", description: "Share this handcrafted piece with someone you love." });
-    } catch {
-      toast({ title: "Couldn't copy", description: url, duration: 8000 });
-    }
-  };
-
   const phoneHref = `tel:${settings.phone.replace(/\s/g, "")}`;
 
   return (
@@ -174,18 +166,42 @@ export default function ProductView({ slug }: { slug: string }) {
                 onClick={() => setLightboxOpen(true)}
                 aria-label="Open image in full-screen viewer"
                 className="block w-full cursor-zoom-in focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-gold"
+                onPointerEnter={(e) => {
+                  if (e.pointerType === "mouse") setZoomed(true);
+                }}
+                onPointerLeave={(e) => {
+                  if (e.pointerType === "mouse") setZoomed(false);
+                }}
+                onPointerMove={(e) => {
+                  if (e.pointerType !== "mouse") return;
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = ((e.clientX - rect.left) / rect.width) * 100;
+                  const y = ((e.clientY - rect.top) / rect.height) * 100;
+                  setZoomOrigin({
+                    x: Math.min(100, Math.max(0, x)),
+                    y: Math.min(100, Math.max(0, y)),
+                  });
+                }}
               >
                 <div className="aspect-square overflow-hidden bg-secondary max-sm:p-4">
                   <Img
                     src={current?.url || product.featuredImageUrl}
                     alt={current?.alt || product.featuredImageAlt || product.name}
                     eager
-                    className="size-full object-cover transition-transform duration-500 ease-out motion-safe:group-hover:scale-[1.04] max-sm:object-contain max-sm:transition-none"
+                    style={{
+                      transform: zoomed ? "scale(2)" : undefined,
+                      transformOrigin: `${zoomOrigin.x}% ${zoomOrigin.y}%`,
+                    }}
+                    className="size-full object-cover transition-transform duration-200 ease-out max-sm:object-contain max-sm:transition-none"
                   />
                 </div>
                 <ZoomHint />
               </button>
             </div>
+            <p className="mt-2 hidden items-center gap-1.5 text-xs text-muted-foreground [@media(hover:hover)_and_(pointer:fine)]:flex">
+              <MousePointer2 className="size-3.5" aria-hidden="true" />
+              Hover to magnify · click for full screen
+            </p>
             {gallery.length > 1 ? (
               <div className="mt-3 flex gap-3 overflow-x-auto pb-1 custom-scroll" role="group" aria-label="Product images">
                 {gallery.map((image, i) => (
@@ -274,16 +290,16 @@ export default function ProductView({ slug }: { slug: string }) {
               </Button>
             </div>
 
-            <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+            <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
               <WishlistButton slug={product.slug} name={product.name} variant="inline" />
-              <button
-                type="button"
-                onClick={copyLink}
-                className="inline-flex min-h-11 items-center gap-2 rounded-full px-2 font-medium text-primary transition-colors hover:text-terracotta-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
-              >
-                <Link2 className="size-4" aria-hidden="true" />
-                Copy link
-              </button>
+              <ShareRow
+                url={productUrl}
+                title={`${product.name} — Artistic by Khushi`}
+                message={`Look at this handcrafted ${product.name} 👀`}
+                image={product.featuredImageUrl?.startsWith("http") ? product.featuredImageUrl : `${origin}${product.featuredImageUrl}`}
+                context="product"
+                label={null}
+              />
             </div>
             <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
               <span>Made to order in {settings.city}, {settings.state}</span>

@@ -26,7 +26,7 @@ export function ProductStickyCta({ product }: ProductStickyCtaProps) {
       <div className="h-20 sm:hidden" aria-hidden="true" />
 
       <div
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-gold/30 bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur supports-[backdrop-filter]:bg-card/85 sm:hidden"
+        className="print-hide fixed inset-x-0 bottom-0 z-40 border-t border-gold/30 bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur supports-[backdrop-filter]:bg-card/85 sm:hidden"
         role="complementary"
         aria-label="Quick actions"
       >

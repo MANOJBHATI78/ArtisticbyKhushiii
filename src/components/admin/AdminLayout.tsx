@@ -114,6 +114,7 @@ export function AdminLayout({
   const { toast } = useToast();
   const { data: stats } = useAdminDashboard();
   const newLeads = stats?.newLeads ?? 0;
+  const pendingReviews = stats?.pendingReviews ?? 0;
 
   function navigate(module: AdminModuleKey) {
     onNavigate(module);
@@ -140,7 +141,12 @@ export function AdminLayout({
       {NAV.map((item) => {
         const Icon = item.icon;
         const isActive = active === item.key;
-        const badge = item.key === "leads" && newLeads > 0 ? newLeads : null;
+        const badge =
+          item.key === "leads" && newLeads > 0
+            ? { count: newLeads, label: "NEW", cls: "bg-gold-soft text-espresso border-gold/40" }
+            : item.key === "testimonials" && pendingReviews > 0
+              ? { count: pendingReviews, label: "PENDING", cls: "bg-terracotta/15 text-terracotta-deep border-terracotta/40" }
+              : null;
         return (
           <button
             key={item.key}
@@ -148,7 +154,7 @@ export function AdminLayout({
             onClick={() => navigate(item.key)}
             aria-current={isActive ? "page" : undefined}
             title={collapsed && !opts.compact ? item.label : undefined}
-            className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+            className={`group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
               isActive
                 ? "bg-primary/10 text-primary font-medium"
                 : "text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -159,13 +165,13 @@ export function AdminLayout({
               <>
                 <span className="truncate">{item.label}</span>
                 {badge ? (
-                  <Badge className="ml-auto h-5 px-1.5 text-[11px] bg-gold-soft text-espresso border border-gold/40 font-semibold">
-                    {badge} NEW
+                  <Badge className={`ml-auto h-5 px-1.5 text-[11px] font-semibold ${badge.cls}`}>
+                    {badge.count} {badge.label}
                   </Badge>
                 ) : null}
               </>
             ) : badge ? (
-              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-gold" />
+              <span className={`absolute right-2 top-2 h-2 w-2 rounded-full ${item.key === "testimonials" ? "bg-terracotta" : "bg-gold"}`} />
             ) : null}
           </button>
         );
@@ -359,6 +365,13 @@ export function AdminLayout({
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => onQuickAdd("faqs")}>
                 <HelpCircle className="mr-2 h-4 w-4" /> FAQ
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onQuickAdd("testimonials")}>
+                <MessageSquareQuote className="mr-2 h-4 w-4" /> Testimonial
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => onQuickAdd("landing")}>
+                <Megaphone className="mr-2 h-4 w-4" /> Landing page
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

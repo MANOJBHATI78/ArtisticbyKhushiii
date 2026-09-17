@@ -39,7 +39,7 @@ export function BackToTop() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 16 }}
           transition={{ duration: 0.25, ease: "easeOut" }}
-          className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] left-5 z-50 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md transition-transform duration-200 hover:scale-105 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+          className="print-hide fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] left-5 z-50 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md transition-transform duration-200 hover:scale-105 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
         >
           <ArrowUp className="size-5" aria-hidden="true" />
         </motion.button>

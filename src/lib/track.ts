@@ -50,6 +50,14 @@ export function trackCallClick(location: ContactLocation): void {
   track("call_click", { location });
 }
 
+/** `share_click` — fired from every social share entry point. */
+export function trackShareClick(network: ShareNetwork, context: string): void {
+  track("share_click", { network, context });
+}
+
+/** Social networks offered by <ShareRow />. */
+export type ShareNetwork = "whatsapp" | "facebook" | "pinterest" | "x" | "copy";
+
 /** `inquiry_open` — fired when the global enquiry dialog opens. */
 export function trackInquiryOpen(context: string, productSlug?: string, category?: string): void {
   track("inquiry_open", {

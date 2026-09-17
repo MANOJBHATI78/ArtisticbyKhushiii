@@ -74,6 +74,7 @@ export function TestimonialsManager({ createSignal }: { createSignal?: number })
       .then(() => {
         toast({ title: "Review approved ♥", description: `${t.name}'s review is now live on the website.` });
         void qc.invalidateQueries({ queryKey: ["testimonials"] });
+        void qc.invalidateQueries({ queryKey: ["admin", "dashboard"] });
       })
       .catch((e) => {
         if (prev) qc.setQueryData(listKey, prev);
@@ -89,6 +90,7 @@ export function TestimonialsManager({ createSignal }: { createSignal?: number })
       .then(() => {
         toast({ title: !t.published ? "Testimonial visible" : "Testimonial hidden", description: t.name });
         void qc.invalidateQueries({ queryKey: ["testimonials"] });
+        void qc.invalidateQueries({ queryKey: ["admin", "dashboard"] });
       })
       .catch((e) => {
         if (prev) qc.setQueryData(listKey, prev);
@@ -121,6 +123,7 @@ export function TestimonialsManager({ createSignal }: { createSignal?: number })
         setToDelete(null);
         void qc.invalidateQueries({ queryKey: ["admin", "testimonials"] });
         void qc.invalidateQueries({ queryKey: ["testimonials"] });
+        void qc.invalidateQueries({ queryKey: ["admin", "dashboard"] });
       })
       .catch((e) => toast({ title: "Delete failed", description: errMsg(e), variant: "destructive" }))
       .finally(() => setDeleting(false));
@@ -389,6 +392,7 @@ function TestimonialFormDialog({ testimonial, onClose }: { testimonial: Testimon
       toast({ title: "Testimonial saved", description: name });
       void qc.invalidateQueries({ queryKey: ["admin", "testimonials"] });
       void qc.invalidateQueries({ queryKey: ["testimonials"] });
+      void qc.invalidateQueries({ queryKey: ["admin", "dashboard"] });
       onClose();
     } catch (e) {
       toast({ title: "Save failed", description: errMsg(e), variant: "destructive" });

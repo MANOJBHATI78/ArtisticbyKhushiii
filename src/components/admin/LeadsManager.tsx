@@ -31,6 +31,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useAdminDashboard, useAdminLeads } from "./useAdminData";
+import { useSettings } from "@/lib/queries";
 import { ConfirmDialog, EmptyState, LeadStatusBadge } from "./shared";
 import { buildCsv, downloadCsv, errMsg, fmtDate, leadStatusColor, timeAgo, useDebounced } from "./admin-utils";
 
@@ -420,7 +421,18 @@ function LeadDetailSheet({
 }) {
   const [notes, setNotes] = useState(lead.notes);
   const { toast } = useToast();
-  const whatsapp = lead.mobile ? `https://wa.me/${lead.mobile.replace(/\D/g, "")}` : "";
+  const { data: siteSettings } = useSettings();
+  const brand = siteSettings?.brandName || "Artistic by Khushi";
+
+  // Contextual WhatsApp follow-up — greets the customer by name and
+  // references the piece they asked about (editable before sending).
+  const firstName = lead.name.split(/\s+/)[0] || "there";
+  const followUpText = lead.product
+    ? `Hi ${firstName}! 👋 Thank you for your interest in "${lead.product}" from ${brand} 💛 I'd love to share more details, photos and customisation options — whenever you're ready!`
+    : `Hi ${firstName}! 👋 Thank you for reaching out to ${brand} 💛 I'd love to help you find (or create) the perfect handcrafted piece — whenever you're ready!`;
+  const whatsapp = lead.mobile
+    ? `https://wa.me/${lead.mobile.replace(/\D/g, "")}?text=${encodeURIComponent(followUpText)}`
+    : "";
   const cleanMobile = lead.mobile.replace(/\D/g, "");
 
   function copyMobile() {
@@ -463,6 +475,7 @@ function LeadDetailSheet({
               href={whatsapp}
               target="_blank"
               rel="noreferrer"
+              title="Opens WhatsApp with a pre-filled follow-up message"
               className="flex flex-col items-center gap-1 rounded-lg border p-3 text-xs font-medium text-green-700 hover:bg-secondary"
             >
               <MessageCircle className="h-5 w-5" style={{ width: 20, height: 20 }} /> WhatsApp
@@ -481,6 +494,9 @@ function LeadDetailSheet({
               <Copy className="h-5 w-5" style={{ width: 20, height: 20 }} /> Copy no.
             </button>
           </div>
+          <p className="-mt-1 text-[11px] text-muted-foreground">
+            WhatsApp opens with a ready-made follow-up message about this piece — you can edit it before sending.
+          </p>
 
           {/* status */}
           <div>

@@ -17,7 +17,7 @@ export function WhatsAppFloat() {
       rel="noopener noreferrer"
       aria-label="Chat with us on WhatsApp"
       onClick={() => trackWhatsAppClick("float")}
-      className="group fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-5 z-50 flex size-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_8px_24px_rgba(37,211,102,0.45)] transition-transform duration-300 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold motion-safe:animate-[float-soft_5s_ease-in-out_infinite]"
+      className="print-hide group fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-5 z-50 flex size-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_8px_24px_rgba(37,211,102,0.45)] transition-transform duration-300 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold motion-safe:animate-[float-soft_5s_ease-in-out_infinite]"
     >
       {/* Gentle expanding ring — subtle, ~2.8s loop, skipped for reduced motion. */}
       {!reducedMotion ? (

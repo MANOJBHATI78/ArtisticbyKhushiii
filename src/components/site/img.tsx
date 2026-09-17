@@ -1,7 +1,7 @@
  
 "use client";
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +9,8 @@ interface ImgProps {
   src?: string | null;
   alt: string;
   className?: string;
+  /** Inline styles (used by the product magnifier for transform-origin). */
+  style?: CSSProperties;
   /** Load eagerly (hero / above the fold). */
   eager?: boolean;
   fallbackIcon?: boolean;
@@ -18,7 +20,7 @@ interface ImgProps {
  * Lazy-loading <img> wrapper with graceful fallback while the
  * image pipeline is warming up or if an image is missing.
  */
-export function Img({ src, alt, className, eager = false, fallbackIcon = true }: ImgProps) {
+export function Img({ src, alt, className, style, eager = false, fallbackIcon = true }: ImgProps) {
   const [failed, setFailed] = useState(false);
 
   if (!src || failed) {
@@ -43,6 +45,7 @@ export function Img({ src, alt, className, eager = false, fallbackIcon = true }:
       loading={eager ? "eager" : "lazy"}
       decoding="async"
       className={className}
+      style={style}
       onError={() => setFailed(true)}
     />
   );

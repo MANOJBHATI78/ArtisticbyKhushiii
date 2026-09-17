@@ -17,11 +17,13 @@ import {
   HelpCircle,
   Image as ImageIcon,
   Inbox,
+  MessageSquareQuote,
   Newspaper,
   Package,
   Pencil,
   Phone,
   PieChart as PieChartIcon,
+  Sparkles,
   TrendingUp,
   Trophy,
 } from "lucide-react";
@@ -104,6 +106,45 @@ export function Dashboard({
 
   return (
     <div className="space-y-6">
+      {/* Needs attention — pending reviews / new enquiries */}
+      {stats.pendingReviews > 0 || stats.newLeads > 0 ? (
+        <div
+          role="status"
+          className="flex flex-col gap-3 rounded-xl border border-gold/40 bg-gradient-to-r from-gold-soft via-card to-card p-4 sm:flex-row sm:items-center"
+        >
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold/25 text-espresso">
+              <Sparkles className="h-4.5 w-4.5" style={{ width: 18, height: 18 }} aria-hidden />
+            </span>
+            <div>
+              <p className="text-sm font-semibold">Needs your attention</p>
+              <p className="text-xs text-muted-foreground">
+                {[
+                  stats.pendingReviews > 0
+                    ? `${stats.pendingReviews} review${stats.pendingReviews === 1 ? "" : "s"} waiting for approval`
+                    : null,
+                  stats.newLeads > 0 ? `${stats.newLeads} new enquir${stats.newLeads === 1 ? "y" : "ies"} to reply to` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 sm:ml-auto">
+            {stats.pendingReviews > 0 ? (
+              <Button size="sm" variant="outline" className="gap-1.5" onClick={() => onNavigate("testimonials")}>
+                <MessageSquareQuote className="h-3.5 w-3.5" aria-hidden /> Approve reviews
+              </Button>
+            ) : null}
+            {stats.newLeads > 0 ? (
+              <Button size="sm" className="gap-1.5" onClick={() => onNavigate("leads")}>
+                <Inbox className="h-3.5 w-3.5" aria-hidden /> Open leads
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-3 md:gap-4 md:grid-cols-4">
         {cards.map((card) => {
@@ -116,7 +157,7 @@ export function Dashboard({
               className="group text-left"
               aria-label={`Open ${card.label}`}
             >
-              <Card className="h-full transition-shadow group-hover:shadow-md">
+              <Card className="h-full transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-gold/50 group-hover:shadow-md">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
                     <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${card.tint}`}>

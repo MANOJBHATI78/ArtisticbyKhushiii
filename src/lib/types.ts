@@ -316,6 +316,8 @@ export interface DashboardStats {
   totalLeads: number;
   newLeads: number;
   convertedLeads: number;
+  /** website-submitted reviews waiting for admin approval */
+  pendingReviews: number;
   totalFaqs: number;
   totalPages: number;
   recentLeads: Lead[];
