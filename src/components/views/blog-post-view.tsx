@@ -176,7 +176,7 @@ export default function BlogPostView({ slug }: { slug: string }) {
         <article className="mx-auto mt-6 max-w-3xl">
           {post.blogCategoryName ? (
             <a
-              href={`#/blog?cat=${post.blogCategorySlug}`}
+              href={`/blog?cat=${post.blogCategorySlug}`}
               className="inline-block rounded-full bg-gold-soft px-3 py-1 text-xs font-medium text-accent-foreground transition-colors hover:bg-gold/40"
             >
               {post.blogCategoryName}
@@ -215,7 +215,7 @@ export default function BlogPostView({ slug }: { slug: string }) {
               {tags.map((t) => (
                 <a
                   key={t}
-                  href={`#/blog?tag=${encodeURIComponent(t)}`}
+                  href={`/blog?tag=${encodeURIComponent(t)}`}
                   className="rounded-full bg-secondary px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-gold-soft hover:text-accent-foreground"
                 >
                   #{t}

@@ -236,7 +236,7 @@ export default function BlogView() {
           <div className={cn(isFetching && "opacity-60 transition-opacity")}>
             {featured ? (
               <a
-                href={`#/blog/${featured.slug}`}
+                href={`/blog/${featured.slug}`}
                 className="group mb-8 grid gap-0 overflow-hidden rounded-2xl border bg-card shadow-sm transition-shadow hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold md:grid-cols-2"
               >
                 <div className="aspect-[16/10] overflow-hidden bg-secondary md:aspect-auto md:min-h-64">

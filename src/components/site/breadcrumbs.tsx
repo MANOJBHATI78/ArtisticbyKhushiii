@@ -2,7 +2,6 @@
 
 import { ChevronRight } from "lucide-react";
 import { JsonLdScript } from "@/lib/seo";
-import { navigate } from "@/lib/router";
 
 export interface Crumb {
   label: string;
@@ -39,25 +38,12 @@ export function Breadcrumbs({ items, className }: BreadcrumbsProps) {
           return (
             <li key={`${item.label}-${i}`} className="flex items-center gap-1">
               {item.href && !isLast ? (
-                item.href === "/" ? (
-                  <a
-                    href="/"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      navigate("/");
-                    }}
-                    className="rounded-sm px-1 py-0.5 transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
-                  >
-                    {item.label}
-                  </a>
-                ) : (
-                  <a
-                    href={`#${item.href}`}
-                    className="rounded-sm px-1 py-0.5 transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
-                  >
-                    {item.label}
-                  </a>
-                )
+                <a
+                  href={item.href}
+                  className="rounded-sm px-1 py-0.5 transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+                >
+                  {item.label}
+                </a>
               ) : (
                 <span className={cnBreadcrumb(isLast)} aria-current={isLast ? "page" : undefined}>
                   {item.label}

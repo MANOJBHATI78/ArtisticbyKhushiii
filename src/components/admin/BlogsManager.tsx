@@ -209,7 +209,7 @@ export function BlogsManager({
                         <Button variant="ghost" size="icon" className="h-8 w-8" title="Edit" onClick={() => { setEditingId(p.id); setView("form"); }}>
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        <a href={`#/blog/${p.slug}`} target="_blank" rel="noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-secondary" title="Preview" aria-label={`Preview ${p.title}`}>
+                        <a href={`/blog/${p.slug}`} target="_blank" rel="noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-secondary" title="Preview" aria-label={`Preview ${p.title}`}>
                           <Eye className="h-4 w-4" />
                         </a>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" title="Delete" onClick={() => setToDelete(p)}>
@@ -244,7 +244,7 @@ export function BlogsManager({
                       {p.publishedAt ? fmtDate(p.publishedAt) : timeAgo(p.updatedAt)}
                     </div>
                     <div className="mt-2 flex items-center justify-end gap-0.5">
-                      <a href={`#/blog/${p.slug}`} target="_blank" rel="noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-secondary" aria-label="Preview">
+                      <a href={`/blog/${p.slug}`} target="_blank" rel="noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-secondary" aria-label="Preview">
                         <Eye className="h-4 w-4" />
                       </a>
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setToDelete(p)} aria-label="Delete">
@@ -430,7 +430,7 @@ function BlogForm({ id, onBack }: { id: string | null; onBack: () => void }) {
   // internal link options for the editor
   const internalLinks: InternalLinkOption[] = useMemo(() => {
     const links: InternalLinkOption[] = [];
-    for (const p of products?.items ?? []) links.push({ label: p.name, href: `#/product/${p.slug}`, group: "Products" });
+    for (const p of products?.items ?? []) links.push({ label: p.name, href: `/product/${p.slug}`, group: "Products" });
     for (const c of categories ?? []) links.push({ label: c.name, href: `#/category/${c.slug}`, group: "Categories" });
     for (const b of allBlogs?.items ?? []) if (b.id !== currentId) links.push({ label: b.title, href: `#/blog/${b.slug}`, group: "Blog posts" });
     return links;

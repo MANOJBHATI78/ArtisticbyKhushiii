@@ -45,6 +45,12 @@ export interface SiteSettings {
   offerBannerCode: string;
   offerBannerEndsAt: string;
   offerBannerLinkUrl: string;
+  // Navigation — custom header/footer link lists as JSON [{label,href}]; "" = built-in defaults.
+  headerNavLinks: string;
+  footerExploreLinks: string;
+  // Google Business Profile reviews (Places API) — shown on the site when both are set.
+  googlePlacesApiKey: string;
+  googlePlaceId: string;
 }
 
 export interface ProductImage {
@@ -287,6 +293,25 @@ export interface Testimonial {
   updatedAt: string;
 }
 
+/** Google Business Profile reviews (Places API) — rendered on the homepage. */
+export interface GoogleReviewsPayload {
+  ok: true;
+  configured: boolean;
+  rating?: number;
+  total?: number;
+  mapsUrl?: string;
+  writeReviewUrl?: string;
+  reviews?: {
+    author: string;
+    rating: number;
+    text: string;
+    when: string;
+    photo: string;
+    profileUrl: string;
+    publishedAt: string;
+  }[];
+}
+
 export interface Lead {
   id: string;
   name: string;
@@ -439,7 +464,33 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   offerBannerCode: "",
   offerBannerEndsAt: "",
   offerBannerLinkUrl: "",
+  headerNavLinks: "",
+  footerExploreLinks: "",
+  googlePlacesApiKey: "",
+  googlePlaceId: "",
 };
+
+export interface NavLink {
+  label: string;
+  href: string;
+}
+
+/** Parses a settings JSON link list — falls back to the built-in defaults. */
+export function parseNavLinks(raw: string | null | undefined, fallback: NavLink[]): NavLink[] {
+  if (!raw || !raw.trim()) return fallback;
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return fallback;
+    const links = parsed
+      .filter((x): x is { label: string; href: string } =>
+        !!x && typeof x === "object" && typeof x.label === "string" && typeof x.href === "string" && x.label.trim() !== "")
+      .map((x) => ({ label: x.label.trim(), href: x.href.trim().replace(/^#/, "") }))
+      .filter((x) => x.href.startsWith("/"));
+    return links.length > 0 ? links : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 // Parses a JSON list from a string; returns [] on failure.
 export function parseJsonArray(raw: string | null | undefined): unknown[] {

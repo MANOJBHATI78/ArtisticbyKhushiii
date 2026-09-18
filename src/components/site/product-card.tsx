@@ -32,7 +32,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
       {/* Image area — overlays (heart, quick view) anchor to this wrapper, NOT the card. */}
       <div className="relative">
         <a
-          href={`#${detailHref}`}
+          href={detailHref}
           className="relative block overflow-hidden rounded-t-lg focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-gold"
           aria-label={`View ${product.name}`}
         >
@@ -80,7 +80,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
       <QuickView slug={quickViewOpen ? product.slug : null} onClose={() => setQuickViewOpen(false)} />
 
       <CardHeader className="pb-2">
-        <a href={`#${detailHref}`} className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold">
+        <a href={detailHref} className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold">
           <h3 className="font-display text-lg leading-snug text-foreground transition-colors group-hover:text-primary">
             <span className="line-clamp-1">{product.name}</span>
           </h3>
@@ -93,7 +93,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
       <CardFooter className="gap-2">
         <Button asChild variant="outline" className="h-11 flex-1">
-          <a href={`#${detailHref}`}>View Details</a>
+          <a href={detailHref}>View Details</a>
         </Button>
         <Button
           className="h-11 flex-1"
@@ -118,7 +118,7 @@ export function ViewAllLink({ href, children }: { href: string; children: React.
   return (
     <div className="mt-8 flex justify-center">
       <a
-        href={`#${href}`}
+        href={href}
         className="inline-flex min-h-11 items-center gap-2 rounded-full px-5 text-sm font-medium text-primary transition-colors hover:text-terracotta-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
       >
         {children}

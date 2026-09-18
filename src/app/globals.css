@@ -263,6 +263,21 @@
   100% { background-position: -200% 0; }
 }
 
+/* Splash logo reveal — the black silhouette fills with original colours
+   from top to bottom, then fades back, looping while the site loads. */
+@keyframes splash-reveal {
+  0% { clip-path: inset(0 0 100% 0); }
+  45% { clip-path: inset(0 0 0% 0); }
+  70% { clip-path: inset(0 0 0% 0); opacity: 1; }
+  100% { clip-path: inset(0 0 0% 0); opacity: 0.85; }
+}
+.splash-reveal { animation: splash-reveal 2.6s ease-in-out infinite alternate; }
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-reveal { animation: none; clip-path: inset(0 0 0% 0); }
+}
+
+
 /* ---------- Brand flourishes ---------- */
 ::selection {
   background: var(--gold-soft);

@@ -207,13 +207,13 @@ function SectionCard({ section }: { section: HomepageSection }) {
                       <Input value={ctaText} onChange={(e) => setCtaText(e.target.value)} placeholder="Shop Now" />
                     </Field>
                     <Field label="CTA 1 link">
-                      <Input value={ctaUrl} onChange={(e) => setCtaUrl(e.target.value)} placeholder="#/products" />
+                      <Input value={ctaUrl} onChange={(e) => setCtaUrl(e.target.value)} placeholder="/products" />
                     </Field>
                     <Field label="CTA 2 text">
                       <Input value={ctaText2} onChange={(e) => setCtaText2(e.target.value)} placeholder="Custom Orders" />
                     </Field>
                     <Field label="CTA 2 link">
-                      <Input value={ctaUrl2} onChange={(e) => setCtaUrl2(e.target.value)} placeholder="#/contact" />
+                      <Input value={ctaUrl2} onChange={(e) => setCtaUrl2(e.target.value)} placeholder="/contact" />
                     </Field>
                   </div>
                 </div>

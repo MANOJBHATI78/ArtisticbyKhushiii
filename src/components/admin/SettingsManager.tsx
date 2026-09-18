@@ -4,20 +4,133 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
-import type { SiteSettings } from "@/lib/types";
+import type { NavLink, SiteSettings } from "@/lib/types";
 import { DEFAULT_SETTINGS } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3, ExternalLink, Facebook, Instagram, MessageCircle, PartyPopper, Pin, Radar, Save, SearchCheck, Type, Youtube } from "lucide-react";
+import { ArrowDown, ArrowUp, BarChart3, ExternalLink, Facebook, Instagram, ListPlus, MessageCircle, PartyPopper, Pin, Radar, Save, SearchCheck, Star, Trash2, Type, Youtube } from "lucide-react";
 import { useAdminSettings } from "./useAdminData";
 import { Field, Spinner } from "./shared";
 import { MediaPickField } from "./media-picker";
 import { errMsg } from "./admin-utils";
 import { Switch } from "@/components/ui/switch";
 import { OfferBanner } from "@/components/site/offer-banner";
+
+const DEFAULT_HEADER_LINKS: NavLink[] = [
+  { label: "Home", href: "/" },
+  { label: "Products", href: "/products" },
+  { label: "Categories", href: "/categories" },
+  { label: "Blog", href: "/blog" },
+  { label: "About", href: "/about" },
+  { label: "Contact", href: "/contact" },
+];
+
+const DEFAULT_FOOTER_LINKS: NavLink[] = [
+  { label: "Home", href: "/" },
+  { label: "All Products", href: "/products" },
+  { label: "Categories", href: "/categories" },
+  { label: "My Favourites", href: "/wishlist" },
+  { label: "Blog", href: "/blog" },
+  { label: "About", href: "/about" },
+  { label: "Contact", href: "/contact" },
+  { label: "FAQ", href: "/faq" },
+  { label: "Search", href: "/search" },
+];
+
+/** Editable {label, href} list stored as JSON in a settings key ("" = defaults). */
+function LinkListEditor({
+  value,
+  onChange,
+  placeholderHref,
+  defaults,
+}: {
+  value: string;
+  onChange: (json: string) => void;
+  placeholderHref: string;
+  defaults: NavLink[];
+}) {
+  const links: NavLink[] = useMemo(() => {
+    if (!value.trim()) return [];
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed.filter((x) => x && typeof x.label === "string" && typeof x.href === "string") : [];
+    } catch {
+      return [];
+    }
+  }, [value]);
+
+  function commit(next: NavLink[]) {
+    onChange(next.length === 0 ? "" : JSON.stringify(next));
+  }
+  function update(i: number, patch: Partial<NavLink>) {
+    commit(links.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
+  }
+  function move(i: number, dir: -1 | 1) {
+    const j = i + dir;
+    if (j < 0 || j >= links.length) return;
+    const next = [...links];
+    [next[i], next[j]] = [next[j], next[i]];
+    commit(next);
+  }
+
+  return (
+    <div className="space-y-2">
+      {links.map((l, i) => (
+        <div key={i} className="flex items-center gap-1.5">
+          <Input
+            value={l.label}
+            onChange={(e) => update(i, { label: e.target.value })}
+            placeholder="Label"
+            className="h-9 w-32 shrink-0"
+            aria-label={`Link ${i + 1} label`}
+          />
+          <Input
+            value={l.href}
+            onChange={(e) => update(i, { href: e.target.value })}
+            placeholder={placeholderHref}
+            className="h-9"
+            aria-label={`Link ${i + 1} URL`}
+          />
+          <div className="flex shrink-0 items-center">
+            <Button type="button" variant="ghost" size="icon" className="size-8" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move up">
+              <ArrowUp className="size-3.5" />
+            </Button>
+            <Button type="button" variant="ghost" size="icon" className="size-8" onClick={() => move(i, 1)} disabled={i === links.length - 1} aria-label="Move down">
+              <ArrowDown className="size-3.5" />
+            </Button>
+            <Button type="button" variant="ghost" size="icon" className="size-8 text-destructive hover:text-destructive" onClick={() => commit(links.filter((_, idx) => idx !== i))} aria-label="Delete link">
+              <Trash2 className="size-3.5" />
+            </Button>
+          </div>
+        </div>
+      ))}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="mt-1"
+        onClick={() => commit([...links, { label: "New link", href: "/" }])}
+      >
+        + Add link
+      </Button>
+      {links.length === 0 ? (
+        <div className="space-y-1.5">
+          <p className="text-xs text-muted-foreground">Empty = the built-in default links are shown on the site.</p>
+          <Button type="button" variant="ghost" size="sm" className="text-primary" onClick={() => commit(defaults)}>
+            Start from the current links
+          </Button>
+        </div>
+      ) : (
+        <Button type="button" variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => commit([])}>
+          Reset to defaults
+        </Button>
+      )}
+    </div>
+  );
+}
 
 // ============================================================
 // Site settings — brand, contact, social, footer, SEO defaults,
@@ -244,7 +357,7 @@ export function SettingsManager() {
             <Input value={form.headerCtaText} onChange={(e) => set("headerCtaText", e.target.value)} />
           </Field>
           <Field label="Header CTA link">
-            <Input value={form.headerCtaUrl} onChange={(e) => set("headerCtaUrl", e.target.value)} placeholder="#/contact" />
+            <Input value={form.headerCtaUrl} onChange={(e) => set("headerCtaUrl", e.target.value)} placeholder="/contact" />
           </Field>
         </CardContent>
       </Card>
@@ -429,6 +542,88 @@ export function SettingsManager() {
             <a href="https://clarity.microsoft.com" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
               Microsoft Clarity <ExternalLink className="h-3 w-3" />
             </a>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ---------- Navigation links (header + footer) ---------- */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base font-display">
+            <ListPlus className="size-4 text-primary" /> Website Navigation
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-6 md:grid-cols-2">
+          <div>
+            <p className="mb-1.5 text-sm font-medium">Header menu links</p>
+            <p className="mb-3 text-xs text-muted-foreground">Jo links website ke header mein dikhte hain. Order badal sakte ho, delete kar sakte ho, naye add kar sakte ho.</p>
+            <LinkListEditor
+              value={form.headerNavLinks}
+              onChange={(v) => set("headerNavLinks", v)}
+              placeholderHref="/products"
+              defaults={DEFAULT_HEADER_LINKS}
+            />
+          </div>
+          <div>
+            <p className="mb-1.5 text-sm font-medium">Footer “Explore” links</p>
+            <p className="mb-3 text-xs text-muted-foreground">Footer ke Explore column ke links. Collections column apne aap categories se banta hai.</p>
+            <LinkListEditor
+              value={form.footerExploreLinks}
+              onChange={(v) => set("footerExploreLinks", v)}
+              placeholderHref="/products"
+              defaults={DEFAULT_FOOTER_LINKS}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ---------- Google Business Profile reviews ---------- */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base font-display">
+            <Star className="size-4 text-primary" /> Google Reviews
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2">
+          <Field
+            label="Google Places API key"
+            hint="Google Cloud Console → enable “Places API (New)” → create API key. Site pe real Google reviews dikhane ke liye."            
+            counter={<StatusPill on={Boolean(form.googlePlacesApiKey.trim())} />}
+          >
+            <Input
+              type="password"
+              value={form.googlePlacesApiKey}
+              onChange={(e) => set("googlePlacesApiKey", e.target.value.trim())}
+              placeholder="AIza…"
+              autoComplete="off"
+            />
+          </Field>
+          <Field
+            label="Google Business Place ID"
+            hint="Google Business Profile ka Place ID (ChIJ… format). Dono set karne par homepage pe reviews section dikhega."
+            counter={<StatusPill on={Boolean(form.googlePlaceId.trim())} />}
+          >
+            <Input
+              value={form.googlePlaceId}
+              onChange={(e) => set("googlePlaceId", e.target.value.trim())}
+              placeholder="ChIJ…"
+            />
+          </Field>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-lg border bg-muted/30 px-3 py-2.5 text-xs text-muted-foreground md:col-span-2">
+            <span className="font-medium text-foreground">How to find Place ID?</span>
+            <a
+              href="https://developers.google.com/maps/documentation/places/web-service/place-id"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-primary hover:underline"
+            >
+              Place ID finder <ExternalLink className="h-3 w-3" />
+            </a>
+            <span>·</span>
+            <a href="https://console.cloud.google.com/apis/library/places.googleapis.com" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+              Enable Places API <ExternalLink className="h-3 w-3" />
+            </a>
+            <span className="md:col-span-2">Dono khali chhodne par ye section site pe nahi dikhega — jab tak set nahi karte.</span>
           </div>
         </CardContent>
       </Card>

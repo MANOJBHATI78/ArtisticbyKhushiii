@@ -179,7 +179,7 @@ export function SlugInput({
       {value && !isValidSlug(value) ? (
         <p className="text-xs text-destructive">Lowercase letters, numbers and single hyphens only.</p>
       ) : (
-        <p className="text-xs text-muted-foreground">Shown in the URL, e.g. #/product/{value || "your-slug"}</p>
+        <p className="text-xs text-muted-foreground">Shown in the URL, e.g. /product/{value || "your-slug"}</p>
       )}
     </div>
   );

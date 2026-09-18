@@ -116,16 +116,20 @@ export function SiteAnalytics({ settings }: { settings: SiteSettings }) {
 
     const pageView = () => {
       window.gtag?.("event", "page_view", {
-        page_path: `${window.location.pathname}${window.location.search}${window.location.hash}`,
+        page_path: `${window.location.pathname}${window.location.search}`,
         page_title: document.title,
       });
     };
     pageView();
+    // Clean-path SPA navigation dispatches "popstate" (pushState fires no
+    // event); legacy "#/…" links still trigger "hashchange".
     window.addEventListener("hashchange", pageView);
+    window.addEventListener("popstate", pageView);
     applied.current.ga = gaId;
     (window.__abkAnalytics ??= {}).ga = gaId;
     return () => {
       window.removeEventListener("hashchange", pageView);
+      window.removeEventListener("popstate", pageView);
     };
   }, [gaId, dev]);
 

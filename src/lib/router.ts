@@ -1,78 +1,103 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 
 /**
- * Lightweight hash-based router for the single-page app.
+ * Lightweight client router for the single-page app.
+ *
+ * URLs are CLEAN PATHS — /products, /product/slug, /blog — no "#" in the
+ * address bar (served by the catch-all rewrite in next.config.ts).
+ *
+ * Legacy "#/..." links still work everywhere:
+ *  - old bookmarks / shared links load via the hash and get rewritten to the
+ *    clean path immediately
+ *  - in-app <a href="#/..."> clicks are intercepted globally (see page.tsx)
+ *    and converted to clean pushState navigations
+ *
  * Routes:
- *   #/                        Home
- *   #/products                All products (with ?category=slug&q=)
- *   #/product/[slug]          Product detail
- *   #/categories              All categories
- *   #/category/[slug]         Category page
- *   #/blog                    Blog index
- *   #/blog/[slug]             Blog post
- *   #/about #/contact #/faq #/services
- *   #/page/[slug]             Dynamic pages (privacy, terms…)
- *   #/search?q=               Search results
- *   #/thank-you
- *   #/admin/...               Admin panel
+ *   /                        Home
+ *   /products                All products (with ?category=slug&q=)
+ *   /product/[slug]          Product detail
+ *   /categories              All categories
+ *   /category/[slug]         Category page
+ *   /blog                    Blog index
+ *   /blog/[slug]             Blog post
+ *   /about /contact /faq /services
+ *   /page/[slug]             Dynamic pages (privacy, terms…)
+ *   /search?q=               Search results
+ *   /lp/[slug]               Landing pages
+ *   /thank-you
+ *   /admin/...               Admin panel
  */
 
 export interface Route {
   path: string;      // e.g. "/product/personalized-resin-nameplate"
   segments: string[];// ["product", "personalized-resin-nameplate"]
   query: URLSearchParams;
-  hash: string;      // full "#/product/...?q=1"
+  hash: string;      // legacy hash if the URL was loaded as "#/..." (kept for compat)
 }
 
-export function parseHash(hash: string): Route {
-  const raw = hash.replace(/^#/, "") || "/";
-  const [pathPart, queryPart] = raw.split("?");
-  const path = pathPart.startsWith("/") ? pathPart : `/${pathPart}`;
+function buildRoute(path: string, query: string, hash = ""): Route {
+  const p = path.startsWith("/") ? path : `/${path}`;
   return {
-    path,
-    segments: path.split("/").filter(Boolean),
-    query: new URLSearchParams(queryPart || ""),
+    path: p,
+    segments: p.split("/").filter(Boolean),
+    query: new URLSearchParams(query),
     hash,
   };
 }
 
+function readRoute(): Route {
+  const { pathname, search, hash } = window.location;
+  // Legacy hash URL: "/#/products?q=x" (old bookmark or shared link)
+  if (hash.startsWith("#/") && (pathname === "/" || pathname === "")) {
+    const raw = hash.slice(1);
+    const [p, q] = raw.split("?");
+    return buildRoute(p || "/", q || "", hash);
+  }
+  return buildRoute(pathname || "/", search.replace(/^\?/, ""));
+}
+
+/** Client route hook — pathname-first with legacy "#/…" hash fallback. */
 export function useHashRoute(): Route {
   const [route, setRoute] = useState<Route>(() =>
     typeof window === "undefined"
       ? { path: "/", segments: [], query: new URLSearchParams(), hash: "" }
-      : parseHash(window.location.hash)
+      : readRoute()
   );
 
   useEffect(() => {
-    const onChange = () => setRoute(parseHash(window.location.hash));
-    window.addEventListener("hashchange", onChange);
-    return () => window.removeEventListener("hashchange", onChange);
+    // Normalize a legacy hash URL to the clean path right away so the
+    // address bar never keeps the "#/…" form.
+    const { pathname, hash } = window.location;
+    if (hash.startsWith("#/") && (pathname === "/" || pathname === "")) {
+      const clean = hash.slice(1);
+      window.history.replaceState(null, "", clean === "/" ? "/" : clean);
+    }
+    const update = () => setRoute(readRoute());
+    window.addEventListener("popstate", update);
+    window.addEventListener("hashchange", update);
+    return () => {
+      window.removeEventListener("popstate", update);
+      window.removeEventListener("hashchange", update);
+    };
   }, []);
 
   return route;
 }
 
 export function navigate(to: string, opts?: { replace?: boolean; keepScroll?: boolean }) {
-  const target = to.startsWith("#") ? to : `#${to.startsWith("/") ? to : `/${to}`}`;
-  // Home = clean root URL (no trailing #) so the address bar stays tidy on the homepage
-  if (target === "#" || target === "#/") {
-    if (window.location.hash) {
-      // Moving from an inner page back to home — push a clean history entry and drop the hash
-      window.history.pushState(null, "", `${window.location.pathname}${window.location.search}`);
-    }
-    window.dispatchEvent(new HashChangeEvent("hashchange"));
-  } else if (opts?.replace) {
-    const url = `${window.location.pathname}${window.location.search}${target}`;
-    window.history.replaceState(null, "", url);
-    window.dispatchEvent(new HashChangeEvent("hashchange"));
-  } else if (window.location.hash === target) {
-    // same route — force re-render
-    window.dispatchEvent(new HashChangeEvent("hashchange"));
+  // Accepts "/products", "products" or legacy "#/products" — always navigates
+  // to the CLEAN path via pushState/replaceState (no page reload, no "#").
+  let target = to.startsWith("#") ? to.slice(1) : to;
+  if (!target.startsWith("/")) target = `/${target}`;
+  if (opts?.replace) {
+    window.history.replaceState(null, "", target);
   } else {
-    window.location.hash = target;
+    window.history.pushState(null, "", target);
   }
+  // pushState/replaceState don't fire any event — notify the route listeners.
+  window.dispatchEvent(new PopStateEvent("popstate"));
   if (!opts?.keepScroll) {
     window.scrollTo({ top: 0, behavior: "auto" });
   }

@@ -316,7 +316,7 @@ export function ProductsManager({
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <a
-                          href={`#/product/${p.slug}`}
+                          href={`/product/${p.slug}`}
                           target="_blank"
                           rel="noreferrer"
                           className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-secondary"
@@ -370,7 +370,7 @@ export function ProductsManager({
                       <Switch checked={p.published} onCheckedChange={() => toggleField(p, "published")} aria-label="Toggle published" />
                       <span className="text-[11px] text-muted-foreground">{p.published ? "Published" : "Draft"}</span>
                       <span className="flex-1" />
-                      <a href={`#/product/${p.slug}`} target="_blank" rel="noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-secondary" aria-label="Preview">
+                      <a href={`/product/${p.slug}`} target="_blank" rel="noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-secondary" aria-label="Preview">
                         <Eye className="h-4 w-4" />
                       </a>
                       <button type="button" onClick={() => setQrProduct(p)} className="inline-flex h-8 w-8 items-center justify-center rounded-md text-foreground/70 hover:bg-secondary hover:text-foreground" aria-label="QR code" title="QR code">

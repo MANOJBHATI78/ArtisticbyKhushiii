@@ -69,7 +69,7 @@ export function RecentlyViewed({ context = "home", excludeSlug, className }: Rec
             {recentProducts.map((product) => (
               <a
                 key={product.slug}
-                href={`#/product/${product.slug}`}
+                href={`/product/${product.slug}`}
                 role="listitem"
                 className="group relative flex w-40 shrink-0 flex-col overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:-translate-y-1 hover:border-gold/40 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold sm:w-48"
               >

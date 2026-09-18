@@ -206,7 +206,7 @@ export function CategoriesManager({ createSignal }: { createSignal?: number }) {
                         <Button variant="ghost" size="icon" className="h-8 w-8" disabled={idx === list.length - 1} onClick={() => reorder(idx, 1)} aria-label="Move down">
                           <ArrowDown className="h-4 w-4" />
                         </Button>
-                        <a href={`#/category/${c.slug}`} target="_blank" rel="noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-secondary" title="Preview" aria-label={`Preview ${c.name}`}>
+                        <a href={`/category/${c.slug}`} target="_blank" rel="noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-secondary" title="Preview" aria-label={`Preview ${c.name}`}>
                           <Eye className="h-4 w-4" />
                         </a>
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditing(c)} aria-label="Edit">
@@ -254,7 +254,7 @@ export function CategoriesManager({ createSignal }: { createSignal?: number }) {
                         <Button variant="outline" size="icon" className="h-7 w-7" disabled={idx === list.length - 1} onClick={() => reorder(idx, 1)} aria-label="Move down">
                           <ArrowDown className="h-3.5 w-3.5" />
                         </Button>
-                        <a href={`#/category/${c.slug}`} target="_blank" rel="noreferrer" className="inline-flex h-7 w-7 items-center justify-center rounded-md border" aria-label="Preview">
+                        <a href={`/category/${c.slug}`} target="_blank" rel="noreferrer" className="inline-flex h-7 w-7 items-center justify-center rounded-md border" aria-label="Preview">
                           <Eye className="h-3.5 w-3.5" />
                         </a>
                         <Button variant="outline" size="icon" className="h-7 w-7 text-destructive" onClick={() => setToDelete(c)} aria-label="Delete">

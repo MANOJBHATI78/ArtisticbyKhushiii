@@ -25,7 +25,7 @@ export function BlogCard({ post, className }: BlogCardProps) {
       )}
     >
       <a
-        href={`#/blog/${post.slug}`}
+        href={`/blog/${post.slug}`}
         className="relative block focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-gold"
         aria-label={`Read ${post.title}`}
       >

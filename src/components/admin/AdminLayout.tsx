@@ -210,7 +210,7 @@ export function AdminLayout({
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-screen bg-background">
       {/* ---------- Desktop sidebar ---------- */}
       <aside
         className={`sticky top-0 hidden h-screen shrink-0 flex-col border-r bg-card transition-[width] md:flex ${
@@ -256,7 +256,7 @@ export function AdminLayout({
       </aside>
 
       {/* ---------- Main column ---------- */}
-      <div className={`flex min-h-screen flex-col ${collapsed ? "md:pl-16" : "md:pl-64"}`}>
+      <div className="flex min-h-screen w-full min-w-0 flex-1 flex-col">
         {/* Top bar */}
         <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-background/95 px-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:px-6">
           <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>

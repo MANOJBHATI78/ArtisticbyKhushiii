@@ -103,14 +103,14 @@ export function PagesManager({ createSignal }: { createSignal?: number }) {
                         <p className="font-medium hover:text-primary">{p.title}</p>
                       </button>
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">#/page/{p.slug}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">/page/{p.slug}</TableCell>
                     <TableCell>
                       <Switch checked={p.published} onCheckedChange={() => togglePublished(p)} aria-label={`Toggle published for ${p.title}`} />
                     </TableCell>
                     <TableCell className="text-center text-sm text-muted-foreground">{p.displayOrder ?? 0}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-0.5">
-                        <a href={`#/page/${p.slug}`} target="_blank" rel="noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-secondary" title="Preview" aria-label={`Preview ${p.title}`}>
+                        <a href={`/page/${p.slug}`} target="_blank" rel="noreferrer" className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-secondary" title="Preview" aria-label={`Preview ${p.title}`}>
                           <Eye className="h-4 w-4" />
                         </a>
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditing(p)} aria-label="Edit">
@@ -138,12 +138,12 @@ export function PagesManager({ createSignal }: { createSignal?: number }) {
                       </button>
                       <PublishedBadge published={p.published} />
                     </div>
-                    <p className="text-xs text-muted-foreground">#/page/{p.slug}</p>
+                    <p className="text-xs text-muted-foreground">/page/{p.slug}</p>
                     <div className="mt-2 flex items-center gap-2">
                       <Switch checked={p.published} onCheckedChange={() => togglePublished(p)} aria-label="Toggle published" />
                       <span className="text-[11px] text-muted-foreground">{p.published ? "Published" : "Hidden"}</span>
                       <span className="flex-1" />
-                      <a href={`#/page/${p.slug}`} target="_blank" rel="noreferrer" className="inline-flex h-7 w-7 items-center justify-center rounded-md border" aria-label="Preview">
+                      <a href={`/page/${p.slug}`} target="_blank" rel="noreferrer" className="inline-flex h-7 w-7 items-center justify-center rounded-md border" aria-label="Preview">
                         <Eye className="h-3.5 w-3.5" />
                       </a>
                       <Button variant="outline" size="icon" className="h-7 w-7 text-destructive" onClick={() => setToDelete(p)} aria-label="Delete">

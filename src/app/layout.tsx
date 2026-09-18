@@ -28,8 +28,11 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Khushi" }],
   icons: {
-    icon: "/images/logo.png",
-    apple: "/images/logo.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/images/logo.png", type: "image/png" },
+    ],
+    apple: "/images/apple-touch-icon.png",
   },
   openGraph: {
     title: "Artistic by Khushiii | Handcrafted Personalized Resin Art & Gifts",

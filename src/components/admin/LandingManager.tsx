@@ -175,7 +175,7 @@ export function LandingManager({ createSignal }: { createSignal?: number }) {
                         <p className="truncate text-xs text-muted-foreground">{l.focusKeyword || l.headline || "—"}</p>
                       </button>
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">#/lp/{l.slug}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">/lp/{l.slug}</TableCell>
                     <TableCell>
                       <div className="flex flex-col items-start gap-1">
                         <Switch checked={l.published} onCheckedChange={() => togglePublished(l)} aria-label={`Toggle published for ${l.title}`} />
@@ -192,7 +192,7 @@ export function LandingManager({ createSignal }: { createSignal?: number }) {
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-0.5">
                         <a
-                          href={`#/lp/${l.slug}`}
+                          href={`/lp/${l.slug}`}
                           target="_blank"
                           rel="noreferrer"
                           className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-secondary"
@@ -229,7 +229,7 @@ export function LandingManager({ createSignal }: { createSignal?: number }) {
                   <div className="flex items-start justify-between gap-2">
                     <button type="button" onClick={() => setEditing(l)} className="min-w-0 flex-1 text-left">
                       <p className="truncate font-medium">{l.title}</p>
-                      <p className="truncate text-xs text-muted-foreground">#/lp/{l.slug}</p>
+                      <p className="truncate text-xs text-muted-foreground">/lp/{l.slug}</p>
                     </button>
                     <div className="flex shrink-0 flex-col items-end gap-1">
                       <PublishedBadge published={l.published} />
@@ -249,7 +249,7 @@ export function LandingManager({ createSignal }: { createSignal?: number }) {
                     <span className="flex-1" />
                     <Switch checked={l.published} onCheckedChange={() => togglePublished(l)} aria-label="Toggle published" />
                     <a
-                      href={`#/lp/${l.slug}`}
+                      href={`/lp/${l.slug}`}
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex h-8 w-8 items-center justify-center rounded-md border"
@@ -272,7 +272,7 @@ export function LandingManager({ createSignal }: { createSignal?: number }) {
         open={!!toDelete}
         onOpenChange={(o) => !o && setToDelete(null)}
         title={`Delete “${toDelete?.title ?? ""}”?`}
-        description="This permanently removes the landing page (any ads or links pointing to #/lp/… will stop working)."
+        description="This permanently removes the landing page (any ads or links pointing to /lp/… will stop working)."
         confirmLabel="Delete landing"
         onConfirm={confirmDelete}
         pending={deleting}
@@ -633,7 +633,7 @@ function LandingEditor({
         <div className="min-w-0">
           <p className="truncate font-display text-lg">{landing ? `Edit: ${landing.title}` : "New landing page"}</p>
           <p className="truncate text-xs text-muted-foreground">
-            Final URL: <span className="font-mono">{`#/lp/${form.slug || "your-slug"}`}</span>
+            Final URL: <span className="font-mono">{`/lp/${form.slug || "your-slug"}`}</span>
             {form.published ? "" : " (draft — sirf admin dekh sakta hai publish hone tak)"}
           </p>
         </div>
@@ -697,8 +697,8 @@ function LandingEditor({
               <Field label="CTA text" hint="Hero + bottom banner me button ka label.">
                 <Input value={form.ctaText} onChange={(e) => set("ctaText", e.target.value)} placeholder="Shop Diwali Gifts" />
               </Field>
-              <Field label="CTA link" hint="Jahan button le jaaye — e.g. #/products ya #/contact.">
-                <Input value={form.ctaUrl} onChange={(e) => set("ctaUrl", e.target.value)} placeholder="#/products" />
+              <Field label="CTA link" hint="Jahan button le jaaye — e.g. /products ya /contact.">
+                <Input value={form.ctaUrl} onChange={(e) => set("ctaUrl", e.target.value)} placeholder="/products" />
               </Field>
             </div>
           </TabsContent>

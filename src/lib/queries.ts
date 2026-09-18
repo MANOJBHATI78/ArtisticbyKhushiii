@@ -15,6 +15,7 @@ import type {
   Paginated,
   BlogCategory,
   Testimonial,
+  GoogleReviewsPayload,
 } from "@/lib/types";
 
 // Keys for cache invalidation
@@ -34,6 +35,7 @@ export const qk = {
   landing: (slug: string) => ["landing", slug] as const,
   faqs: ["faqs"] as const,
   testimonials: ["testimonials"] as const,
+  googleReviews: ["google-reviews"] as const,
   search: (q: string) => ["search", q] as const,
 };
 
@@ -167,6 +169,23 @@ export function useTestimonials(limit = 6) {
     queryKey: [...qk.testimonials, limit],
     queryFn: () => api.get<Testimonial[]>(`/api/public/testimonials?limit=${limit}`),
     staleTime: 1000 * 60 * 5,
+  });
+}
+
+/** Google Business Profile reviews (hidden until the owner configures API key + place id). */
+export function useGoogleReviews() {
+  return useQuery<GoogleReviewsPayload | null>({
+    queryKey: qk.googleReviews,
+    queryFn: async () => {
+      try {
+        const res = await fetch("/api/public/google-reviews").then((r) => r.json());
+        return (res as GoogleReviewsPayload) ?? null;
+      } catch {
+        return null;
+      }
+    },
+    staleTime: 1000 * 60 * 60, // 1 hour client-side
+    retry: false,
   });
 }
 

@@ -152,7 +152,7 @@ export async function openExhibitionSheet(settings: SiteSettings | null, brandNa
   const base = settings?.siteUrl?.trim() || siteBase();
   const cards = products
     .map((p) => {
-      const url = `${base.replace(/\/+$/, "")}/#/product/${p.slug}`;
+      const url = `${base.replace(/\/+$/, "")}/product/${p.slug}`;
       return `
         <div class="card">
           <img class="qr" src="/api/qr?path=${encodeURIComponent(`/product/${p.slug}`)}&size=420" alt="QR for ${escapeHtml(p.name)}" crossorigin="anonymous" />

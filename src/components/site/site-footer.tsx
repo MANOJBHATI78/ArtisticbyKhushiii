@@ -3,6 +3,7 @@
 import { Facebook, Instagram, Youtube } from "lucide-react";
 import { useCategories } from "@/lib/queries";
 import { useSiteStore, whatsappLink } from "@/lib/store";
+import { parseNavLinks } from "@/lib/types";
 import { navigate } from "@/lib/router";
 import { trackCallClick, trackWhatsAppClick } from "@/lib/track";
 import { Img } from "@/components/site/img";
@@ -41,6 +42,8 @@ export function SiteFooter() {
   const settings = useSiteStore((s) => s.settings);
   const { data: categories } = useCategories();
   const topCategories = (categories || []).slice(0, 6);
+  // Admin-editable Explore links (Site Settings → Navigation); built-in defaults otherwise.
+  const exploreLinks = parseNavLinks(settings.footerExploreLinks, EXPLORE_LINKS);
 
   const socials = [
     { label: "Instagram", url: settings.instagramUrl, icon: Instagram },
@@ -95,24 +98,11 @@ export function SiteFooter() {
           <nav aria-label="Footer explore links">
             <h2 className="font-display text-lg text-cream">Explore</h2>
             <ul className="mt-4 space-y-2.5">
-              {EXPLORE_LINKS.map((link) => (
+              {exploreLinks.map((link) => (
                 <li key={link.href}>
-                  {link.href === "/" ? (
-                    <a
-                      href="/"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        navigate("/");
-                      }}
-                      className={`${footerLinkClass} inline-block py-0.5 text-sm`}
-                    >
-                      {link.label}
-                    </a>
-                  ) : (
-                    <a href={`#${link.href}`} className={`${footerLinkClass} inline-block py-0.5 text-sm`}>
-                      {link.label}
-                    </a>
-                  )}
+                  <a href={link.href} className={`${footerLinkClass} inline-block py-0.5 text-sm`}>
+                    {link.label}
+                  </a>
                 </li>
               ))}
             </ul>
@@ -125,14 +115,14 @@ export function SiteFooter() {
               {topCategories.length > 0 ? (
                 topCategories.map((cat) => (
                   <li key={cat.slug}>
-                    <a href={`#/category/${cat.slug}`} className={`${footerLinkClass} inline-block py-0.5 text-sm`}>
+                    <a href={`/category/${cat.slug}`} className={`${footerLinkClass} inline-block py-0.5 text-sm`}>
                       {cat.name}
                     </a>
                   </li>
                 ))
               ) : (
                 <li>
-                  <a href="#/categories" className={`${footerLinkClass} text-sm`}>
+                  <a href="/categories" className={`${footerLinkClass} text-sm`}>
                     Browse all collections
                   </a>
                 </li>
@@ -184,7 +174,7 @@ export function SiteFooter() {
             <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
               {LEGAL_LINKS.map((link) => (
                 <li key={link.href}>
-                  <a href={`#${link.href}`} className={`${footerLinkClass} text-xs`}>
+                  <a href={link.href} className={`${footerLinkClass} text-xs`}>
                     {link.label}
                   </a>
                 </li>
@@ -196,11 +186,6 @@ export function SiteFooter() {
               Crafted with <span aria-hidden="true">♥</span>
               <span className="sr-only">love</span> in Surat, India
             </p>
-          </div>
-          <div className="mt-4 flex justify-end">
-            <a href="#/admin" className="text-[10px] text-cream/30 transition-colors hover:text-cream/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold">
-              Admin
-            </a>
           </div>
         </div>
       </Container>

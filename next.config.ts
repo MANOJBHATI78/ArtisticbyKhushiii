@@ -13,7 +13,11 @@ const nextConfig: NextConfig = {
       // the served public/ folder (Docker volume in production).
       beforeFiles: [{ source: "/uploads/:path*", destination: "/api/media/:path*" }],
       afterFiles: [],
-      fallback: [],
+      // SPA fallback — runs LAST, after static files AND dynamic routes
+      // (e.g. /api/public/products/[slug]) are matched, so any remaining
+      // path (like /products or /product/x) serves the single-page app.
+      // Deep links + refresh work with clean URLs everywhere.
+      fallback: [{ source: "/:path*", destination: "/" }],
     };
   },
 };

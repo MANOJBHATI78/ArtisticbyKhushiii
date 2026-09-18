@@ -230,7 +230,7 @@ export default function ProductView({ slug }: { slug: string }) {
           <div>
             {product.categoryName ? (
               <a
-                href={`#/category/${product.categorySlug}`}
+                href={`/category/${product.categorySlug}`}
                 className="inline-block rounded-full bg-gold-soft px-3 py-1 text-xs font-medium text-accent-foreground transition-colors hover:bg-gold/40"
               >
                 {product.categoryName}

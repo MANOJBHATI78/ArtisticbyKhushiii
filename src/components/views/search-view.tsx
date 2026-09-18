@@ -125,7 +125,7 @@ export default function SearchView() {
                 {SUGGESTIONS.map((s) => (
                   <a
                     key={s.href}
-                    href={`#${s.href}`}
+                    href={s.href}
                     className="inline-flex min-h-11 items-center rounded-full border bg-card px-4 text-sm font-medium text-foreground/80 transition-colors hover:border-gold/50 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
                   >
                     {s.label}
@@ -146,7 +146,7 @@ export default function SearchView() {
             message={`We couldn't find anything for “${q}”. Try a different word, or tell us what you're dreaming of — custom orders are our specialty.`}
             action={
               <a
-                href="#/contact"
+                href="/contact"
                 className="inline-flex min-h-11 items-center rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 Request a Custom Piece

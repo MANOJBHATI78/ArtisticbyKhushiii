@@ -11,6 +11,7 @@ import { SearchOverlay } from "@/components/site/search-overlay";
 import { navigate, useHashRoute } from "@/lib/router";
 import { useSiteStore, whatsappLink } from "@/lib/store";
 import { trackCallClick, trackWhatsAppClick } from "@/lib/track";
+import { parseNavLinks } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
@@ -22,11 +23,18 @@ const NAV_LINKS = [
   { label: "Contact", href: "/contact" },
 ];
 
+/** Admin-editable header menu (Site Settings → Navigation); falls back to the built-in list. */
+function useHeaderNavLinks() {
+  const settings = useSiteStore((s) => s.settings);
+  return parseNavLinks(settings.headerNavLinks, NAV_LINKS);
+}
+
 const ANNOUNCEMENT_KEY = "abk_announcement_dismissed";
 
 export function SiteHeader() {
   const settings = useSiteStore((s) => s.settings);
   const settingsLoaded = useSiteStore((s) => s.settingsLoaded);
+  const navLinks = useHeaderNavLinks();
   const openInquiry = useSiteStore((s) => s.openInquiry);
   const wishlistCount = useSiteStore((s) => s.wishlistSlugs.length);
   const route = useHashRoute();
@@ -145,18 +153,11 @@ export function SiteHeader() {
 
             {/* Desktop nav */}
             <nav aria-label="Main navigation" className="hidden items-center gap-1 lg:flex">
-              {NAV_LINKS.map((link) => (
+              {navLinks.map((link) => (
                 <a
                   key={link.href}
-                  href={link.href === "/" ? "/" : `#${link.href}`}
-                  onClick={
-                    link.href === "/"
-                      ? (e) => {
-                          e.preventDefault();
-                          navigate("/");
-                        }
-                      : undefined
-                  }
+                  href={link.href}
+                  
                   aria-current={isActive(link.href) ? "page" : undefined}
                   className={cn(
                     "rounded-md px-3 py-2 text-sm font-medium transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold",
@@ -241,17 +242,11 @@ export function SiteHeader() {
             <SheetDescription className="sr-only">Site navigation</SheetDescription>
           </SheetHeader>
           <nav aria-label="Mobile navigation" className="flex flex-col gap-1 px-4 pb-2">
-            {NAV_LINKS.map((link) => (
+            {navLinks.map((link) => (
               <a
                 key={link.href}
-                href={link.href === "/" ? "/" : `#${link.href}`}
-                onClick={(e) => {
-                  setMobileOpen(false);
-                  if (link.href === "/") {
-                    e.preventDefault();
-                    navigate("/");
-                  }
-                }}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
                 className={cn(
                   "flex min-h-11 items-center rounded-md px-3 py-3 text-base font-medium transition-colors hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold",
                   isActive(link.href) ? "bg-gold-soft/60 text-primary" : "text-foreground"
@@ -261,7 +256,7 @@ export function SiteHeader() {
               </a>
             ))}
             <a
-              href="#/wishlist"
+              href="/wishlist"
               onClick={() => setMobileOpen(false)}
               className={cn(
                 "flex min-h-11 items-center justify-between rounded-md px-3 py-3 text-base font-medium transition-colors hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold",

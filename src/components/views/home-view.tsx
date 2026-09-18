@@ -28,6 +28,7 @@ import { CategoryGridSkeleton, HeroSkeleton, ProductGridSkeleton } from "@/compo
 import { ErrorState } from "@/components/site/empty-state";
 import { RecentlyViewed } from "@/components/site/recently-viewed";
 import { TestimonialsSection } from "@/components/site/testimonials-section";
+import { GoogleReviewsSection } from "@/components/site/google-reviews-section";
 import { siteOrigin, socialSameAs } from "@/components/site/seo-helpers";
 import { useHome } from "@/lib/queries";
 import { navigate } from "@/lib/router";
@@ -298,7 +299,7 @@ export default function HomeView() {
                   </ul>
                   {brandIntro?.ctaText ? (
                     <a
-                      href={`#${brandIntro.ctaUrl?.replace(/^#/, "") || "/about"}`}
+                      href={brandIntro.ctaUrl?.replace(/^#/, "") || "/about"}
                       className="mt-6 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-primary underline decoration-gold decoration-2 underline-offset-8 hover:text-terracotta-deep"
                     >
                       {brandIntro.ctaText} →
@@ -393,6 +394,9 @@ export default function HomeView() {
 
       {/* ============ 5b. TESTIMONIALS (admin-managed social proof) ============ */}
       <TestimonialsSection />
+
+      {/* ============ 5c. GOOGLE REVIEWS (real Business Profile reviews) ============ */}
+      <GoogleReviewsSection />
 
       {/* ============ 6. CUSTOM ORDERS ============ */}
       {customOrders?.visible !== false && customOrders ? (

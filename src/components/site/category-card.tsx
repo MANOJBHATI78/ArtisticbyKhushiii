@@ -21,7 +21,7 @@ export function CategoryCard({ category, className }: CategoryCardProps) {
       )}
     >
       <a
-        href={`#/category/${category.slug}`}
+        href={`/category/${category.slug}`}
         className="relative block focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-gold"
         aria-label={`Explore ${category.name}`}
       >
