@@ -528,3 +528,31 @@ Work Log:
 Stage Summary:
 - No code changes — deployment logistics round; deploy artifact ready at /home/z/my-project/artistic-khushiii-deploy.zip
 - Live data safety guaranteed by existing systems (seed-on-empty-only, additive auto-migrate, backup/restore)
+
+---
+Task ID: 19
+Agent: lead (Z.ai Code main) — user-requested feature round
+Task: (1) no # in any page URL, (2) admin panel blank-space fix, (3) header/footer fully admin-editable, (4) footer admin button removed, (5) Next.js/Netlify branding gone, (6) call button above WhatsApp, (7) splash logo with black→colour reveal, (8) Google reviews fetch, (9) fresh deploy ZIP + VS Code→GitHub→Netlify guide
+
+Work Log:
+- CLEAN URL REFACTOR (biggest change): router.ts rewritten — pathname-first routing with legacy "#/…" fallback (old bookmarks auto-convert via replaceState); navigate() now pushState/replaceState + manual PopStateEvent dispatch; useHashRoute() kept its name/signature so all 8 consumer files needed zero changes
+- Global link interceptor added to page.tsx: catches ALL internal link clicks (both legacy "#/…" hrefs AND clean "/…" hrefs), preventDefault + pushState — SPA navigation without page reload, address bar never shows "#". Filters out /api/, /uploads/, /images/, /_next/, favicon/robots/sitemap, target=_blank, downloads
+- next.config.ts: SPA fallback rewrite "/:path*" → "/" in the FALLBACK phase (after static AND dynamic routes) — first attempt in afterFiles broke dynamic API routes ([slug] handlers returned HTML); fallback phase fixed it: deep links + refresh work everywhere (sandbox + Netlify), APIs unaffected
+- All "#/" hrefs converted to clean paths across 20+ files (script + manual): nav links, footer, cards, breadcrumbs, search results, admin previews/placeholders/QR URLs
+- analytics.tsx: GA page_view now fires on popstate too (pushState fires no event) and sends clean page_path without hash
+- Sitemap already used clean URLs; JSON-LD/canonicals already clean — verified
+- ADMIN LAYOUT BUG FIXED (user-reported "blank space + scrolling on laptop"): root div was missing `flex` — the sticky sidebar stacked VERTICALLY above the content (main started at 824px on a 768px viewport!). Fixed: flex row root + main column flex-1 min-w-0 (removed stale md:pl-64 padding). Verified: mainTop 824px → 56px at 1366×768 across dashboard/products/settings
+- DYNAMIC NAVIGATION (admin-editable): new settings headerNavLinks/footerExploreLinks (JSON link lists) + parseNavLinks() with defaults fallback; header desktop+mobile nav and footer Explore column render from settings; SettingsManager gained "Website Navigation" card with LinkListEditor (label+URL rows, move up/down, delete, add, "Start from the current links" prefill, "Reset to defaults"). E2E verified: add Services link → save → public header shows it → reset → defaults back
+- Footer "Admin" link removed (user request); owner reaches /admin directly
+- FAVICON: public/favicon.ico generated from brand logo (16/32/48 via PIL) + apple-touch-icon.png 180px; metadata icons updated — Next.js default logo can never appear after deploy. Netlify badge = dashboard toggle (re-explained)
+- CALL BUTTON: whatsapp-float.tsx now a floating stack — terracotta phone button (tel: + trackCallClick) above the green WhatsApp button, tooltips, safe-area aware, print-hide; phone from settings (hides if empty)
+- SPLASH: loading screen shows logo twice — base layer brightness-0 (black silhouette) + overlay with splash-reveal keyframes (clip-path inset wipe top→bottom, 2.6s infinite alternate, reduced-motion aware) — the "black image converting to original colours" effect the user asked for
+- GOOGLE REVIEWS: new /api/public/google-reviews route (Places API New; 6h in-process cache; graceful degrade; never breaks site) + settings googlePlacesApiKey/googlePlaceId (password field + hints + links in SettingsManager "Google Reviews" card) + GoogleReviewsSection on home (G mark, rating pill, review cards with author photos, "See all on Google" + "Write a Google review" CTAs) — self-hides until configured; useGoogleReviews hook (staleTime 1h, no retry)
+- QA (agent-browser): clean URLs verified across ALL flows — home `/`, nav clicks → /products (SPA, marker test proved no reload), product card → /product/slug, back/forward, REFRESH on deep paths works (rewrite), legacy /#/blog → auto-converts to /blog, search ?q=, wishlist, contact, faq, thank-you, /lp/diwali-gifting, /admin, 404 view for bogus paths; mobile 375px no h-scroll, call+WA floats stacked correctly; admin mobile tabs ok; console + page errors clean; lint 0 problems; dev.log clean
+- Rebuilt artistic-khushiii-deploy.zip (8.6MB) with everything; committed
+
+Stage Summary:
+- Big UX round: site URLs are now 100% clean paths everywhere (# gone forever, old links still work), admin panel usable on laptops (layout bug fixed), owner can edit header/footer menus from admin, direct-call button added, brand favicon + animated logo splash, and real Google reviews ready to switch on (needs API key + place id from owner)
+- Deploy-safety unchanged: seed-on-empty-only, additive auto-migrate, backup/restore — live data safe
+- Owner to-dos after deploy: disable Netlify badge in dashboard (Domains → scroll → toggle), optionally set Google reviews key+place id in Site Settings, set siteUrl, change admin password
+- Open: GA events for call button already flow; Google reviews section hidden until configured (by design)
