@@ -78,13 +78,24 @@ export function SiteAnalytics({ settings }: { settings: SiteSettings }) {
   // ---------- Google Search Console verification meta tag ----------
   useEffect(() => {
     const elId = "abk-gsc-verification";
-    const existing = document.getElementById(elId) as HTMLMetaElement | null;
+    // The server may already render this meta tag (visible in View Source —
+    // see src/app/layout.tsx generateMetadata). Find it by id first, then by
+    // name, and keep its content in sync with the latest admin settings.
+    const existing =
+      (document.getElementById(elId) as HTMLMetaElement | null) ??
+      (document.querySelector('meta[name="google-site-verification"]') as HTMLMetaElement | null);
+
     if (!gscToken) {
       existing?.remove();
       applied.current.gsc = "";
       return;
     }
-    if (applied.current.gsc === gscToken) return;
+    if (existing && existing.content === gscToken) {
+      if (!existing.id) existing.id = elId;
+      applied.current.gsc = gscToken;
+      (window.__abkAnalytics ??= {}).gsc = gscToken;
+      return;
+    }
     const meta = existing ?? document.createElement("meta");
     meta.id = elId;
     meta.name = "google-site-verification";
@@ -105,16 +116,32 @@ export function SiteAnalytics({ settings }: { settings: SiteSettings }) {
     }
     if (applied.current.ga === gaId) return;
 
+    const expectedSrc = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaId)}`;
+    // The server already renders this tag in the page HTML (View Source
+    // visible — see src/app/layout.tsx) with send_page_view:false. Only
+    // re-inject client-side when it is missing or was baked with a stale ID
+    // (e.g. the measurement ID was just changed in admin settings).
+    const serverTag = document.getElementById(elId) as HTMLScriptElement | null;
+    const serverRendered = serverTag?.getAttribute("src") === expectedSrc;
+
     window.dataLayer = window.dataLayer ?? [];
-    window.gtag = function gtag(...args: unknown[]) {
-      window.dataLayer?.push(args);
-    };
-    window.gtag("js", new Date());
-    // Default page_view doesn't understand hash navigation → send manually.
-    window.gtag("config", gaId, { send_page_view: false });
-    upsertScript(elId, `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaId)}`);
+    if (!window.gtag) {
+      window.gtag = function gtag(...args: unknown[]) {
+        window.dataLayer?.push(args);
+      };
+    }
+
+    if (!serverRendered) {
+      serverTag?.remove();
+      window.gtag("js", new Date());
+      // Default page_view doesn't understand hash navigation → send manually.
+      window.gtag("config", gaId, { send_page_view: false });
+      upsertScript(elId, expectedSrc);
+    }
 
     const pageView = () => {
+      // Never track the owner's admin console.
+      if (/^\/admin(\/|$)/.test(window.location.pathname)) return;
       window.gtag?.("event", "page_view", {
         page_path: `${window.location.pathname}${window.location.search}`,
         page_title: document.title,

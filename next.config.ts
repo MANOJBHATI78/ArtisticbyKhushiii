@@ -11,7 +11,12 @@ const nextConfig: NextConfig = {
     return {
       // /uploads/* must reach the disk even when ABK_UPLOAD_DIR lives outside
       // the served public/ folder (Docker volume in production).
-      beforeFiles: [{ source: "/uploads/:path*", destination: "/api/media/:path*" }],
+      // /sitemap.xml → the dynamic, database-driven sitemap so the standard
+      // URL works in Google Search Console.
+      beforeFiles: [
+        { source: "/uploads/:path*", destination: "/api/media/:path*" },
+        { source: "/sitemap.xml", destination: "/api/sitemap" },
+      ],
       afterFiles: [],
       // SPA fallback — runs LAST, after static files AND dynamic routes
       // (e.g. /api/public/products/[slug]) are matched, so any remaining

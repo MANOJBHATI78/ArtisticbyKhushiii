@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/api-client";
+import { api, ApiError } from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 import type { NavLink, SiteSettings } from "@/lib/types";
 import { DEFAULT_SETTINGS } from "@/lib/types";
@@ -214,7 +214,15 @@ export function SettingsManager() {
       void qc.invalidateQueries({ queryKey: ["home"] });
       void qc.invalidateQueries({ queryKey: ["admin", "settings"] });
     } catch (e) {
-      toast({ title: "Save failed", description: errMsg(e), variant: "destructive" });
+      if (e instanceof ApiError && e.status === 401) {
+        toast({
+          title: "Session expired",
+          description: "Your admin login ended. Open the site in a new tab, log in again, come back and press Save — this form keeps your values.",
+          variant: "destructive",
+        });
+      } else {
+        toast({ title: "Save failed", description: errMsg(e), variant: "destructive" });
+      }
     } finally {
       setSaving(false);
     }
@@ -470,8 +478,8 @@ export function SettingsManager() {
               <MediaPickField value={form.defaultOgImage} alt="OG image" onPick={(p) => set("defaultOgImage", p.url)} onClear={() => set("defaultOgImage", "")} />
             </div>
           </Field>
-          <Field label="Site URL" hint="https://yourdomain.com — used in sitemap & canonical tags.">
-            <Input value={form.siteUrl} onChange={(e) => set("siteUrl", e.target.value)} placeholder="https://artisticbykhushi.com" />
+          <Field label="Site URL" hint="Your live site address — used in the sitemap, Google verification & social share previews. Must include https://">
+            <Input value={form.siteUrl} onChange={(e) => set("siteUrl", e.target.value)} placeholder="https://artisticbykhushiii.com" />
           </Field>
         </CardContent>
       </Card>
@@ -492,7 +500,7 @@ export function SettingsManager() {
             <Field
               label="Google Analytics ID"
               icon={<BarChart3 className="h-3.5 w-3.5 text-primary" />}
-              hint="GA4 Measurement ID — starts with “G-”. Leave empty to disable."
+              hint="GA4 Measurement ID — starts with “G-”. Rendered into the page HTML (visible in View Source). Leave empty to disable."
               error={
                 form.googleAnalyticsId && !GA_ID_RE.test(form.googleAnalyticsId)
                   ? "That doesn't look like a GA4 ID — it should look like G-ABC123456 (find it in Google Analytics → Admin → Data streams)."
@@ -505,7 +513,7 @@ export function SettingsManager() {
             <Field
               label="Google Search Console token"
               icon={<SearchCheck className="h-3.5 w-3.5 text-primary" />}
-              hint="HTML-tag method → paste the whole meta tag or just its content value. Full tag is OK."
+              hint="Search Console → Settings → Ownership verification → HTML tag → copy the content value and paste it here (full tag is also OK). Save, then press Verify in Google."
               counter={<StatusPill on={Boolean(form.googleSearchConsoleToken.trim())} />}
             >
               <Input value={form.googleSearchConsoleToken} onChange={(e) => set("googleSearchConsoleToken", e.target.value)} placeholder='google-site-verification=TOKEN' />
@@ -543,6 +551,26 @@ export function SettingsManager() {
               Microsoft Clarity <ExternalLink className="h-3 w-3" />
             </a>
           </div>
+          {/* How to verify with Google — step-by-step for the owner */}
+          <details className="group rounded-lg border bg-muted/20 px-3 py-2.5 text-xs text-muted-foreground">
+            <summary className="cursor-pointer select-none font-medium text-foreground marker:content-none">
+              <SearchCheck className="mr-1 inline size-3.5 text-primary" />
+              How to connect Google (Analytics + Search Console) — step by step
+              <span className="ml-1 text-muted-foreground/70 group-open:hidden">&#9662;</span>
+              <span className="ml-1 hidden text-muted-foreground/70 group-open:inline">&#9652;</span>
+            </summary>
+            <div className="mt-2.5 space-y-2 leading-relaxed">
+              <p><strong className="text-foreground">Google Analytics:</strong> analytics.google.com → Admin (gear icon) → Data streams → your website → the “G-…” ID at the top right. Paste it in the field above and Save. It goes live on the site instantly and is also visible in the page source (Ctrl+U).</p>
+              <p><strong className="text-foreground">Google Search Console:</strong></p>
+              <ol className="ml-4 list-decimal space-y-1">
+                <li>search.google.com/search-console → Add property → <em>URL prefix</em> → <code className="rounded bg-muted px-1">{(form.siteUrl || "https://artisticbykhushiii.com").trim().replace(/\/+$/, "")}</code></li>
+                <li>Choose the <strong>“HTML tag”</strong> verification method.</li>
+                <li>Google shows a meta tag — copy its <strong>content</strong> value (or the whole tag) into the “Google Search Console token” field above.</li>
+                <li>Press <strong>Save settings</strong> here, then go back to Google and press <strong>Verify</strong>.</li>
+              </ol>
+              <p>After verifying: Sitemaps → add <code className="rounded bg-muted px-1">/sitemap.xml</code>. Done — Google starts indexing the site.</p>
+            </div>
+          </details>
         </CardContent>
       </Card>
 

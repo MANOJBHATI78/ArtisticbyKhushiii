@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Jost } from "next/font/google";
+import { cache } from "react";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { getSettings } from "@/lib/server-utils";
+import { DEFAULT_SETTINGS, type SiteSettings } from "@/lib/types";
 
 const playfair = Playfair_Display({
   variable: "--font-display",
@@ -15,44 +18,149 @@ const jost = Jost({
   weight: ["300", "400", "500", "600"],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "Artistic by Khushiii | Handcrafted Personalized Resin Art & Gifts",
-    template: "%s | Artistic by Khushiii",
-  },
-  description:
-    "Discover handcrafted resin nameplates, wall art, trays, coasters, keychains, jewellery and memory preservation keepsakes by Artistic by Khushiii. Personalized designs made with love. Enquire on WhatsApp.",
-  keywords: [
-    "resin art", "personalized resin nameplate", "resin nameplate India", "memory preservation",
-    "resin gifts", "handcrafted resin art", "Lippan art", "custom resin art", "resin coasters", "resin tray",
-  ],
-  authors: [{ name: "Khushi" }],
-  icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/images/logo.png", type: "image/png" },
-    ],
-    apple: "/images/apple-touch-icon.png",
-  },
-  openGraph: {
-    title: "Artistic by Khushiii | Handcrafted Personalized Resin Art & Gifts",
-    description:
-      "Premium handcrafted resin art — personalized nameplates, décor, memory keepsakes and custom gifts, made to order with love. Surat studio, pan-India delivery & worldwide shipping.",
-    siteName: "Artistic by Khushiii",
-    type: "website",
-  },
-  robots: { index: true, follow: true },
-};
+/**
+ * Production domain — fallback used when "Site URL" hasn't been filled in the
+ * admin settings yet. Keeps sitemap URLs and social-share (OG) tags absolute
+ * and therefore valid for Google / WhatsApp / Facebook.
+ */
+const PRODUCTION_URL = "https://artisticbykhushiii.com";
 
-export default function RootLayout({
+/** GA4 measurement IDs look like G-ABC1234567. */
+const GA_ID_RE = /^G-[A-Z0-9]{6,12}$/i;
+
+/**
+ * Google Search Console "HTML tag" method gives a full meta tag; owners often
+ * paste the whole tag. Accept: full tag, `google-site-verification=token`,
+ * or the bare content token.
+ */
+function extractGscToken(raw: string): string {
+  const t = raw.trim();
+  if (!t) return "";
+  const metaContent = t.match(/content\s*=\s*["']([^"']+)["']/i);
+  if (metaContent) return metaContent[1].trim();
+  const pair = t.match(/google-site-verification\s*=\s*(.+)$/i);
+  if (pair) return pair[1].trim();
+  return t;
+}
+
+/** Normalize an admin-entered site URL (adds https://, strips trailing slashes). */
+function normalizeSiteUrl(raw: string): string {
+  let url = raw.trim().replace(/\/+$/, "");
+  if (url && !/^https?:\/\//i.test(url)) url = `https://${url}`;
+  return url;
+}
+
+/**
+ * The HTML shell (SEO meta, GA4 tag, Search Console verification) is driven by
+ * the database, so it is revalidated periodically AND flushed instantly when
+ * settings are saved (see api/admin/settings → revalidatePath).
+ */
+export const revalidate = 300;
+
+/** Per-request memoised settings read shared by generateMetadata + RootLayout. */
+const loadSettings = cache(async (): Promise<SiteSettings> => {
+  try {
+    return await getSettings();
+  } catch {
+    // Database hiccup — keep the site online with safe defaults
+    // (analytics tags simply won't render until the DB is reachable again).
+    return DEFAULT_SETTINGS;
+  }
+});
+
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await loadSettings();
+
+  const siteUrl = normalizeSiteUrl(s.siteUrl) || PRODUCTION_URL;
+  const title =
+    s.defaultSeoTitle.trim() ||
+    "Artistic by Khushiii | Handcrafted Personalized Resin Art & Gifts";
+  const description =
+    s.defaultMetaDescription.trim() ||
+    "Discover handcrafted resin nameplates, wall art, trays, coasters, keychains, jewellery and memory preservation keepsakes by Artistic by Khushiii. Personalized designs made with love. Enquire on WhatsApp.";
+  const ogImage = s.defaultOgImage.trim() || "/images/og-default.jpg";
+  const gscToken = extractGscToken(s.googleSearchConsoleToken);
+
+  const metadata: Metadata = {
+    title: {
+      default: title,
+      template: "%s | Artistic by Khushiii",
+    },
+    description,
+    keywords: [
+      "resin art", "personalized resin nameplate", "resin nameplate India", "memory preservation",
+      "resin gifts", "handcrafted resin art", "Lippan art", "custom resin art", "resin coasters", "resin tray",
+    ],
+    authors: [{ name: "Khushi" }],
+    icons: {
+      icon: [
+        { url: "/favicon.ico", sizes: "any" },
+        { url: "/images/logo.png", type: "image/png" },
+      ],
+      apple: "/images/apple-touch-icon.png",
+    },
+    openGraph: {
+      title,
+      description:
+        "Premium handcrafted resin art — personalized nameplates, décor, memory keepsakes and custom gifts, made to order with love. Surat studio, pan-India delivery & worldwide shipping.",
+      siteName: "Artistic by Khushiii",
+      type: "website",
+      images: [{ url: ogImage, width: 1200, height: 630 }],
+    },
+    robots: { index: true, follow: true },
+  };
+
+  try {
+    metadata.metadataBase = new URL(siteUrl);
+  } catch {
+    /* invalid URL — fall back to relative tags (same as before) */
+  }
+  // Search Console verification via the "HTML tag" method — server-rendered so
+  // it is visible in View Source and picked up by Google's verification crawler.
+  if (gscToken) metadata.verification = { google: gscToken };
+
+  return metadata;
+}
+
+/**
+ * Standard GA4 bootstrap — SERVER-RENDERED so the tag is visible in
+ * "View Source" and starts collecting even before the SPA boots.
+ * page_view itself is sent by the SPA router (components/site/analytics.tsx),
+ * so send_page_view is disabled here to avoid double counting. Localhost and
+ * the /admin console never send data.
+ */
+function gaBootstrap(gaId: string): string {
+  return (
+    "window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}window.gtag=gtag;gtag('js',new Date());" +
+    "if(!/^(localhost|127\\.0\\.0\\.1)$/.test(location.hostname)&&!/^\\/admin(\\/|$)/.test(location.pathname)){" +
+    `gtag('config','${gaId}',{send_page_view:false});}`
+  );
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const s = await loadSettings();
+  const gaId = s.googleAnalyticsId.trim();
+  const gaLive = GA_ID_RE.test(gaId);
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${playfair.variable} ${jost.variable} antialiased bg-background text-foreground`}>
         {children}
+        {gaLive && (
+          <>
+            {/* Google Analytics 4 — rendered on the server (View Source visible) */}
+            <script
+              id="abk-ga-script"
+              async
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+            />
+            <script dangerouslySetInnerHTML={{ __html: gaBootstrap(gaId) }} />
+          </>
+        )}
         <Toaster />
       </body>
     </html>

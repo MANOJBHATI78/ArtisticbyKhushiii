@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const settings = await getSettings();
-    const base = (settings.siteUrl || "").trim().replace(/\/+$/, "");
+    const base = (settings.siteUrl || "").trim().replace(/\/+$/, "") || "https://artisticbykhushiii.com";
 
     const txt =
       `User-agent: *\n` +

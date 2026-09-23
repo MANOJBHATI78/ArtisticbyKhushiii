@@ -16,7 +16,9 @@ function xmlEscape(s: string): string {
 export async function GET() {
   try {
     const settings = await getSettings();
-    const base = (settings.siteUrl || "").trim().replace(/\/+$/, "");
+    // Fallback to the production domain when "Site URL" is empty in settings —
+    // sitemap <loc> URLs must be absolute or Google rejects the whole file.
+    const base = (settings.siteUrl || "").trim().replace(/\/+$/, "") || "https://artisticbykhushiii.com";
 
     const [categories, products, blogs, pages, landings] = await Promise.all([
       db.category.findMany({ where: { published: true }, select: { slug: true, updatedAt: true } }),

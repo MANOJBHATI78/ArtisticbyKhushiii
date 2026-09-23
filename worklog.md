@@ -556,3 +556,28 @@ Stage Summary:
 - Deploy-safety unchanged: seed-on-empty-only, additive auto-migrate, backup/restore — live data safe
 - Owner to-dos after deploy: disable Netlify badge in dashboard (Domains → scroll → toggle), optionally set Google reviews key+place id in Site Settings, set siteUrl, change admin password
 - Open: GA events for call button already flow; Google reviews section hidden until configured (by design)
+
+---
+Task ID: 20
+Agent: lead (Z.ai Code main) — user-reported Google Analytics / Search Console round
+Task: User reported (Hinglish): (1) "G-48RD3ZZYF2 save pe unauthorized field" error with Google Analytics, (2) Google Search Console error, (3) "mera code view source me nahi dikhta, inspect me head section me dikhta hai" — diagnose & fix all three
+
+Work Log:
+- DIAGNOSIS: (3) explained — the site is a client-rendered SPA; the GA4 tag + GSC meta were injected by JavaScript (SiteAnalytics component) AFTER hydration, so Inspect (live DOM) showed them but View Source (raw server HTML) did not. This also makes GSC "HTML tag" verification unreliable and GA tag invisible to tools that read raw HTML
+- ROOT CAUSE for GSC errors: verification meta was client-side injected + robots.txt had NO Sitemap line + sitemap <loc> URLs were RELATIVE when settings.siteUrl was empty (Google rejects such sitemaps)
+- src/app/layout.tsx REWRITTEN: now a settings-driven server component — generateMetadata() reads DB (React cache()-memoised per request): title/description/OG from defaultSeoTitle/defaultMetaDescription/defaultOgImage, metadataBase from siteUrl (fallback https://artisticbykhushiii.com), og:image absolute (WhatsApp preview fix), verification.google from googleSearchConsoleToken (full tag / key=value / bare token all accepted via extractGscToken). GA4 tag now SERVER-RENDERED into the HTML: <script id="abk-ga-script" async src=googletagmanager.com/gtag/js?id=…> + inline bootstrap with send_page_view:false and hostname//admin guards (localhost + /admin never ping). revalidate=300 on the shell
+- src/components/site/analytics.tsx UPDATED to co-exist with the server tag: detects #abk-ga-script already in DOM with matching src → skips re-inject + re-config (no double page_view); stale/missing → full client fallback (remove + re-create). GSC meta effect reuses existing <meta name=google-site-verification"> (by id OR by name) instead of creating a duplicate. page_view now skips /admin paths (owner console never tracked)
+- api/admin/settings PUT: revalidatePath("/","page") + ("/","layout") after save — settings changes (GA id, GSC token, SEO text) go live INSTANTLY, no 5-min wait, no redeploy
+- next.config.ts: /sitemap.xml → /api/sitemap rewrite (standard URL for Search Console)
+- public/robots.txt: + Disallow /admin, /api/ + Sitemap: https://artisticbykhushiii.com/sitemap.xml
+- api/sitemap + api/robots: base URL falls back to https://artisticbykhushiii.com when settings.siteUrl is empty (absolute <loc> guaranteed)
+- SettingsManager: save() catch now detects ApiError 401 → friendly "Session expired — log in again in a new tab, form keeps values" toast (the raw "Unauthorized" the user saw); Site URL field placeholder/hint updated to the real domain; GA + GSC field hints rewritten; added collapsible "How to connect Google (Analytics + Search Console) — step by step" guide (GSC: URL prefix → HTML tag → paste content → Save → Verify; then submit /sitemap.xml)
+- QA: test values injected in sandbox DB → curl / confirms RAW HTML now contains gtag script (id=abk-ga-script), inline bootstrap, <meta name="google-site-verification">, absolute og:image — i.e. visible in View Source. agent-browser on network URL (production-like): exactly 1 GA script + 1 GSC meta (no duplicates), 1 page_view on load, +1 per SPA navigation (2 after /products), window.__abkAnalytics.ga synced. /robots.txt + /sitemap.xml + /api/sitemap all 200 with absolute URLs. No console/page errors, homepage renders fully (VLM-verified), lint clean. Test values then removed from sandbox DB (siteUrl kept = real domain)
+
+Stage Summary:
+- "View Source" now shows the GA4 tag + Search Console verification meta (server-rendered) — fixes Google tools not seeing the code
+- Search Console verification via HTML tag is now reliable; save → verify instantly (revalidatePath)
+- robots.txt now advertises the sitemap; /sitemap.xml standard URL works; sitemap always has absolute URLs even without siteUrl setting
+- Admin save 401 no longer shows raw "Unauthorized" — clear session-expired guidance instead
+- Owner action needed after deploy: re-save settings once is NOT needed (GA id already in DB); just Verify in Search Console with the HTML-tag method and submit /sitemap.xml
+- Open: none blocking; next round can continue feature/QA work

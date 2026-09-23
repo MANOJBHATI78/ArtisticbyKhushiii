@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { db, describeDbError } from "@/lib/db";
 import { fail, getSettings, ok } from "@/lib/server-utils";
 import { has, readJsonBody, str } from "@/lib/serializers";
@@ -47,6 +48,15 @@ export async function PUT(request: Request) {
     }
 
     const settings = await getSettings();
+    // The HTML shell (SEO meta, GA4 tag, Search Console verification) is
+    // rendered from these settings — flush the cached shell so saves go live
+    // immediately (no waiting for the periodic revalidate).
+    try {
+      revalidatePath("/", "page");
+      revalidatePath("/", "layout");
+    } catch (e) {
+      console.warn("[api/admin/settings PUT] revalidatePath failed", e);
+    }
     return ok(settings);
   } catch (e) {
     console.error("[api/admin/settings PUT]", e);
