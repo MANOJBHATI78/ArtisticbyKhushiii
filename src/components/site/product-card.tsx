@@ -81,14 +81,14 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
       <CardHeader className="pb-2">
         <a href={detailHref} className="focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold">
-          <h3 className="font-display text-lg leading-snug text-foreground transition-colors group-hover:text-primary">
-            <span className="line-clamp-1">{product.name}</span>
+          <h3 className="min-h-11 font-display text-lg leading-snug text-foreground transition-colors group-hover:text-primary">
+            <span className="line-clamp-2">{product.name}</span>
           </h3>
         </a>
       </CardHeader>
 
       <CardContent className="flex-1 pb-3">
-        <p className="min-h-10 text-sm text-muted-foreground line-clamp-2">{product.shortDescription}</p>
+        <p className="text-sm text-muted-foreground line-clamp-2">{product.shortDescription}</p>
       </CardContent>
 
       <CardFooter className="gap-2">

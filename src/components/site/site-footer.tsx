@@ -53,7 +53,7 @@ export function SiteFooter() {
   ].filter((s) => s.url);
 
   return (
-    <footer className="mt-auto bg-espresso pb-[env(safe-area-inset-bottom)] text-cream">
+    <footer className="site-footer mt-auto bg-espresso pb-[env(safe-area-inset-bottom)] text-cream">
       <Container className="py-12 md:py-16">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
           {/* Brand */}

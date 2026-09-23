@@ -8,6 +8,7 @@ import { Container } from "@/components/site/container";
 import { Img } from "@/components/site/img";
 import { OfferBanner } from "@/components/site/offer-banner";
 import { SearchOverlay } from "@/components/site/search-overlay";
+import { ThemeToggle } from "@/components/site/theme-toggle";
 import { navigate, useHashRoute } from "@/lib/router";
 import { useSiteStore, whatsappLink } from "@/lib/store";
 import { trackCallClick, trackWhatsAppClick } from "@/lib/track";
@@ -109,8 +110,8 @@ export function SiteHeader() {
           linkUrl={settings.offerBannerLinkUrl}
         />
       ) : showAnnouncement ? (
-        <div className="relative flex items-center justify-center bg-primary px-10 py-1.5 text-center">
-          <p className="truncate text-sm text-primary-foreground">{settings.announcements}</p>
+        <div className="relative flex items-center justify-center border-b border-gold/20 bg-primary px-10 py-1.5 text-center dark:border-0 dark:bg-[oklch(0.3_0.04_50)]">
+          <p className="truncate text-sm text-primary-foreground dark:text-gold">{settings.announcements}</p>
           <button
             type="button"
             onClick={dismissAnnouncement}
@@ -173,6 +174,8 @@ export function SiteHeader() {
 
             {/* Right actions */}
             <div className="flex items-center gap-1.5">
+              <ThemeToggle className="size-11" />
+
               <button
                 type="button"
                 onClick={() => setSearchOpen(true)}
@@ -242,6 +245,10 @@ export function SiteHeader() {
             <SheetDescription className="sr-only">Site navigation</SheetDescription>
           </SheetHeader>
           <nav aria-label="Mobile navigation" className="flex flex-col gap-1 px-4 pb-2">
+            <div className="mb-1 flex items-center justify-between rounded-md bg-secondary/60 px-3 py-2">
+              <span className="text-sm font-medium text-foreground/80">Appearance</span>
+              <ThemeToggle className="size-9" />
+            </div>
             {navLinks.map((link) => (
               <a
                 key={link.href}

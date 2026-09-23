@@ -105,7 +105,7 @@
   --secondary: oklch(0.3 0.02 60);
   --secondary-foreground: oklch(0.95 0.01 85);
   --muted: oklch(0.3 0.02 60);
-  --muted-foreground: oklch(0.72 0.02 70);
+  --muted-foreground: oklch(0.78 0.025 72);
   --accent: oklch(0.34 0.04 50);
   --accent-foreground: oklch(0.95 0.01 85);
   --destructive: oklch(0.704 0.191 22.216);
@@ -121,7 +121,19 @@
   --sidebar-border: oklch(1 0 0 / 12%);
   --sidebar-ring: oklch(0.68 0.13 45);
   --gold: oklch(0.78 0.12 80);
-  --gold-soft: oklch(0.9 0.06 82);
+  --gold-soft: oklch(0.34 0.05 60);
+  /* Brand tokens re-mapped for dark: every bg-cream / text-espresso /
+     terracotta usage across the site flips automatically via these vars. */
+  --terracotta: oklch(0.72 0.12 50);
+  --terracotta-deep: oklch(0.8 0.11 60);
+  --cream: oklch(0.26 0.025 55);
+  --espresso: oklch(0.92 0.02 80);
+  --chocolate: oklch(0.95 0.01 85);
+  --chart-1: oklch(0.72 0.12 50);
+  --chart-2: oklch(0.78 0.12 80);
+  --chart-3: oklch(0.6 0.1 45);
+  --chart-4: oklch(0.55 0.08 50);
+  --chart-5: oklch(0.85 0.06 75);
 }
 
 @layer base {
@@ -213,6 +225,20 @@
   border-radius: 8px;
 }
 .custom-scroll::-webkit-scrollbar-thumb:hover { background: var(--terracotta); }
+.dark .custom-scroll::-webkit-scrollbar-thumb { background: oklch(0.38 0.03 60); }
+.dark .custom-scroll::-webkit-scrollbar-thumb:hover { background: oklch(0.55 0.08 55); }
+
+/* Page scrollbar follows the theme too. */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: var(--background); }
+*::-webkit-scrollbar-thumb {
+  background: oklch(0.82 0.035 72);
+  border-radius: 999px;
+  border: 2px solid var(--background);
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--terracotta); }
+.dark *::-webkit-scrollbar-thumb { background: oklch(0.35 0.03 58); }
+.dark *::-webkit-scrollbar-thumb:hover { background: oklch(0.55 0.08 55); }
 
 /* ---------- Brand animations ---------- */
 @keyframes fade-up {
@@ -229,6 +255,10 @@
   background: linear-gradient(90deg, transparent, oklch(0.93 0.02 80 / 60%), transparent);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
+}
+.dark .animate-shimmer {
+  background: linear-gradient(90deg, transparent, oklch(0.45 0.03 60 / 70%), transparent);
+  background-size: 200% 100%;
 }
 
 @keyframes float-soft {
@@ -282,6 +312,31 @@
 ::selection {
   background: var(--gold-soft);
   color: var(--espresso);
+}
+
+/* ---------- Page transition (SPA route changes) ---------- */
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.page-transition { animation: page-in 0.32s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .page-transition { animation: none; }
+}
+
+/* ---------- Footer — signature espresso treatment in BOTH themes ----------
+   The global --espresso / --cream tokens flip for dark mode (they're used as
+   page-ink colours), but the footer is always deep chocolate with cream ink.
+   Re-scoping the vars here keeps every text-cream/* and bg-cream usage inside
+   the footer correct without touching the component. */
+.site-footer {
+  --espresso: oklch(0.26 0.04 50);
+  --cream: oklch(0.968 0.014 85);
+  --terracotta: oklch(0.72 0.12 50);
+}
+.dark .site-footer {
+  --espresso: oklch(0.16 0.018 55);
+  --cream: oklch(0.94 0.02 80);
 }
 
 /* Gentle thumb-glide for horizontal strips (recently viewed etc.). */

@@ -581,3 +581,29 @@ Stage Summary:
 - Admin save 401 no longer shows raw "Unauthorized" — clear session-expired guidance instead
 - Owner action needed after deploy: re-save settings once is NOT needed (GA id already in DB); just Verify in Search Console with the HTML-tag method and submit /sitemap.xml
 - Open: none blocking; next round can continue feature/QA work
+
+---
+Task ID: 21
+Agent: lead (Z.ai Code main) — cron webDevReview round
+Task: Scheduled QA + independently selected work focus. QA passed clean (all pages, mobile, admin — 0 errors), so this round delivered a major new feature + styling polish: DARK MODE + page transitions + detail refinements
+
+Work Log:
+- QA PASS (pre-work): 11 public routes + /admin swept via agent-browser — all 0 console/page errors, titles correct, mobile 375px no horizontal scroll, /api/health ok (db ready, 1 admin, 15 categories)
+- DARK MODE — full implementation:
+  • Providers.tsx: added next-themes ThemeProvider (attribute="class", defaultTheme="light", enableSystem=false, disableTransitionOnChange) — light stays the brand default, dark is opt-in per visitor, persisted in localStorage
+  • globals.css .dark block: previously only base shadcn vars existed; added brand-token overrides so all ~50 bg-cream/text-espresso/terracotta usages flip automatically: --cream (dark brown panel), --espresso (light ink), --chocolate, --terracotta (brighter for contrast), --terracotta-deep, chart colors; --gold-soft → deep warm tone (was near-white, jarring as bg); --muted-foreground raised 0.72→0.78 lightness (VLM-flagged borderline breadcrumb/caption contrast)
+  • NEW components/site/theme-toggle.tsx: animated sun↔moon button (rotate/scale/opacity transitions, active:scale-95, focus-visible ring, a11y labels, neutral shell until mounted). Lint-clean hydration pattern: uses resolvedTheme===undefined as the mounted signal (no setState-in-effect)
+  • site-header.tsx: ThemeToggle in desktop actions cluster (size-11, before search) + "Appearance" row at the top of the mobile nav sheet (size-9); announcement bar given dark: variant (espresso bg + gold text instead of bright terracotta — VLM flagged clash)
+  • FOOTER BUG (found via VLM in dark): footer uses bg-espresso/text-cream — these vars flip in dark (correct for page ink), which turned the footer into a light block. Fixed with .site-footer scoped var re-declaration in globals.css (footer keeps signature espresso+cream treatment in BOTH themes; .dark just deepens it) + site-footer class on <footer>
+- PAGE TRANSITIONS: site-app.tsx main content wrapped in <div key={route.path} class="page-transition"> — every SPA navigation replays a 0.32s fade+rise (CSS @keyframes page-in, prefers-reduced-motion aware); query-param-only changes don't remount (filters preserved)
+- STYLING DETAILS: themed page scrollbar (global *::-webkit-scrollbar, rounded thumb with background border, dark variants) + dark variants for .custom-scroll and .animate-shimmer; product-card.tsx title line-clamp-1 → line-clamp-2 with min-h-11 (long names no longer cut, cards stay aligned; description min-h removed, flex-1 handles it)
+- theme_toggle GA event added to track() on every switch
+- QA (post-work): dark sweep of 11 routes — 0 errors, theme persists across navigations AND reload; toggle both ways works; VLM reviews: dark homepage "very polished, luxury feel", dark product+products pages "Clean" after fixes, mobile dark nav sheet "readable and polished", light-mode regression "Clean" (no changes vs before); lint 0 problems; dev.log clean; final smoke 5 routes 0 errors
+
+Stage Summary:
+- Major visitor-facing feature: full dark mode with a cosy chocolate-dark palette faithful to the brand (terracotta/gold accents), animated toggle in header (desktop + mobile sheet), localStorage persistence, GA event tracking
+- Footer dark-mode contrast bug fixed via scoped vars; announcement bar, scrollbars, shimmer skeletons all theme-aware
+- SPA route changes now animate with a gentle fade-and-rise
+- Product cards show full 2-line titles
+- No API/schema changes — zero deploy risk; live data untouched
+- Open/next-round ideas: per-view dark polish if VLM ever flags more spots; admin panel inherits the theme (acceptable, owner preference); could add "theme" to admin branding preview later

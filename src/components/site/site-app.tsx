@@ -123,7 +123,11 @@ function SiteShell() {
       </a>
       <SiteHeader />
       <main id="main-content" className="flex-1">
-        {resolveView(route)}
+        {/* Keyed on the route path → re-mounts on every SPA navigation and
+            replays a gentle fade-and-rise (CSS only, reduced-motion aware). */}
+        <div key={route.path} className="page-transition">
+          {resolveView(route)}
+        </div>
       </main>
       <SiteFooter />
       <InquiryModal />
