@@ -19,11 +19,13 @@ import { ShareRow } from "@/components/site/share-row";
 import { WishlistButton } from "@/components/site/wishlist-button";
 import { ProductStickyCta } from "@/components/site/product-sticky-cta";
 import { ProductTestimonials, useProductTestimonials } from "@/components/site/product-testimonials";
+import { GoogleReviewsSection } from "@/components/site/google-reviews-section";
 import { siteOrigin } from "@/components/site/seo-helpers";
 import { useProduct } from "@/lib/queries";
 import { ApiError } from "@/lib/api-client";
 import { navigate } from "@/lib/router";
 import { useSiteStore, whatsappLink } from "@/lib/store";
+import { formatINR, hasDiscount, hasPrice, priceValue } from "@/lib/format";
 import { splitList } from "@/lib/types";
 import { trackCallClick, trackWhatsAppClick } from "@/lib/track";
 import { useSeo } from "@/lib/seo";
@@ -62,6 +64,8 @@ export default function ProductView({ slug }: { slug: string }) {
     ogType: "product",
     jsonLd: useMemo(() => {
       if (!product) return undefined;
+      // Sellable price → Offer block in the Product schema (enquiry-only pieces skip it).
+      const price = priceValue(product.price);
       // Aggregate rating from published reviews → star ratings in Google results.
       const reviewed = (reviews ?? []).filter((t) => t.rating >= 1);
       const aggregateRating =
@@ -87,6 +91,18 @@ export default function ProductView({ slug }: { slug: string }) {
           material: product.material,
           url: `${origin}/product/${product.slug}`,
           ...(aggregateRating ? { aggregateRating } : {}),
+          ...(price > 0
+            ? {
+                offers: {
+                  "@type": "Offer",
+                  url: `${origin}/product/${product.slug}`,
+                  priceCurrency: "INR",
+                  price: String(price),
+                  availability: "https://schema.org/InStock",
+                  itemCondition: "https://schema.org/NewCondition",
+                },
+              }
+            : {}),
         },
       ];
     }, [product, origin, settings.brandName, reviews]),
@@ -237,6 +253,15 @@ export default function ProductView({ slug }: { slug: string }) {
               </a>
             ) : null}
             <h1 className="mt-3 font-display text-3xl leading-tight text-foreground md:text-4xl">{product.name}</h1>
+            {/* Price — large display face with the struck MRP; enquiry-only pieces render nothing. */}
+            {hasPrice(product) ? (
+              <p className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <span className="font-display text-3xl text-foreground">{formatINR(product.price)}</span>
+                {hasDiscount(product) ? (
+                  <s className="text-base text-muted-foreground">{formatINR(product.compareAtPrice)}</s>
+                ) : null}
+              </p>
+            ) : null}
             <p className="mt-3 text-base text-foreground/80 md:text-lg">{product.shortDescription}</p>
 
             {highlights.length > 0 ? (
@@ -275,6 +300,9 @@ export default function ProductView({ slug }: { slug: string }) {
                   href={whatsappLink(settings, product.name)}
                   target="_blank"
                   rel="noopener noreferrer"
+                  data-lead-product={product.name}
+                  data-lead-product-url={productUrl}
+                  data-lead-category={product.categoryName}
                   onClick={() => trackWhatsAppClick("product", product.slug)}
                   aria-label={`Ask about ${product.name} on WhatsApp`}
                 >
@@ -283,7 +311,14 @@ export default function ProductView({ slug }: { slug: string }) {
                 </a>
               </Button>
               <Button size="lg" variant="outline" className="h-12 rounded-full px-6 text-base" asChild>
-                <a href={phoneHref} onClick={() => trackCallClick("product")} aria-label={`Call us on ${settings.phone}`}>
+                <a
+                  href={phoneHref}
+                  data-lead-product={product.name}
+                  data-lead-product-url={productUrl}
+                  data-lead-category={product.categoryName}
+                  onClick={() => trackCallClick("product")}
+                  aria-label={`Call us on ${settings.phone}`}
+                >
                   <Phone aria-hidden="true" />
                   Call
                 </a>
@@ -423,6 +458,9 @@ export default function ProductView({ slug }: { slug: string }) {
       {/* Reviews for this piece (piece-specific first, general studio love fills) */}
       <ProductTestimonials productName={product.name} />
 
+      {/* Real Google reviews — self-hides until the owner connects the Places API. */}
+      <GoogleReviewsSection variant="compact" />
+
       {/* Final CTA */}
       <section aria-label="Enquire" className="relative overflow-hidden bg-espresso py-16 md:py-24">
         <Container className="text-center">
@@ -458,6 +496,9 @@ export default function ProductView({ slug }: { slug: string }) {
                   href={whatsappLink(settings, product.name)}
                   target="_blank"
                   rel="noopener noreferrer"
+                  data-lead-product={product.name}
+                  data-lead-product-url={productUrl}
+                  data-lead-category={product.categoryName}
                   onClick={() => trackWhatsAppClick("product", product.slug)}
                 >
                   <MessageCircle aria-hidden="true" />

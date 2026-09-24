@@ -16,6 +16,9 @@ const nextConfig: NextConfig = {
       beforeFiles: [
         { source: "/uploads/:path*", destination: "/api/media/:path*" },
         { source: "/sitemap.xml", destination: "/api/sitemap" },
+        // Google Merchant Center product feed — standard-looking URL for
+        // easy submission (Admin → Site Settings → Google Shopping shows it).
+        { source: "/shopping-feed.xml", destination: "/api/shopping-feed" },
       ],
       afterFiles: [],
       // SPA fallback — runs LAST, after static files AND dynamic routes

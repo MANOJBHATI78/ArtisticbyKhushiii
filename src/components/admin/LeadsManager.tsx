@@ -54,7 +54,9 @@ export function LeadsManager({ jump }: { jump?: { q: string; n: number } }) {
   const [exporting, setExporting] = useState(false);
 
   const params = { page, pageSize, q: debouncedQ, status };
-  const { data, isLoading } = useAdminLeads(params);
+  // LIVE mode — the list silently re-fetches every 15s so new enquiries
+  // appear without pressing refresh.
+  const { data, isLoading } = useAdminLeads(params, 15_000);
   const { data: stats } = useAdminDashboard();
   // converted-this-month (server caps pageSize at 100 per request)
   const { data: convertedAll } = useAdminLeads({ page: 1, pageSize: 100, q: "", status: "CONVERTED" });
@@ -207,6 +209,16 @@ export function LeadsManager({ jump }: { jump?: { q: string; n: number } }) {
         <Button variant="outline" onClick={() => void exportCsv()} disabled={exporting}>
           <Download className="mr-1 h-4 w-4" /> Export CSV
         </Button>
+        <span
+          className="inline-flex items-center gap-1.5 self-start whitespace-nowrap rounded-full border bg-muted/30 px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
+          title="New enquiries appear automatically — the list refreshes every 15 seconds"
+        >
+          <span className="relative flex size-2" aria-hidden="true">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
+            <span className="relative inline-flex size-2 rounded-full bg-green-600" />
+          </span>
+          Live · auto-refreshing
+        </span>
       </div>
 
       {isLoading ? (
@@ -261,7 +273,17 @@ export function LeadsManager({ jump }: { jump?: { q: string; n: number } }) {
                       {l.message ? <p className="mt-0.5 line-clamp-2 max-w-96 text-xs text-muted-foreground">{l.message}</p> : null}
                       {l.utmSource || l.utmMedium || l.utmCampaign ? (
                         <div className="mt-0.5 flex flex-wrap gap-1">
-                          {l.utmSource ? <Badge variant="outline" className="text-[10px]">src: {l.utmSource}</Badge> : null}
+                          {l.utmSource === "whatsapp_click" ? (
+                            <Badge variant="outline" className="border-green-300 bg-green-100 text-[10px] font-medium text-green-800">
+                              WhatsApp tap
+                            </Badge>
+                          ) : l.utmSource === "call_click" ? (
+                            <Badge variant="outline" className="border-terracotta/40 bg-terracotta/15 text-[10px] font-medium text-terracotta-deep">
+                              Call tap
+                            </Badge>
+                          ) : l.utmSource ? (
+                            <Badge variant="outline" className="text-[10px]">src: {l.utmSource}</Badge>
+                          ) : null}
                           {l.utmMedium ? <Badge variant="outline" className="text-[10px]">med: {l.utmMedium}</Badge> : null}
                           {l.utmCampaign ? <Badge variant="outline" className="text-[10px]">cmp: {l.utmCampaign}</Badge> : null}
                         </div>
@@ -317,6 +339,20 @@ export function LeadsManager({ jump }: { jump?: { q: string; n: number } }) {
                     <LeadStatusBadge status={l.status} />
                   </div>
                   {l.product ? <Badge variant="secondary" className="max-w-full truncate">{l.product}</Badge> : null}
+                  {l.utmSource === "whatsapp_click" || l.utmSource === "call_click" ? (
+                    <div className="flex flex-wrap gap-1">
+                      {l.utmSource === "whatsapp_click" ? (
+                        <Badge variant="outline" className="border-green-300 bg-green-100 text-[10px] font-medium text-green-800">
+                          WhatsApp tap
+                        </Badge>
+                      ) : null}
+                      {l.utmSource === "call_click" ? (
+                        <Badge variant="outline" className="border-terracotta/40 bg-terracotta/15 text-[10px] font-medium text-terracotta-deep">
+                          Call tap
+                        </Badge>
+                      ) : null}
+                    </div>
+                  ) : null}
                   {l.message ? <p className="line-clamp-2 text-xs text-muted-foreground">{l.message}</p> : null}
                   <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                     <span>{timeAgo(l.createdAt)}</span>

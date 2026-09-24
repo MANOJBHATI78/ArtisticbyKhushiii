@@ -7,6 +7,7 @@ import { Container } from "@/components/site/container";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { InquiryForm } from "@/components/site/inquiry-form";
 import { FadeIn } from "@/components/site/fade-in";
+import { GoogleReviewsSection } from "@/components/site/google-reviews-section";
 import { siteOrigin, socialSameAs } from "@/components/site/seo-helpers";
 import { useSiteStore, whatsappLink } from "@/lib/store";
 import { trackCallClick, trackWhatsAppClick } from "@/lib/track";
@@ -98,101 +99,106 @@ export default function ContactView() {
   ];
 
   return (
-    <Container className="py-8 md:py-12">
-      <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Contact" }]} />
+    <>
+      <Container className="py-8 md:py-12">
+        <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Contact" }]} />
 
-      <FadeIn>
-        <div className="mt-4 max-w-2xl">
-          <h1 className="font-display text-3xl leading-tight text-foreground md:text-5xl">
-            Let&apos;s Create Something Beautiful
-          </h1>
-          <p className="mt-4 text-base text-muted-foreground md:text-lg">
-            Questions, custom ideas, bulk orders or just a hello — we&apos;d love to hear from you.
-          </p>
-        </div>
-      </FadeIn>
-
-      <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_1.2fr] lg:gap-12">
-        {/* Contact info cards */}
         <FadeIn>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-            {infoCards.map((card) => {
-              const Inner = (
-                <>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="flex items-center gap-2.5 text-base font-medium text-foreground">
-                      <span className="flex size-9 items-center justify-center rounded-full bg-gold-soft text-terracotta">
-                        <card.icon className="size-4.5" aria-hidden="true" />
-                      </span>
-                      {card.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className={`font-medium ${card.accent || "text-primary"}`}>{card.content}</p>
-                    {card.hint ? <p className="mt-1 text-xs text-muted-foreground">{card.hint}</p> : null}
-                  </CardContent>
-                </>
-              );
-              return card.href ? (
-                <a
-                  key={card.title}
-                  href={card.href}
-                  target={card.external ? "_blank" : undefined}
-                  rel={card.external ? "noopener noreferrer" : undefined}
-                  onClick={card.trackClick}
-                  className="rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
-                >
-                  <Card className="h-full transition-all hover:border-gold/40 hover:shadow-md">{Inner}</Card>
-                </a>
-              ) : (
-                <Card key={card.title} className="h-full">
-                  {Inner}
-                </Card>
-              );
-            })}
-          </div>
-
-          {socials.length > 0 ? (
-            <div className="mt-6">
-              <h2 className="text-sm font-medium text-foreground">Follow our craft</h2>
-              <div className="mt-3 flex gap-2">
-                {socials.map((social) => (
-                  <a
-                    key={social.label}
-                    href={social.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`Artistic by Khushiii on ${social.label}`}
-                    className="flex size-11 items-center justify-center rounded-full border bg-card text-foreground/70 transition-all hover:scale-105 hover:border-gold/50 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
-                  >
-                    <social.icon className="size-5" />
-                  </a>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          <div className="mt-6 flex items-start gap-3 rounded-xl border border-gold/40 bg-gold-soft/30 p-4">
-            <Clock className="mt-0.5 size-5 shrink-0 text-terracotta" aria-hidden="true" />
-            <p className="text-sm text-foreground/80">
-              <span className="font-medium">We usually reply within a few hours.</span> Every piece is made to
-              order, so allow a few days of crafting time plus delivery.
+          <div className="mt-4 max-w-2xl">
+            <h1 className="font-display text-3xl leading-tight text-foreground md:text-5xl">
+              Let&apos;s Create Something Beautiful
+            </h1>
+            <p className="mt-4 text-base text-muted-foreground md:text-lg">
+              Questions, custom ideas, bulk orders or just a hello — we&apos;d love to hear from you.
             </p>
           </div>
         </FadeIn>
 
-        {/* Inquiry form */}
-        <FadeIn delay={0.1}>
-          <Card className="border-gold/30 shadow-sm">
-            <CardHeader>
-              <CardTitle className="font-display text-2xl text-foreground">Send an Inquiry</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <InquiryForm submitLabel="Send Inquiry" />
-            </CardContent>
-          </Card>
-        </FadeIn>
-      </div>
-    </Container>
+        <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_1.2fr] lg:gap-12">
+          {/* Contact info cards */}
+          <FadeIn>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+              {infoCards.map((card) => {
+                const Inner = (
+                  <>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="flex items-center gap-2.5 text-base font-medium text-foreground">
+                        <span className="flex size-9 items-center justify-center rounded-full bg-gold-soft text-terracotta">
+                          <card.icon className="size-4.5" aria-hidden="true" />
+                        </span>
+                        {card.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className={`font-medium ${card.accent || "text-primary"}`}>{card.content}</p>
+                      {card.hint ? <p className="mt-1 text-xs text-muted-foreground">{card.hint}</p> : null}
+                    </CardContent>
+                  </>
+                );
+                return card.href ? (
+                  <a
+                    key={card.title}
+                    href={card.href}
+                    target={card.external ? "_blank" : undefined}
+                    rel={card.external ? "noopener noreferrer" : undefined}
+                    onClick={card.trackClick}
+                    className="rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+                  >
+                    <Card className="h-full transition-all hover:border-gold/40 hover:shadow-md">{Inner}</Card>
+                  </a>
+                ) : (
+                  <Card key={card.title} className="h-full">
+                    {Inner}
+                  </Card>
+                );
+              })}
+            </div>
+
+            {socials.length > 0 ? (
+              <div className="mt-6">
+                <h2 className="text-sm font-medium text-foreground">Follow our craft</h2>
+                <div className="mt-3 flex gap-2">
+                  {socials.map((social) => (
+                    <a
+                      key={social.label}
+                      href={social.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Artistic by Khushiii on ${social.label}`}
+                      className="flex size-11 items-center justify-center rounded-full border bg-card text-foreground/70 transition-all hover:scale-105 hover:border-gold/50 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold"
+                    >
+                      <social.icon className="size-5" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            <div className="mt-6 flex items-start gap-3 rounded-xl border border-gold/40 bg-gold-soft/30 p-4">
+              <Clock className="mt-0.5 size-5 shrink-0 text-terracotta" aria-hidden="true" />
+              <p className="text-sm text-foreground/80">
+                <span className="font-medium">We usually reply within a few hours.</span> Every piece is made to
+                order, so allow a few days of crafting time plus delivery.
+              </p>
+            </div>
+          </FadeIn>
+
+          {/* Inquiry form */}
+          <FadeIn delay={0.1}>
+            <Card className="border-gold/30 shadow-sm">
+              <CardHeader>
+                <CardTitle className="font-display text-2xl text-foreground">Send an Inquiry</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <InquiryForm submitLabel="Send Inquiry" />
+              </CardContent>
+            </Card>
+          </FadeIn>
+        </div>
+      </Container>
+
+      {/* Real Google reviews — self-hides until the owner connects the Places API. */}
+      <GoogleReviewsSection variant="compact" />
+    </>
   );
 }

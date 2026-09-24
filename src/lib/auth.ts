@@ -53,7 +53,26 @@ export async function getSessionUser(request: Request): Promise<{ id: string; em
     await db.adminSession.delete({ where: { id: session.id } }).catch(() => {});
     return null;
   }
+  // Disabled accounts (admin panel → Users & Roles) are logged out instantly.
+  if (session.user.active === false) {
+    await db.adminSession.delete({ where: { id: session.id } }).catch(() => {});
+    return null;
+  }
   return { id: session.user.id, email: session.user.email, name: session.user.name, role: session.user.role };
+}
+
+/** Invalidates every session of a user except the one making this request. */
+export async function deleteOtherSessions(userId: string, keepToken: string): Promise<void> {
+  await db.adminSession.deleteMany({
+    where: { userId, token: { not: keepToken } },
+  });
+}
+
+/** Reads the current session token straight from the request cookies. */
+export function sessionTokenFromRequest(request: Request): string {
+  const cookieHeader = request.headers.get("cookie") || "";
+  const match = cookieHeader.match(new RegExp(`${SESSION_COOKIE}=([^;]+)`));
+  return match ? match[1] : "";
 }
 
 export function sessionCookie(token: string, expiresAt: Date): string {

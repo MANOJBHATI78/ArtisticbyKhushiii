@@ -1,0 +1,675 @@
+     1→"use client";
+     2→
+     3→import { useEffect, useMemo, useRef, useState } from "react";
+     4→import { useQueryClient } from "@tanstack/react-query";
+     5→import { api, ApiError } from "@/lib/api-client";
+     6→import { useToast } from "@/hooks/use-toast";
+     7→import type { NavLink, SiteSettings } from "@/lib/types";
+     8→import { DEFAULT_SETTINGS } from "@/lib/types";
+     9→import { Button } from "@/components/ui/button";
+    10→import { Input } from "@/components/ui/input";
+    11→import { Textarea } from "@/components/ui/textarea";
+    12→import { Skeleton } from "@/components/ui/skeleton";
+    13→import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+    14→import { ArrowDown, ArrowUp, BarChart3, ExternalLink, Facebook, Instagram, ListPlus, MessageCircle, PartyPopper, Pin, Radar, Save, SearchCheck, Star, Trash2, Type, Youtube } from "lucide-react";
+    15→import { useAdminSettings } from "./useAdminData";
+    16→import { Field, Spinner } from "./shared";
+    17→import { MediaPickField } from "./media-picker";
+    18→import { errMsg } from "./admin-utils";
+    19→import { Switch } from "@/components/ui/switch";
+    20→import { OfferBanner } from "@/components/site/offer-banner";
+    21→
+    22→const DEFAULT_HEADER_LINKS: NavLink[] = [
+    23→  { label: "Home", href: "/" },
+    24→  { label: "Products", href: "/products" },
+    25→  { label: "Categories", href: "/categories" },
+    26→  { label: "Blog", href: "/blog" },
+    27→  { label: "About", href: "/about" },
+    28→  { label: "Contact", href: "/contact" },
+    29→];
+    30→
+    31→const DEFAULT_FOOTER_LINKS: NavLink[] = [
+    32→  { label: "Home", href: "/" },
+    33→  { label: "All Products", href: "/products" },
+    34→  { label: "Categories", href: "/categories" },
+    35→  { label: "My Favourites", href: "/wishlist" },
+    36→  { label: "Blog", href: "/blog" },
+    37→  { label: "About", href: "/about" },
+    38→  { label: "Contact", href: "/contact" },
+    39→  { label: "FAQ", href: "/faq" },
+    40→  { label: "Search", href: "/search" },
+    41→];
+    42→
+    43→/** Editable {label, href} list stored as JSON in a settings key ("" = defaults). */
+    44→function LinkListEditor({
+    45→  value,
+    46→  onChange,
+    47→  placeholderHref,
+    48→  defaults,
+    49→}: {
+    50→  value: string;
+    51→  onChange: (json: string) => void;
+    52→  placeholderHref: string;
+    53→  defaults: NavLink[];
+    54→}) {
+    55→  const links: NavLink[] = useMemo(() => {
+    56→    if (!value.trim()) return [];
+    57→    try {
+    58→      const parsed = JSON.parse(value);
+    59→      return Array.isArray(parsed) ? parsed.filter((x) => x && typeof x.label === "string" && typeof x.href === "string") : [];
+    60→    } catch {
+    61→      return [];
+    62→    }
+    63→  }, [value]);
+    64→
+    65→  function commit(next: NavLink[]) {
+    66→    onChange(next.length === 0 ? "" : JSON.stringify(next));
+    67→  }
+    68→  function update(i: number, patch: Partial<NavLink>) {
+    69→    commit(links.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
+    70→  }
+    71→  function move(i: number, dir: -1 | 1) {
+    72→    const j = i + dir;
+    73→    if (j < 0 || j >= links.length) return;
+    74→    const next = [...links];
+    75→    [next[i], next[j]] = [next[j], next[i]];
+    76→    commit(next);
+    77→  }
+    78→
+    79→  return (
+    80→    <div className="space-y-2">
+    81→      {links.map((l, i) => (
+    82→        <div key={i} className="flex items-center gap-1.5">
+    83→          <Input
+    84→            value={l.label}
+    85→            onChange={(e) => update(i, { label: e.target.value })}
+    86→            placeholder="Label"
+    87→            className="h-9 w-32 shrink-0"
+    88→            aria-label={`Link ${i + 1} label`}
+    89→          />
+    90→          <Input
+    91→            value={l.href}
+    92→            onChange={(e) => update(i, { href: e.target.value })}
+    93→            placeholder={placeholderHref}
+    94→            className="h-9"
+    95→            aria-label={`Link ${i + 1} URL`}
+    96→          />
+    97→          <div className="flex shrink-0 items-center">
+    98→            <Button type="button" variant="ghost" size="icon" className="size-8" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move up">
+    99→              <ArrowUp className="size-3.5" />
+   100→            </Button>
+   101→            <Button type="button" variant="ghost" size="icon" className="size-8" onClick={() => move(i, 1)} disabled={i === links.length - 1} aria-label="Move down">
+   102→              <ArrowDown className="size-3.5" />
+   103→            </Button>
+   104→            <Button type="button" variant="ghost" size="icon" className="size-8 text-destructive hover:text-destructive" onClick={() => commit(links.filter((_, idx) => idx !== i))} aria-label="Delete link">
+   105→              <Trash2 className="size-3.5" />
+   106→            </Button>
+   107→          </div>
+   108→        </div>
+   109→      ))}
+   110→      <Button
+   111→        type="button"
+   112→        variant="outline"
+   113→        size="sm"
+   114→        className="mt-1"
+   115→        onClick={() => commit([...links, { label: "New link", href: "/" }])}
+   116→      >
+   117→        + Add link
+   118→      </Button>
+   119→      {links.length === 0 ? (
+   120→        <div className="space-y-1.5">
+   121→          <p className="text-xs text-muted-foreground">Empty = the built-in default links are shown on the site.</p>
+   122→          <Button type="button" variant="ghost" size="sm" className="text-primary" onClick={() => commit(defaults)}>
+   123→            Start from the current links
+   124→          </Button>
+   125→        </div>
+   126→      ) : (
+   127→        <Button type="button" variant="ghost" size="sm" className="text-destructive hover:text-destructive" onClick={() => commit([])}>
+   128→          Reset to defaults
+   129→        </Button>
+   130→      )}
+   131→    </div>
+   132→  );
+   133→}
+   134→
+   135→// ============================================================
+   136→// Site settings — brand, contact, social, footer, SEO defaults,
+   137→// analytics & tracking integrations.
+   138→// ============================================================
+   139→
+   140→const GA_ID_RE = /^G-[A-Z0-9]{6,12}$/i;
+   141→const CLARITY_ID_RE = /^[A-Z0-9]{6,16}$/i;
+   142→
+   143→/** ISO string → value for <input type="datetime-local"> (local time). */
+   144→function isoToLocalInput(iso: string): string {
+   145→  if (!iso) return "";
+   146→  const d = new Date(iso);
+   147→  if (Number.isNaN(d.getTime())) return "";
+   148→  const pad = (n: number) => String(n).padStart(2, "0");
+   149→  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+   150→}
+   151→
+   152→/** datetime-local input value → ISO string for storage. */
+   153→function localInputToIso(local: string): string {
+   154→  if (!local) return "";
+   155→  const d = new Date(local);
+   156→  return Number.isNaN(d.getTime()) ? "" : d.toISOString();
+   157→}
+   158→
+   159→function StatusPill({ on, label = "Not set" }: { on: boolean; label?: string }) {
+   160→  return (
+   161→    <span
+   162→      className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+   163→        on ? "border-green-200 bg-green-50 text-green-700" : "border-border bg-muted/40 text-muted-foreground"
+   164→      }`}
+   165→    >
+   166→      <span className={`h-1.5 w-1.5 rounded-full ${on ? "bg-green-500" : "bg-muted-foreground/40"}`} />
+   167→      {on ? "Live on site" : label}
+   168→    </span>
+   169→  );
+   170→}
+   171→
+   172→export function SettingsManager() {
+   173→  const { data: settings, isLoading } = useAdminSettings();
+   174→  const [form, setForm] = useState<SiteSettings | null>(null);
+   175→  const [saving, setSaving] = useState(false);
+   176→  const initRef = useRef(false);
+   177→  const qc = useQueryClient();
+   178→  const { toast } = useToast();
+   179→
+   180→  useEffect(() => {
+   181→    if (settings && !initRef.current) {
+   182→      initRef.current = true;
+   183→      // The offer deadline is stored as ISO; the input wants datetime-local.
+   184→      setForm({ ...DEFAULT_SETTINGS, ...settings, offerBannerEndsAt: isoToLocalInput(settings.offerBannerEndsAt) });
+   185→    }
+   186→  }, [settings]);
+   187→
+   188→  const dirty = useMemo(() => {
+   189→    if (!form || !settings) return false;
+   190→    // Compare in the same "form" space (deadline as datetime-local input value).
+   191→    const baseline = { ...DEFAULT_SETTINGS, ...settings, offerBannerEndsAt: isoToLocalInput(settings.offerBannerEndsAt) };
+   192→    return JSON.stringify(baseline) !== JSON.stringify(form);
+   193→  }, [form, settings]);
+   194→
+   195→  function set<K extends keyof SiteSettings>(key: K, value: SiteSettings[K]) {
+   196→    setForm((f) => (f ? { ...f, [key]: value } : f));
+   197→  }
+   198→
+   199→  async function save() {
+   200→    if (!form) return;
+   201→    setSaving(true);
+   202→    try {
+   203→      // Convert the datetime-local deadline to ISO for storage.
+   204→      const res = await api.put<SiteSettings>("/api/admin/settings", {
+   205→        ...form,
+   206→        offerBannerEndsAt: localInputToIso(form.offerBannerEndsAt),
+   207→      });
+   208→      initRef.current = false;
+   209→      setForm({ ...DEFAULT_SETTINGS, ...res, offerBannerEndsAt: isoToLocalInput(res.offerBannerEndsAt) });
+   210→      toast({ title: "Settings saved", description: "The website header, footer and SEO defaults were updated." });
+   211→      // refresh the public site caches immediately
+   212→      void qc.invalidateQueries({ queryKey: ["settings"] });
+   213→      void qc.invalidateQueries({ queryKey: ["bootstrap"] });
+   214→      void qc.invalidateQueries({ queryKey: ["home"] });
+   215→      void qc.invalidateQueries({ queryKey: ["admin", "settings"] });
+   216→    } catch (e) {
+   217→      if (e instanceof ApiError && e.status === 401) {
+   218→        toast({
+   219→          title: "Session expired",
+   220→          description: "Your admin login ended. Open the site in a new tab, log in again, come back and press Save — this form keeps your values.",
+   221→          variant: "destructive",
+   222→        });
+   223→      } else {
+   224→        toast({ title: "Save failed", description: errMsg(e), variant: "destructive" });
+   225→      }
+   226→    } finally {
+   227→      setSaving(false);
+   228→    }
+   229→  }
+   230→
+   231→  if (isLoading || !form) {
+   232→    return (
+   233→      <div className="space-y-4">
+   234→        {Array.from({ length: 3 }).map((_, i) => (
+   235→          <Skeleton key={i} className="h-48 rounded-xl" />
+   236→        ))}
+   237→      </div>
+   238→    );
+   239→  }
+   240→
+   241→  const waPreview = form.whatsappNumber
+   242→    ? `https://wa.me/${form.whatsappNumber.replace(/\D/g, "")}?text=${encodeURIComponent(form.whatsappMessage)}`
+   243→    : "";
+   244→
+   245→  return (
+   246→    <div className="space-y-4 pb-16">
+   247→      {/* ---------- Brand ---------- */}
+   248→      <Card>
+   249→        <CardHeader className="pb-3">
+   250→          <CardTitle className="text-base font-display">Brand</CardTitle>
+   251→        </CardHeader>
+   252→        <CardContent className="grid gap-4 md:grid-cols-2">
+   253→          <Field label="Brand name">
+   254→            <Input value={form.brandName} onChange={(e) => set("brandName", e.target.value)} />
+   255→          </Field>
+   256→          <Field label="Tagline">
+   257→            <Input value={form.tagline} onChange={(e) => set("tagline", e.target.value)} />
+   258→          </Field>
+   259→          <Field label="Logo">
+   260→            <div className="flex items-center gap-3">
+   261→              {form.logoUrl ? (
+   262→                 
+   263→                <img src={form.logoUrl} alt="Logo preview" width={48} height={48} className="rounded-lg border object-cover" />
+   264→              ) : null}
+   265→              <MediaPickField value={form.logoUrl} alt="Logo" onPick={(p) => set("logoUrl", p.url)} onClear={() => set("logoUrl", "")} />
+   266→            </div>
+   267→          </Field>
+   268→          <Field label="Logo text" hint="Shown next to the logo in the header.">
+   269→            <Input value={form.logoText} onChange={(e) => set("logoText", e.target.value)} />
+   270→          </Field>
+   271→        </CardContent>
+   272→      </Card>
+   273→
+   274→      {/* ---------- Contact & WhatsApp ---------- */}
+   275→      <Card>
+   276→        <CardHeader className="pb-3">
+   277→          <CardTitle className="text-base font-display">Contact &amp; WhatsApp</CardTitle>
+   278→        </CardHeader>
+   279→        <CardContent className="grid gap-4 md:grid-cols-2">
+   280→          <Field label="Phone" hint="Shown on the site, e.g. +91 83201 12554">
+   281→            <Input value={form.phone} onChange={(e) => set("phone", e.target.value)} />
+   282→          </Field>
+   283→          <Field
+   284→            label="WhatsApp number"
+   285→            hint="Country code + number, digits only — e.g. 918320112554"
+   286→          >
+   287→            <Input
+   288→              value={form.whatsappNumber}
+   289→              onChange={(e) => set("whatsappNumber", e.target.value.replace(/[^\d]/g, ""))}
+   290→              inputMode="numeric"
+   291→              placeholder="918320112554"
+   292→            />
+   293→          </Field>
+   294→          <Field label="Email">
+   295→            <Input type="email" value={form.email} onChange={(e) => set("email", e.target.value)} />
+   296→          </Field>
+   297→          <Field label="WhatsApp message" hint="Pre-filled text when customers tap the WhatsApp button.">
+   298→            <Textarea rows={2} value={form.whatsappMessage} onChange={(e) => set("whatsappMessage", e.target.value)} />
+   299→          </Field>
+   300→          <Field label="Address">
+   301→            <Input value={form.address} onChange={(e) => set("address", e.target.value)} />
+   302→          </Field>
+   303→          <div className="grid grid-cols-2 gap-4">
+   304→            <Field label="City">
+   305→              <Input value={form.city} onChange={(e) => set("city", e.target.value)} />
+   306→            </Field>
+   307→            <Field label="State">
+   308→              <Input value={form.state} onChange={(e) => set("state", e.target.value)} />
+   309→            </Field>
+   310→          </div>
+   311→          <Field label="Service areas" hint="Shown in the footer & shipping info." className="md:col-span-2">
+   312→            <Input value={form.serviceAreas} onChange={(e) => set("serviceAreas", e.target.value)} />
+   313→          </Field>
+   314→          {waPreview ? (
+   315→            <div className="md:col-span-2">
+   316→              <p className="mb-1.5 text-xs font-medium text-muted-foreground">Live WhatsApp link preview</p>
+   317→              <div className="flex items-center gap-2 rounded-lg border bg-muted/40 p-3">
+   318→                <MessageCircle className="h-5 w-5 shrink-0 text-green-700" style={{ width: 20, height: 20 }} />
+   319→                <a href={waPreview} target="_blank" rel="noreferrer" className="truncate text-sm text-primary underline">
+   320→                  {waPreview}
+   321→                </a>
+   322→              </div>
+   323→            </div>
+   324→          ) : null}
+   325→        </CardContent>
+   326→      </Card>
+   327→
+   328→      {/* ---------- Social links ---------- */}
+   329→      <Card>
+   330→        <CardHeader className="pb-3">
+   331→          <CardTitle className="text-base font-display">Social Links</CardTitle>
+   332→        </CardHeader>
+   333→        <CardContent className="grid gap-4 md:grid-cols-2">
+   334→          <Field label="Instagram URL" icon={<Instagram className="h-3.5 w-3.5 text-primary" />}>
+   335→            <Input value={form.instagramUrl} onChange={(e) => set("instagramUrl", e.target.value)} placeholder="https://instagram.com/…" />
+   336→          </Field>
+   337→          <Field label="Facebook URL" icon={<Facebook className="h-3.5 w-3.5 text-primary" />}>
+   338→            <Input value={form.facebookUrl} onChange={(e) => set("facebookUrl", e.target.value)} placeholder="https://facebook.com/…" />
+   339→          </Field>
+   340→          <Field label="Pinterest URL" icon={<Pin className="h-3.5 w-3.5 text-primary" />}>
+   341→            <Input value={form.pinterestUrl} onChange={(e) => set("pinterestUrl", e.target.value)} placeholder="https://pinterest.com/…" />
+   342→          </Field>
+   343→          <Field label="YouTube URL" icon={<Youtube className="h-3.5 w-3.5 text-primary" />}>
+   344→            <Input value={form.youtubeUrl} onChange={(e) => set("youtubeUrl", e.target.value)} placeholder="https://youtube.com/@…" />
+   345→          </Field>
+   346→        </CardContent>
+   347→      </Card>
+   348→
+   349→      {/* ---------- Footer & content ---------- */}
+   350→      <Card>
+   351→        <CardHeader className="pb-3">
+   352→          <CardTitle className="text-base font-display">Footer &amp; Site Content</CardTitle>
+   353→        </CardHeader>
+   354→        <CardContent className="grid gap-4 md:grid-cols-2">
+   355→          <Field label="Footer about" hint="Short brand story in the footer." className="md:col-span-2">
+   356→            <Textarea rows={3} value={form.footerAbout} onChange={(e) => set("footerAbout", e.target.value)} />
+   357→          </Field>
+   358→          <Field label="Copyright text">
+   359→            <Input value={form.copyrightText} onChange={(e) => set("copyrightText", e.target.value)} />
+   360→          </Field>
+   361→          <Field label="Announcement bar" hint="Strip under the header — leave empty to hide. (Hidden while a festive offer banner is running.)">
+   362→            <Input value={form.announcements} onChange={(e) => set("announcements", e.target.value)} />
+   363→          </Field>
+   364→          <Field label="Header CTA text">
+   365→            <Input value={form.headerCtaText} onChange={(e) => set("headerCtaText", e.target.value)} />
+   366→          </Field>
+   367→          <Field label="Header CTA link">
+   368→            <Input value={form.headerCtaUrl} onChange={(e) => set("headerCtaUrl", e.target.value)} placeholder="/contact" />
+   369→          </Field>
+   370→        </CardContent>
+   371→      </Card>
+   372→
+   373→      {/* ---------- Festive offer banner ---------- */}
+   374→      <Card>
+   375→        <CardHeader className="pb-3">
+   376→          <CardTitle className="flex items-center gap-2 text-base font-display">
+   377→            <PartyPopper className="h-4 w-4 text-terracotta" />
+   378→            Festive Offer Banner
+   379→          </CardTitle>
+   380→          <p className="text-xs text-muted-foreground">
+   381→            Diwali / sale / festivity ke liye header ke upar ek countdown banner chalao —{" "}
+   382→            <strong>no code change needed</strong>. Banner apne aap hide ho jayega jab countdown zero ho jayega.
+   383→          </p>
+   384→        </CardHeader>
+   385→        <CardContent className="space-y-4">
+   386→          <div className="flex items-center justify-between gap-4 rounded-lg border bg-muted/30 px-3 py-2.5">
+   387→            <div>
+   388→              <p className="text-sm font-medium">Show offer banner</p>
+   389→              <p className="text-xs text-muted-foreground">While ON, this replaces the normal announcement bar.</p>
+   390→            </div>
+   391→            <Switch
+   392→              checked={form.offerBannerEnabled === "1"}
+   393→              onCheckedChange={(c) => set("offerBannerEnabled", c ? "1" : "0")}
+   394→              aria-label="Show festive offer banner"
+   395→            />
+   396→          </div>
+   397→
+   398→          <div className="grid gap-4 md:grid-cols-2">
+   399→            <Field label="Offer message" hint="e.g. “Diwali Dhamaka — 15% off on all nameplates!”" className="md:col-span-2">
+   400→              <Input
+   401→                value={form.offerBannerText}
+   402→                onChange={(e) => set("offerBannerText", e.target.value)}
+   403→                placeholder="✨ Diwali Dhamaka — flat 15% off on everything!"
+   404→                maxLength={140}
+   405→              />
+   406→            </Field>
+   407→            <Field label="Coupon code" hint="Optional — visitors tap to copy it.">
+   408→              <Input
+   409→                value={form.offerBannerCode}
+   410→                onChange={(e) => set("offerBannerCode", e.target.value.toUpperCase())}
+   411→                placeholder="DIWALI15"
+   412→                maxLength={20}
+   413→                className="font-semibold uppercase tracking-wider"
+   414→              />
+   415→            </Field>
+   416→            <Field label="Offer ends at" hint="Countdown runs till this moment (your local time).">
+   417→              <Input
+   418→                type="datetime-local"
+   419→                value={form.offerBannerEndsAt}
+   420→                onChange={(e) => set("offerBannerEndsAt", e.target.value)}
+   421→              />
+   422→            </Field>
+   423→            <Field
+   424→              label="Banner button link"
+   425→              hint="Optional — e.g. #/products, #/lp/diwali-gifting or any https:// link."
+   426→              className="md:col-span-2"
+   427→            >
+   428→              <Input
+   429→                value={form.offerBannerLinkUrl}
+   430→                onChange={(e) => set("offerBannerLinkUrl", e.target.value)}
+   431→                placeholder="#/products"
+   432→              />
+   433→            </Field>
+   434→          </div>
+   435→
+   436→          <div>
+   437→            <p className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+   438→              Live preview
+   439→              <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground/80">how visitors will see it</span>
+   440→            </p>
+   441→            <div className="overflow-hidden rounded-xl border shadow-inner">
+   442→              <OfferBanner
+   443→                previewMode
+   444→                enabled={form.offerBannerEnabled}
+   445→                text={form.offerBannerText}
+   446→                code={form.offerBannerCode}
+   447→                endsAt={localInputToIso(form.offerBannerEndsAt)}
+   448→                linkUrl={form.offerBannerLinkUrl}
+   449→              />
+   450→            </div>
+   451→            {form.offerBannerEnabled === "1" && !form.offerBannerEndsAt ? (
+   452→              <p className="mt-1.5 text-xs text-amber-600">
+   453→                Tip: set an end date — the banner (and countdown) shows only until then. Preview above uses a sample 3-day timer.
+   454→              </p>
+   455→            ) : null}
+   456→          </div>
+   457→        </CardContent>
+   458→      </Card>
+   459→
+   460→      {/* ---------- SEO defaults ---------- */}
+   461→      <Card>
+   462→        <CardHeader className="pb-3">
+   463→          <CardTitle className="text-base font-display">SEO Defaults</CardTitle>
+   464→        </CardHeader>
+   465→        <CardContent className="grid gap-4 md:grid-cols-2">
+   466→          <Field label="Default SEO title" className="md:col-span-2">
+   467→            <Input value={form.defaultSeoTitle} onChange={(e) => set("defaultSeoTitle", e.target.value)} />
+   468→          </Field>
+   469→          <Field label="Default meta description" className="md:col-span-2">
+   470→            <Textarea rows={2} value={form.defaultMetaDescription} onChange={(e) => set("defaultMetaDescription", e.target.value)} />
+   471→          </Field>
+   472→          <Field label="Default OG image" hint="Social-share fallback image.">
+   473→            <div className="flex items-center gap-3">
+   474→              {form.defaultOgImage ? (
+   475→                 
+   476→                <img src={form.defaultOgImage} alt="OG image preview" width={48} height={48} className="rounded-lg border object-cover" />
+   477→              ) : null}
+   478→              <MediaPickField value={form.defaultOgImage} alt="OG image" onPick={(p) => set("defaultOgImage", p.url)} onClear={() => set("defaultOgImage", "")} />
+   479→            </div>
+   480→          </Field>
+   481→          <Field label="Site URL" hint="Your live site address — used in the sitemap, Google verification & social share previews. Must include https://">
+   482→            <Input value={form.siteUrl} onChange={(e) => set("siteUrl", e.target.value)} placeholder="https://artisticbykhushiii.com" />
+   483→          </Field>
+   484→        </CardContent>
+   485→      </Card>
+   486→
+   487→      {/* ---------- Analytics & tracking integrations ---------- */}
+   488→      <Card>
+   489→        <CardHeader className="pb-3">
+   490→          <CardTitle className="flex items-center gap-2 text-base font-display">
+   491→            <BarChart3 className="h-4 w-4 text-primary" />
+   492→            Analytics &amp; Tracking
+   493→          </CardTitle>
+   494→          <p className="text-xs text-muted-foreground">
+   495→            Paste the IDs, press <strong>Save settings</strong> — tracking goes live on the public website instantly. Leave a field empty to keep that tool off.
+   496→          </p>
+   497→        </CardHeader>
+   498→        <CardContent className="space-y-4">
+   499→          <div className="grid gap-4 md:grid-cols-2">
+   500→            <Field
+   501→              label="Google Analytics ID"
+   502→              icon={<BarChart3 className="h-3.5 w-3.5 text-primary" />}
+   503→              hint="GA4 Measurement ID — starts with “G-”. Rendered into the page HTML (visible in View Source). Leave empty to disable."
+   504→              error={
+   505→                form.googleAnalyticsId && !GA_ID_RE.test(form.googleAnalyticsId)
+   506→                  ? "That doesn't look like a GA4 ID — it should look like G-ABC123456 (find it in Google Analytics → Admin → Data streams)."
+   507→                  : undefined
+   508→              }
+   509→              counter={<StatusPill on={GA_ID_RE.test(form.googleAnalyticsId)} />}
+   510→            >
+   511→              <Input value={form.googleAnalyticsId} onChange={(e) => set("googleAnalyticsId", e.target.value)} placeholder="G-ABC123456" />
+   512→            </Field>
+   513→            <Field
+   514→              label="Google Search Console token"
+   515→              icon={<SearchCheck className="h-3.5 w-3.5 text-primary" />}
+   516→              hint="Search Console → Settings → Ownership verification → HTML tag → copy the content value and paste it here (full tag is also OK). Save, then press Verify in Google."
+   517→              counter={<StatusPill on={Boolean(form.googleSearchConsoleToken.trim())} />}
+   518→            >
+   519→              <Input value={form.googleSearchConsoleToken} onChange={(e) => set("googleSearchConsoleToken", e.target.value)} placeholder='google-site-verification=TOKEN' />
+   520→            </Field>
+   521→            <Field
+   522→              label="Microsoft Clarity project ID"
+   523→              icon={<Radar className="h-3.5 w-3.5 text-primary" />}
+   524→              hint="Free heatmaps & session recordings from clarity.microsoft.com."
+   525→              error={
+   526→                form.microsoftClarityProjectId && !CLARITY_ID_RE.test(form.microsoftClarityProjectId)
+   527→                  ? "Clarity IDs are 8–12 letters/numbers — find yours in Clarity → Settings → Project ID."
+   528→                  : undefined
+   529→              }
+   530→              counter={<StatusPill on={CLARITY_ID_RE.test(form.microsoftClarityProjectId)} />}
+   531→            >
+   532→              <Input value={form.microsoftClarityProjectId} onChange={(e) => set("microsoftClarityProjectId", e.target.value)} placeholder="abcdefghij" />
+   533→            </Field>
+   534→            <Field
+   535→              label="Google Sheets webhook URL"
+   536→              hint="Google Apps Script web app URL — every new inquiry is also forwarded there."
+   537→              counter={<StatusPill on={Boolean(form.googleSheetsWebhookUrl.trim())} />}
+   538→            >
+   539→              <Input value={form.googleSheetsWebhookUrl} onChange={(e) => set("googleSheetsWebhookUrl", e.target.value)} placeholder="https://script.google.com/macros/s/…/exec" />
+   540→            </Field>
+   541→          </div>
+   542→          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-lg border bg-muted/30 px-3 py-2.5 text-xs text-muted-foreground">
+   543→            <span className="font-medium text-foreground">Where do I get these?</span>
+   544→            <a href="https://analytics.google.com" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+   545→              Google Analytics <ExternalLink className="h-3 w-3" />
+   546→            </a>
+   547→            <a href="https://search.google.com/search-console" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+   548→              Search Console <ExternalLink className="h-3 w-3" />
+   549→            </a>
+   550→            <a href="https://clarity.microsoft.com" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+   551→              Microsoft Clarity <ExternalLink className="h-3 w-3" />
+   552→            </a>
+   553→          </div>
+   554→          {/* How to verify with Google — step-by-step for the owner */}
+   555→          <details className="group rounded-lg border bg-muted/20 px-3 py-2.5 text-xs text-muted-foreground">
+   556→            <summary className="cursor-pointer select-none font-medium text-foreground marker:content-none">
+   557→              <SearchCheck className="mr-1 inline size-3.5 text-primary" />
+   558→              How to connect Google (Analytics + Search Console) — step by step
+   559→              <span className="ml-1 text-muted-foreground/70 group-open:hidden">&#9662;</span>
+   560→              <span className="ml-1 hidden text-muted-foreground/70 group-open:inline">&#9652;</span>
+   561→            </summary>
+   562→            <div className="mt-2.5 space-y-2 leading-relaxed">
+   563→              <p><strong className="text-foreground">Google Analytics:</strong> analytics.google.com → Admin (gear icon) → Data streams → your website → the “G-…” ID at the top right. Paste it in the field above and Save. It goes live on the site instantly and is also visible in the page source (Ctrl+U).</p>
+   564→              <p><strong className="text-foreground">Google Search Console:</strong></p>
+   565→              <ol className="ml-4 list-decimal space-y-1">
+   566→                <li>search.google.com/search-console → Add property → <em>URL prefix</em> → <code className="rounded bg-muted px-1">{(form.siteUrl || "https://artisticbykhushiii.com").trim().replace(/\/+$/, "")}</code></li>
+   567→                <li>Choose the <strong>“HTML tag”</strong> verification method.</li>
+   568→                <li>Google shows a meta tag — copy its <strong>content</strong> value (or the whole tag) into the “Google Search Console token” field above.</li>
+   569→                <li>Press <strong>Save settings</strong> here, then go back to Google and press <strong>Verify</strong>.</li>
+   570→              </ol>
+   571→              <p>After verifying: Sitemaps → add <code className="rounded bg-muted px-1">/sitemap.xml</code>. Done — Google starts indexing the site.</p>
+   572→            </div>
+   573→          </details>
+   574→        </CardContent>
+   575→      </Card>
+   576→
+   577→      {/* ---------- Navigation links (header + footer) ---------- */}
+   578→      <Card>
+   579→        <CardHeader className="pb-3">
+   580→          <CardTitle className="flex items-center gap-2 text-base font-display">
+   581→            <ListPlus className="size-4 text-primary" /> Website Navigation
+   582→          </CardTitle>
+   583→        </CardHeader>
+   584→        <CardContent className="grid gap-6 md:grid-cols-2">
+   585→          <div>
+   586→            <p className="mb-1.5 text-sm font-medium">Header menu links</p>
+   587→            <p className="mb-3 text-xs text-muted-foreground">Jo links website ke header mein dikhte hain. Order badal sakte ho, delete kar sakte ho, naye add kar sakte ho.</p>
+   588→            <LinkListEditor
+   589→              value={form.headerNavLinks}
+   590→              onChange={(v) => set("headerNavLinks", v)}
+   591→              placeholderHref="/products"
+   592→              defaults={DEFAULT_HEADER_LINKS}
+   593→            />
+   594→          </div>
+   595→          <div>
+   596→            <p className="mb-1.5 text-sm font-medium">Footer “Explore” links</p>
+   597→            <p className="mb-3 text-xs text-muted-foreground">Footer ke Explore column ke links. Collections column apne aap categories se banta hai.</p>
+   598→            <LinkListEditor
+   599→              value={form.footerExploreLinks}
+   600→              onChange={(v) => set("footerExploreLinks", v)}
+   601→              placeholderHref="/products"
+   602→              defaults={DEFAULT_FOOTER_LINKS}
+   603→            />
+   604→          </div>
+   605→        </CardContent>
+   606→      </Card>
+   607→
+   608→      {/* ---------- Google Business Profile reviews ---------- */}
+   609→      <Card>
+   610→        <CardHeader className="pb-3">
+   611→          <CardTitle className="flex items-center gap-2 text-base font-display">
+   612→            <Star className="size-4 text-primary" /> Google Reviews
+   613→          </CardTitle>
+   614→        </CardHeader>
+   615→        <CardContent className="grid gap-4 md:grid-cols-2">
+   616→          <Field
+   617→            label="Google Places API key"
+   618→            hint="Google Cloud Console → enable “Places API (New)” → create API key. Site pe real Google reviews dikhane ke liye."            
+   619→            counter={<StatusPill on={Boolean(form.googlePlacesApiKey.trim())} />}
+   620→          >
+   621→            <Input
+   622→              type="password"
+   623→              value={form.googlePlacesApiKey}
+   624→              onChange={(e) => set("googlePlacesApiKey", e.target.value.trim())}
+   625→              placeholder="AIza…"
+   626→              autoComplete="off"
+   627→            />
+   628→          </Field>
+   629→          <Field
+   630→            label="Google Business Place ID"
+   631→            hint="Google Business Profile ka Place ID (ChIJ… format). Dono set karne par homepage pe reviews section dikhega."
+   632→            counter={<StatusPill on={Boolean(form.googlePlaceId.trim())} />}
+   633→          >
+   634→            <Input
+   635→              value={form.googlePlaceId}
+   636→              onChange={(e) => set("googlePlaceId", e.target.value.trim())}
+   637→              placeholder="ChIJ…"
+   638→            />
+   639→          </Field>
+   640→          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-lg border bg-muted/30 px-3 py-2.5 text-xs text-muted-foreground md:col-span-2">
+   641→            <span className="font-medium text-foreground">How to find Place ID?</span>
+   642→            <a
+   643→              href="https://developers.google.com/maps/documentation/places/web-service/place-id"
+   644→              target="_blank"
+   645→              rel="noreferrer"
+   646→              className="inline-flex items-center gap-1 text-primary hover:underline"
+   647→            >
+   648→              Place ID finder <ExternalLink className="h-3 w-3" />
+   649→            </a>
+   650→            <span>·</span>
+   651→            <a href="https://console.cloud.google.com/apis/library/places.googleapis.com" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">
+   652→              Enable Places API <ExternalLink className="h-3 w-3" />
+   653→            </a>
+   654→            <span className="md:col-span-2">Dono khali chhodne par ye section site pe nahi dikhega — jab tak set nahi karte.</span>
+   655→          </div>
+   656→        </CardContent>
+   657→      </Card>
+   658→
+   659→      {/* ---------- sticky save bar ---------- */}
+   660→      <div className="fixed inset-x-0 bottom-16 z-30 mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 md:bottom-4 md:px-6">
+   661→        <div className="flex w-full items-center justify-between gap-2 rounded-xl border bg-card/95 p-3 shadow-lg backdrop-blur">
+   662→          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+   663→            <Type className="hidden h-3.5 w-3.5" />
+   664→            {dirty ? "You have unsaved changes" : "All settings saved"}
+   665→          </p>
+   666→          <Button onClick={() => void save()} disabled={saving || !dirty}>
+   667→            {saving ? <Spinner className="mr-1" /> : <Save className="mr-1 h-4 w-4" />}
+   668→            {saving ? "Saving…" : "Save settings"}
+   669→          </Button>
+   670→        </div>
+   671→      </div>
+   672→    </div>
+   673→  );
+   674→}
+   675→

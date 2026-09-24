@@ -47,10 +47,29 @@ import { errMsg, timeAgo, useDebounced } from "./admin-utils";
 type ImageRow = Omit<ProductImage, "id"> & { id?: string };
 type FaqRow = { id?: string; question: string; answer: string };
 
+/** Indian digit grouping: 1,49,999 (used by the price preview). */
+const inrFmt = (v: string): string => {
+  const n = Number(v);
+  return Number.isFinite(n) ? new Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 }).format(n) : v;
+};
+
+/** Digits + one optional dot; integer part capped at 7 digits. */
+function sanitizePriceInput(raw: string): string {
+  let v = raw.replace(/[^\d.]/g, "");
+  const dot = v.indexOf(".");
+  if (dot !== -1) v = `${v.slice(0, dot)}.${v.slice(dot + 1).replace(/\./g, "")}`;
+  const [intPart, decPart] = v.split(".");
+  let out = intPart.slice(0, 7);
+  if (decPart !== undefined) out += `.${decPart.slice(0, 2)}`;
+  return out;
+}
+
 interface ProductFormState {
   name: string;
   slug: string;
   sku: string;
+  price: string;
+  compareAtPrice: string;
   categoryId: string;
   subcategory: string;
   shortDescription: string;
@@ -82,6 +101,8 @@ const EMPTY_FORM: ProductFormState = {
   name: "",
   slug: "",
   sku: "",
+  price: "",
+  compareAtPrice: "",
   categoryId: "",
   subcategory: "",
   shortDescription: "",
@@ -445,6 +466,8 @@ function ProductForm({ id, onBack }: { id: string | null; onBack: () => void }) 
       name: product.name,
       slug: product.slug,
       sku: product.sku,
+      price: product.price,
+      compareAtPrice: product.compareAtPrice,
       categoryId: product.categoryId,
       subcategory: product.subcategory,
       shortDescription: product.shortDescription,
@@ -565,6 +588,8 @@ function ProductForm({ id, onBack }: { id: string | null; onBack: () => void }) 
         name: form.name.trim(),
         slug: form.slug,
         sku: form.sku,
+        price: sanitizePriceInput(form.price),
+        compareAtPrice: sanitizePriceInput(form.compareAtPrice),
         categoryId: form.categoryId,
         subcategory: form.subcategory,
         shortDescription: form.shortDescription,
@@ -687,6 +712,53 @@ function ProductForm({ id, onBack }: { id: string | null; onBack: () => void }) 
               <Input value={form.sku} onChange={(e) => set("sku", e.target.value)} placeholder="ABK-NP-001" />
             </Field>
           </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field
+              label="Price (₹)"
+              hint="Optional — leave empty for enquiry-only. Priced products become eligible for Google Shopping and show the price on the site."
+            >
+              <div className="relative">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground" aria-hidden="true">
+                  ₹
+                </span>
+                <Input
+                  value={form.price}
+                  onChange={(e) => set("price", sanitizePriceInput(e.target.value))}
+                  inputMode="decimal"
+                  placeholder="1499"
+                  className="pl-7"
+                  aria-label="Price in rupees"
+                />
+              </div>
+            </Field>
+            <Field label="Compare-at price (₹)" hint="Original/MRP shown struck-through next to the price (optional).">
+              <div className="relative">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground" aria-hidden="true">
+                  ₹
+                </span>
+                <Input
+                  value={form.compareAtPrice}
+                  onChange={(e) => set("compareAtPrice", sanitizePriceInput(e.target.value))}
+                  inputMode="decimal"
+                  placeholder="1999"
+                  className="pl-7"
+                  aria-label="Compare-at price in rupees"
+                />
+              </div>
+            </Field>
+          </div>
+          {form.price && Number.isFinite(Number(form.price)) ? (
+            <p className="-mt-1 text-sm text-muted-foreground">
+              Will show on the site as{" "}
+              <span className="font-semibold text-foreground">₹{inrFmt(form.price)}</span>
+              {form.compareAtPrice && Number.isFinite(Number(form.compareAtPrice)) ? (
+                <>
+                  {" "}
+                  <span className="line-through">₹{inrFmt(form.compareAtPrice)}</span>
+                </>
+              ) : null}
+            </p>
+          ) : null}
           <div className="grid gap-4 md:grid-cols-2">
             <SlugInput value={form.slug} onChange={(v) => set("slug", v)} from={form.name} />
             <Field label="Category" required error={categoryError}>

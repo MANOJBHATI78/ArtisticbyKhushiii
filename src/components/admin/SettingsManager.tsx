@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowDown, ArrowUp, BarChart3, ExternalLink, Facebook, Instagram, ListPlus, MessageCircle, PartyPopper, Pin, Radar, Save, SearchCheck, Star, Trash2, Type, Youtube } from "lucide-react";
+import { ArrowDown, ArrowUp, BarChart3, Check, Code2, Copy, ExternalLink, Facebook, Instagram, ListPlus, MessageCircle, PartyPopper, Pin, Radar, Save, SearchCheck, ShoppingCart, Star, Trash2, TriangleAlert, Type, Youtube } from "lucide-react";
 import { useAdminSettings } from "./useAdminData";
 import { Field, Spinner } from "./shared";
 import { MediaPickField } from "./media-picker";
@@ -169,6 +169,25 @@ function StatusPill({ on, label = "Not set" }: { on: boolean; label?: string }) 
   );
 }
 
+/** Counts HTML tags (<meta, <script, <link, <noscript, <style) in pasted custom code. */
+function countTags(code: string): number {
+  return (code.match(/<\s*(meta|script|link|noscript|style)\b/gi) ?? []).length;
+}
+
+/** Pill for the Custom Code card — how many tags will render ("N tags live" / "Off"). */
+function CodePill({ count }: { count: number }) {
+  return (
+    <span
+      className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+        count > 0 ? "border-green-200 bg-green-50 text-green-700" : "border-border bg-muted/40 text-muted-foreground"
+      }`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${count > 0 ? "bg-green-500" : "bg-muted-foreground/40"}`} />
+      {count > 0 ? `${count} tag${count === 1 ? "" : "s"} live` : "Off"}
+    </span>
+  );
+}
+
 export function SettingsManager() {
   const { data: settings, isLoading } = useAdminSettings();
   const [form, setForm] = useState<SiteSettings | null>(null);
@@ -176,6 +195,46 @@ export function SettingsManager() {
   const initRef = useRef(false);
   const qc = useQueryClient();
   const { toast } = useToast();
+
+  // ---- Google Shopping card: count <item>s in the live feed (client check) ----
+  const [feedCount, setFeedCount] = useState<number | null>(null);
+  const [copiedFeed, setCopiedFeed] = useState(false);
+  const feedEnabled = form?.shoppingFeedEnabled === "1";
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/shopping-feed.xml")
+      .then((r) => (r.ok ? r.text() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((xml) => {
+        if (cancelled) return;
+        setFeedCount(new DOMParser().parseFromString(xml, "application/xml").getElementsByTagName("item").length);
+      })
+      .catch(() => {
+        if (!cancelled) setFeedCount(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [feedEnabled]);
+
+  // The feed URL to submit in Merchant Center — the live domain's URL when
+  // we're on it, otherwise the production URL (the sandbox is not public).
+  const feedUrl = useMemo(() => {
+    if (typeof window !== "undefined" && window.location.hostname.includes("artisticbykhushiii")) {
+      return `${window.location.origin}/shopping-feed.xml`;
+    }
+    return "https://artisticbykhushiii.com/shopping-feed.xml";
+  }, []);
+
+  function copyFeedUrl() {
+    void navigator.clipboard
+      .writeText(feedUrl)
+      .then(() => {
+        setCopiedFeed(true);
+        toast({ title: "Feed URL copied", description: "Paste it in Google Merchant Center → Products → Feeds." });
+        setTimeout(() => setCopiedFeed(false), 2000);
+      })
+      .catch(() => toast({ title: "Copy blocked by browser", description: "Long-press the URL to copy it manually." }));
+  }
 
   useEffect(() => {
     if (settings && !initRef.current) {
@@ -653,6 +712,148 @@ export function SettingsManager() {
             </a>
             <span className="md:col-span-2">Dono khali chhodne par ye section site pe nahi dikhega — jab tak set nahi karte.</span>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* ---------- Custom code injection (advanced) ---------- */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base font-display">
+            <Code2 className="size-4 text-primary" /> Custom Code (Advanced)
+            <span className="ml-auto">
+              <CodePill count={countTags(`${form.customHeadCode}\n${form.customBodyCode}`)} />
+            </span>
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Verification meta tags, Google Tag Manager, pixels, chat widgets — paste the code once and it renders on
+            every page of the site.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-800">
+            <TriangleAlert className="mr-1.5 inline size-3.5 align-[-2px]" />
+            <strong>Be careful:</strong> code you paste here renders on every page of the live site (server-side,
+            visible in View Source). Only paste code you trust — e.g. tags from Google, Bing, Pinterest, Facebook.
+          </div>
+          <div className="grid gap-4">
+            <Field
+              label="Head code"
+              hint="Rendered just before </head> — meta verification tags, GTM, analytics pixels."
+            >
+              <Textarea
+                rows={5}
+                value={form.customHeadCode}
+                onChange={(e) => set("customHeadCode", e.target.value)}
+                placeholder={'<meta name="msvalidate.01" content="YOUR-BING-CODE" />'}
+                className="font-mono text-xs leading-relaxed"
+                spellCheck={false}
+              />
+            </Field>
+            <Field
+              label="Body code"
+              hint="Rendered right after <body> opens — noscript tags, chat widgets."
+            >
+              <Textarea
+                rows={4}
+                value={form.customBodyCode}
+                onChange={(e) => set("customBodyCode", e.target.value)}
+                placeholder="<!-- Google Tag Manager (noscript) or a chat widget snippet -->"
+                className="font-mono text-xs leading-relaxed"
+                spellCheck={false}
+              />
+            </Field>
+          </div>
+          <details className="group rounded-lg border bg-muted/20 px-3 py-2.5 text-xs text-muted-foreground">
+            <summary className="cursor-pointer select-none font-medium text-foreground marker:content-none">
+              <Code2 className="mr-1 inline size-3.5 text-primary" />
+              What does pasted code look like? (examples)
+              <span className="ml-1 text-muted-foreground/70 group-open:hidden">&#9662;</span>
+              <span className="ml-1 hidden text-muted-foreground/70 group-open:inline">&#9652;</span>
+            </summary>
+            <div className="mt-2.5 space-y-2 leading-relaxed">
+              <p>Paste the snippet exactly as the provider gives it to you. For example:</p>
+              <p className="font-medium text-foreground">Google Search Console verification (head code):</p>
+              <pre className="custom-scroll overflow-x-auto rounded-lg border bg-card p-3 font-mono text-[11px] leading-relaxed">{`<meta name="google-site-verification" content="AbCdEf123456" />`}</pre>
+              <p className="font-medium text-foreground">Bing verification (head code):</p>
+              <pre className="custom-scroll overflow-x-auto rounded-lg border bg-card p-3 font-mono text-[11px] leading-relaxed">{`<meta name="msvalidate.01" content="AbCdEf1234567890" />`}</pre>
+              <p>
+                Pinterest / Facebook domain verification tags look the same — copy them from the provider, paste in
+                Head code, press <strong>Save settings</strong>. Leave everything else as-is.
+              </p>
+            </div>
+          </details>
+        </CardContent>
+      </Card>
+
+      {/* ---------- Google Shopping / Merchant Center ---------- */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base font-display">
+            <ShoppingCart className="size-4 text-primary" /> Google Shopping / Merchant Center
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            A product feed Google can read — show your pieces on Google Shopping for free.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between gap-4 rounded-lg border bg-muted/30 px-3 py-2.5">
+            <div>
+              <p className="text-sm font-medium">Product feed</p>
+              <p className="text-xs text-muted-foreground">
+                Only published products with a price are included — enquiry-only pieces are skipped.
+              </p>
+            </div>
+            <Switch
+              checked={feedEnabled}
+              onCheckedChange={(c) => set("shoppingFeedEnabled", c ? "1" : "0")}
+              aria-label="Enable Google Shopping product feed"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <p className="text-xs font-medium text-muted-foreground">Feed URL — submit this URL in Google Merchant Center</p>
+            <div className="flex items-center gap-2 rounded-lg border bg-muted/40 p-2.5">
+              <code className="min-w-0 flex-1 truncate font-mono text-xs text-foreground" title={feedUrl}>
+                {feedUrl}
+              </code>
+              <Button type="button" variant="outline" size="sm" className="h-8 shrink-0" onClick={copyFeedUrl}>
+                {copiedFeed ? <Check className="mr-1 h-3.5 w-3.5 text-green-700" /> : <Copy className="mr-1 h-3.5 w-3.5" />}
+                {copiedFeed ? "Copied" : "Copy"}
+              </Button>
+            </div>
+            <span
+              className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                (feedCount ?? 0) > 0
+                  ? "border-green-200 bg-green-50 text-green-700"
+                  : "border-border bg-muted/40 text-muted-foreground"
+              }`}
+            >
+              <span className={`h-1.5 w-1.5 rounded-full ${(feedCount ?? 0) > 0 ? "bg-green-500" : "bg-muted-foreground/40"}`} />
+              {feedCount === null ? "Feed check unavailable" : feedCount > 0 ? `${feedCount} products in feed` : "No products with a price yet"}
+            </span>
+          </div>
+
+          <details className="group rounded-lg border bg-muted/20 px-3 py-2.5 text-xs text-muted-foreground">
+            <summary className="cursor-pointer select-none font-medium text-foreground marker:content-none">
+              <ShoppingCart className="mr-1 inline size-3.5 text-primary" />
+              How to submit the feed in Google Merchant Center — step by step
+              <span className="ml-1 text-muted-foreground/70 group-open:hidden">&#9662;</span>
+              <span className="ml-1 hidden text-muted-foreground/70 group-open:inline">&#9652;</span>
+            </summary>
+            <div className="mt-2.5 space-y-2 leading-relaxed">
+              <ol className="ml-4 list-decimal space-y-1">
+                <li>Go to <a href="https://merchantcenter.google.com" target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline">merchantcenter.google.com <ExternalLink className="h-3 w-3" /></a> and sign in with your Google account.</li>
+                <li>Open <strong>Products → Feeds</strong> and click <strong>+</strong> (Add file / scheduled fetch).</li>
+                <li>Paste the feed URL above as the fetch URL. Name it e.g. “Artistic by Khushiii”.</li>
+                <li>Country: <strong>India</strong> · Language: English · Currency: <strong>INR</strong>.</li>
+                <li>Save — Google then fetches the feed automatically every day.</li>
+              </ol>
+              <p className="rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-2 text-amber-800">
+                Note: products need a price to appear in the feed — edit a product and set its price (Products → edit
+                → Price). Without a price they stay enquiry-only.
+              </p>
+            </div>
+          </details>
         </CardContent>
       </Card>
 

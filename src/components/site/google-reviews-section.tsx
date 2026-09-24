@@ -47,32 +47,57 @@ function Stars({ value, className }: { value: number; className?: string }) {
   );
 }
 
+interface GoogleReviewsSectionProps {
+  /** "full" = the homepage look (unchanged). "compact" = tighter strip for product/about/contact pages. */
+  variant?: "full" | "compact";
+  /** Max review cards shown (defaults to 6 full / 3 compact). */
+  limit?: number;
+}
+
 /**
  * Real Google Business Profile reviews — shown on the homepage between the
- * studio testimonials and the final CTA. Self-hides until the owner
- * configures the Places API key + place id in Site Settings.
+ * studio testimonials and the final CTA, and in a compact strip on product,
+ * about and contact pages. Self-hides until the owner configures the Places
+ * API key + place id in Site Settings, so adding it anywhere is zero-risk.
  */
-export function GoogleReviewsSection() {
+export function GoogleReviewsSection({ variant = "full", limit }: GoogleReviewsSectionProps) {
   const { data, isLoading } = useGoogleReviews();
+  const compact = variant === "compact";
+  const maxReviews = limit ?? (compact ? 3 : 6);
 
   if (isLoading || !data || !data.configured || !data.reviews || data.reviews.length === 0) return null;
 
   return (
-    <section aria-label="Google reviews" className="bg-secondary/40 py-14 md:py-20">
+    <section aria-label="Google reviews" className={cn("bg-secondary/40", compact ? "py-12" : "py-14 md:py-20")}>
       <Container>
         <FadeIn>
           <SectionHeading
             eyebrow="Straight from Google"
             title="Loved on Google"
-            description="Verified reviews from our Google Business Profile — real customers, real words."
+            className={compact ? "mb-6 md:mb-8 [&_h2]:text-2xl md:[&_h2]:text-3xl" : undefined}
           />
         </FadeIn>
 
         {/* Rating summary strip */}
-        <FadeIn className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-5">
-          <div className="flex items-center gap-3 rounded-full border border-gold/30 bg-card px-5 py-2.5 shadow-sm">
-            <GoogleG className="size-6" />
-            <span className="font-display text-3xl leading-none font-semibold text-foreground">
+        <FadeIn
+          className={cn(
+            "flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-5",
+            compact ? "mt-6" : "mt-8"
+          )}
+        >
+          <div
+            className={cn(
+              "flex items-center gap-3 rounded-full border border-gold/30 bg-card shadow-sm",
+              compact ? "px-4 py-2" : "px-5 py-2.5"
+            )}
+          >
+            <GoogleG className={compact ? "size-5" : "size-6"} />
+            <span
+              className={cn(
+                "font-display leading-none font-semibold text-foreground",
+                compact ? "text-2xl" : "text-3xl"
+              )}
+            >
               {(data.rating ?? 5).toFixed(1)}
             </span>
             <Stars value={data.rating ?? 5} />
@@ -91,7 +116,7 @@ export function GoogleReviewsSection() {
                 <ExternalLink className="size-4" aria-hidden="true" /> See all on Google
               </a>
             ) : null}
-            {data.writeReviewUrl ? (
+            {!compact && data.writeReviewUrl ? (
               <a
                 href={data.writeReviewUrl}
                 target="_blank"
@@ -105,23 +130,36 @@ export function GoogleReviewsSection() {
         </FadeIn>
 
         {/* Review cards */}
-        <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {data.reviews.slice(0, 6).map((r, i) => (
+        <div
+          className={cn(
+            "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+            compact ? "mt-6 gap-4" : "mt-10 gap-5"
+          )}
+        >
+          {data.reviews.slice(0, maxReviews).map((r, i) => (
             <FadeIn key={`${r.author}-${i}`} delay={Math.min(i * 60, 240)}>
-              <figure className="flex h-full flex-col rounded-2xl border border-cream/60 bg-card p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
+              <figure
+                className={cn(
+                  "flex h-full flex-col rounded-2xl border border-cream/60 bg-card shadow-sm transition-all hover:-translate-y-1 hover:shadow-md",
+                  compact ? "p-4" : "p-5"
+                )}
+              >
                 <div className="flex items-center gap-3">
                   {r.photo ? (
                     <img
                       src={r.photo}
                       alt={`${r.author} — Google profile photo`}
                       loading="lazy"
-                      className="size-10 rounded-full object-cover"
+                      className={compact ? "size-9 rounded-full object-cover" : "size-10 rounded-full object-cover"}
                       referrerPolicy="no-referrer"
                     />
                   ) : (
                     <span
                       aria-hidden="true"
-                      className="flex size-10 items-center justify-center rounded-full bg-gold-soft font-display text-sm font-semibold text-espresso"
+                      className={cn(
+                        "flex items-center justify-center rounded-full bg-gold-soft font-display text-sm font-semibold text-espresso",
+                        compact ? "size-9" : "size-10"
+                      )}
                     >
                       {r.author.slice(0, 1).toUpperCase()}
                     </span>

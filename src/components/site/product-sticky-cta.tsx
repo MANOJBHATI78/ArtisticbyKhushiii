@@ -54,6 +54,9 @@ export function ProductStickyCta({ product }: ProductStickyCtaProps) {
             href={whatsappLink(settings, product.name)}
             target="_blank"
             rel="noopener noreferrer"
+            data-lead-product={product.name}
+            data-lead-product-url={`/product/${product.slug}`}
+            data-lead-category={product.categoryName}
             onClick={() => trackWhatsAppClick("product", product.slug)}
             aria-label={`Ask about ${product.name} on WhatsApp`}
             className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white shadow-md transition-transform hover:scale-105"

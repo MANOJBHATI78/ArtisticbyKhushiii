@@ -8,6 +8,7 @@ import { Img } from "@/components/site/img";
 import { WishlistButton } from "@/components/site/wishlist-button";
 import { QuickView } from "@/components/site/quick-view";
 import { useSiteStore } from "@/lib/store";
+import { formatINR, hasDiscount, hasPrice } from "@/lib/format";
 import type { PublicProduct } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -85,6 +86,15 @@ export function ProductCard({ product, className }: ProductCardProps) {
             <span className="line-clamp-2">{product.name}</span>
           </h3>
         </a>
+        {/* Price — enquiry-only pieces render nothing and keep the old look. */}
+        {hasPrice(product) ? (
+          <p className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <span className="text-lg font-semibold text-espresso">{formatINR(product.price)}</span>
+            {hasDiscount(product) ? (
+              <s className="text-sm text-muted-foreground">{formatINR(product.compareAtPrice)}</s>
+            ) : null}
+          </p>
+        ) : null}
       </CardHeader>
 
       <CardContent className="flex-1 pb-3">

@@ -29,6 +29,9 @@ const TABLES = [
   "MediaAsset",
   "SiteSetting",
   "HomepageSection",
+  "Testimonial",
+  "LandingPage",
+  "PageSchema",
 ];
 
 type Cell = string | number | null;

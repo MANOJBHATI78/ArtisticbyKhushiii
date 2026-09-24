@@ -6,6 +6,7 @@ import { Providers } from "@/components/providers";
 import { SiteHeader } from "@/components/site/site-header";
 import { SiteFooter } from "@/components/site/site-footer";
 import { InquiryModal } from "@/components/site/inquiry-modal";
+import { LeadGateDialog } from "@/components/site/lead-gate";
 import { WhatsAppFloat } from "@/components/site/whatsapp-float";
 import { BackToTop } from "@/components/site/back-to-top";
 import { SiteAnalytics } from "@/components/site/analytics";
@@ -48,6 +49,43 @@ function useUtmCapture() {
       /* storage unavailable — carry on */
     }
   }, []);
+}
+
+/** wa.me links that address a phone number (share links like wa.me/?text=… have NO digits and stay untouched). */
+const WHATSAPP_HREF_RE = /^https:\/\/wa\.me\/\d+/;
+
+/**
+ * WhatsApp / call lead gate — every wa.me/<number> and tel: tap is intercepted
+ * (capture phase, so we beat target=_blank) and asked for name + mobile before
+ * the visitor is connected. Modifier-clicks (ctrl/cmd/shift/alt) open the raw
+ * link for power users. Product context rides along via data-lead-* attributes.
+ */
+function useLeadGateInterceptor() {
+  const openLeadGate = useSiteStore((s) => s.openLeadGate);
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const a = (e.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!a) return;
+      const href = a.getAttribute("href") || "";
+      let kind: "whatsapp" | "call" | null = null;
+      if (WHATSAPP_HREF_RE.test(href)) kind = "whatsapp";
+      else if (href.startsWith("tel:")) kind = "call";
+      if (!kind) return;
+      e.preventDefault();
+      e.stopPropagation();
+      openLeadGate(href, kind, {
+        product: a.dataset.leadProduct,
+        productUrl: a.dataset.leadProductUrl,
+        category: a.dataset.leadCategory,
+      });
+    };
+    // CAPTURE phase — runs before the anchor's own handlers and any bubble-phase
+    // listeners, and before the browser honours target="_blank".
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, [openLeadGate]);
 }
 
 /** Scrolls to top when the path (not query) changes. */
@@ -112,6 +150,7 @@ function SiteShell() {
 
   useUtmCapture();
   useScrollTop(route.path);
+  useLeadGateInterceptor();
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -131,6 +170,7 @@ function SiteShell() {
       </main>
       <SiteFooter />
       <InquiryModal />
+      <LeadGateDialog />
       <WhatsAppFloat />
       <BackToTop />
       {/* GA4 / Search Console / MS Clarity — injected only when configured in admin settings. */}

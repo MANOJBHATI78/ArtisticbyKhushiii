@@ -153,6 +153,11 @@ const COLUMN_MIGRATIONS: Record<string, Record<string, string>> = {
   HomepageSection: { mobileImageUrl: "TEXT NOT NULL DEFAULT ''" },
   Category: { mobileImageUrl: "TEXT NOT NULL DEFAULT ''" },
   Testimonial: { source: "TEXT NOT NULL DEFAULT 'admin'" },
+  Product: {
+    price: "TEXT NOT NULL DEFAULT ''",
+    compareAtPrice: "TEXT NOT NULL DEFAULT ''",
+  },
+  AdminUser: { active: "BOOLEAN NOT NULL DEFAULT 1" },
 };
 
 const TABLE_MIGRATIONS: string[] = [
@@ -208,6 +213,16 @@ const TABLE_MIGRATIONS: string[] = [
     "published" BOOLEAN NOT NULL DEFAULT true,
     "displayOrder" INTEGER NOT NULL DEFAULT 0,
     "source" TEXT NOT NULL DEFAULT 'admin',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+  );`,
+  `CREATE TABLE IF NOT EXISTS "PageSchema" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "path" TEXT NOT NULL DEFAULT '/',
+    "schemaJson" TEXT NOT NULL DEFAULT '{}',
+    "enabled" BOOLEAN NOT NULL DEFAULT true,
+    "displayOrder" INTEGER NOT NULL DEFAULT 0,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
   );`,

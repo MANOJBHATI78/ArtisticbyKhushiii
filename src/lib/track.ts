@@ -80,3 +80,13 @@ export function trackInquirySubmit(params: {
     source_page: params.sourcePage || "",
   });
 }
+
+/** `lead_gate_open` — fired when the WhatsApp/call gate dialog opens. */
+export function trackLeadGateOpen(kind: "whatsapp" | "call"): void {
+  track("lead_gate_open", { kind });
+}
+
+/** `lead_gate_submit` — fired when the visitor passes the WhatsApp/call gate. */
+export function trackLeadGateSubmit(kind: "whatsapp" | "call"): void {
+  track("lead_gate_submit", { kind });
+}

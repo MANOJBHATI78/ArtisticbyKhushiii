@@ -1,0 +1,570 @@
+     1→"use client";
+     2→
+     3→import { useMemo, useState } from "react";
+     4→import { useQueryClient } from "@tanstack/react-query";
+     5→import { isSameMonth, parseISO } from "date-fns";
+     6→import { api } from "@/lib/api-client";
+     7→import { useToast } from "@/hooks/use-toast";
+     8→import { LEAD_STATUSES, type Lead, type Paginated } from "@/lib/types";
+     9→import { Button } from "@/components/ui/button";
+    10→import { Input } from "@/components/ui/input";
+    11→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+    12→import { Skeleton } from "@/components/ui/skeleton";
+    13→import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+    14→import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+    15→import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+    16→import { Card, CardContent } from "@/components/ui/card";
+    17→import { Badge } from "@/components/ui/badge";
+    18→import { Textarea } from "@/components/ui/textarea";
+    19→import {
+    20→  CheckCheck,
+    21→  CloudOff,
+    22→  Copy,
+    23→  Download,
+    24→  Inbox,
+    25→  MapPin,
+    26→  MessageCircle,
+    27→  Phone,
+    28→  Save,
+    29→  Search,
+    30→  StickyNote,
+    31→  Trash2,
+    32→} from "lucide-react";
+    33→import { useAdminDashboard, useAdminLeads } from "./useAdminData";
+    34→import { useSettings } from "@/lib/queries";
+    35→import { ConfirmDialog, EmptyState, LeadStatusBadge } from "./shared";
+    36→import { buildCsv, downloadCsv, errMsg, fmtDate, leadStatusColor, timeAgo, useDebounced } from "./admin-utils";
+    37→
+    38→// ============================================================
+    39→// Leads / inquiries module
+    40→// ============================================================
+    41→
+    42→export function LeadsManager({ jump }: { jump?: { q: string; n: number } }) {
+    43→  const [q, setQ] = useState(jump?.q ?? "");
+    44→  const [status, setStatus] = useState("");
+    45→  const [page, setPage] = useState(1);
+    46→  const pageSize = 20;
+    47→  const debouncedQ = useDebounced(q);
+    48→  const qc = useQueryClient();
+    49→  const { toast } = useToast();
+    50→
+    51→  const [detail, setDetail] = useState<Lead | null>(null);
+    52→  const [toDelete, setToDelete] = useState<Lead | null>(null);
+    53→  const [deleting, setDeleting] = useState(false);
+    54→  const [exporting, setExporting] = useState(false);
+    55→
+    56→  const params = { page, pageSize, q: debouncedQ, status };
+    57→  const { data, isLoading } = useAdminLeads(params);
+    58→  const { data: stats } = useAdminDashboard();
+    59→  // converted-this-month (server caps pageSize at 100 per request)
+    60→  const { data: convertedAll } = useAdminLeads({ page: 1, pageSize: 100, q: "", status: "CONVERTED" });
+    61→  const convertedThisMonth = useMemo(() => {
+    62→    const now = new Date();
+    63→    return (convertedAll?.items ?? []).filter((l) => {
+    64→      try {
+    65→        return isSameMonth(parseISO(l.createdAt), now);
+    66→      } catch {
+    67→        return false;
+    68→      }
+    69→    }).length;
+    70→  }, [convertedAll]);
+    71→
+    72→  const leadsKey = ["admin", "leads", page, pageSize, debouncedQ, status] as const;
+    73→
+    74→  function updateLeadLocal(id: string, patch: Partial<Lead>) {
+    75→    const prev = qc.getQueryData<Paginated<Lead>>(leadsKey);
+    76→    if (prev) {
+    77→      qc.setQueryData(leadsKey, { ...prev, items: prev.items.map((l) => (l.id === id ? { ...l, ...patch } : l)) });
+    78→    }
+    79→    if (detail?.id === id) setDetail((d) => (d ? { ...d, ...patch } : d));
+    80→    return prev;
+    81→  }
+    82→
+    83→  function setStatusOf(lead: Lead, newStatus: string) {
+    84→    const prev = updateLeadLocal(lead.id, { status: newStatus });
+    85→    api
+    86→      .put(`/api/admin/leads/${lead.id}`, { status: newStatus })
+    87→      .then(() => {
+    88→        toast({ title: `Marked as ${newStatus.replace("_", " ")}`, description: lead.name });
+    89→        void qc.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+    90→        void qc.invalidateQueries({ queryKey: ["admin", "lead-stats"] });
+    91→      })
+    92→      .catch((e) => {
+    93→        if (prev) qc.setQueryData(leadsKey, prev);
+    94→        toast({ title: "Update failed", description: errMsg(e), variant: "destructive" });
+    95→      });
+    96→  }
+    97→
+    98→  function saveNotes(lead: Lead, notes: string) {
+    99→    const prev = updateLeadLocal(lead.id, { notes });
+   100→    api
+   101→      .put(`/api/admin/leads/${lead.id}`, { notes })
+   102→      .then(() => toast({ title: "Notes saved", description: lead.name }))
+   103→      .catch((e) => {
+   104→        if (prev) qc.setQueryData(leadsKey, prev);
+   105→        toast({ title: "Could not save notes", description: errMsg(e), variant: "destructive" });
+   106→      });
+   107→  }
+   108→
+   109→  async function exportCsv() {
+   110→    setExporting(true);
+   111→    try {
+   112→      // the server caps pageSize at 100 — fetch every page until we have all
+   113→      const PAGE = 100;
+   114→      const collected: Lead[] = [];
+   115→      let page = 1;
+   116→      let totalPages = 1;
+   117→      do {
+   118→        const res = await api.get<Paginated<Lead>>(
+   119→          `/api/admin/leads?page=${page}&pageSize=${PAGE}${debouncedQ ? `&q=${encodeURIComponent(debouncedQ)}` : ""}${status ? `&status=${status}` : ""}`,
+   120→        );
+   121→        collected.push(...res.items);
+   122→        totalPages = res.totalPages;
+   123→        page += 1;
+   124→      } while (page <= totalPages);
+   125→      const csv = buildCsv(
+   126→        ["Name", "Mobile", "City", "Product", "Product URL", "Category", "Message", "Preferred contact", "Source page", "UTM source", "UTM medium", "UTM campaign", "Referrer", "Status", "Notes", "Google Sheet synced", "Created at"],
+   127→        collected.map((l) => [
+   128→          l.name, l.mobile, l.city, l.product, l.productUrl, l.category, l.message, l.preferredContact, l.sourcePage,
+   129→          l.utmSource, l.utmMedium, l.utmCampaign, l.referrer, l.status, l.notes, l.sheetSynced ? "yes" : "no", l.createdAt,
+   130→        ]),
+   131→      );
+   132→      downloadCsv("artistic-by-khushi-leads.csv", csv);
+   133→      toast({ title: "CSV exported", description: `${collected.length} inquiries downloaded.` });
+   134→    } catch (e) {
+   135→      toast({ title: "Export failed", description: errMsg(e), variant: "destructive" });
+   136→    } finally {
+   137→      setExporting(false);
+   138→    }
+   139→  }
+   140→
+   141→  function confirmDelete() {
+   142→    if (!toDelete) return;
+   143→    setDeleting(true);
+   144→    api
+   145→      .delete(`/api/admin/leads/${toDelete.id}`)
+   146→      .then(() => {
+   147→        toast({ title: "Inquiry deleted", description: toDelete.name });
+   148→        setToDelete(null);
+   149→        setDetail(null);
+   150→        void qc.invalidateQueries({ queryKey: ["admin", "leads"] });
+   151→        void qc.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+   152→        void qc.invalidateQueries({ queryKey: ["admin", "lead-stats"] });
+   153→      })
+   154→      .catch((e) => toast({ title: "Delete failed", description: errMsg(e), variant: "destructive" }))
+   155→      .finally(() => setDeleting(false));
+   156→  }
+   157→
+   158→  const items = data?.items ?? [];
+   159→  const statCards = [
+   160→    { label: "Total inquiries", value: stats?.totalLeads ?? 0, icon: Inbox, tint: "bg-primary/10 text-primary" },
+   161→    { label: "New (need action)", value: stats?.newLeads ?? 0, icon: MessageCircle, tint: "bg-gold-soft text-espresso" },
+   162→    { label: "Converted", value: stats?.convertedLeads ?? 0, icon: CheckCheck, tint: "bg-green-100 text-green-800" },
+   163→    { label: "Converted this month", value: convertedThisMonth, icon: CheckCheck, tint: "bg-terracotta/15 text-terracotta-deep" },
+   164→  ];
+   165→
+   166→  return (
+   167→    <div className="space-y-4">
+   168→      {/* stat mini cards */}
+   169→      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+   170→        {statCards.map((c) => {
+   171→          const Icon = c.icon;
+   172→          return (
+   173→            <Card key={c.label}>
+   174→              <CardContent className="flex items-center gap-3 p-3">
+   175→                <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${c.tint}`}>
+   176→                  <Icon className="h-4 w-4" style={{ width: 16, height: 16 }} />
+   177→                </div>
+   178→                <div>
+   179→                  <p className="font-display text-xl font-semibold leading-none">{c.value}</p>
+   180→                  <p className="text-[11px] text-muted-foreground">{c.label}</p>
+   181→                </div>
+   182→              </CardContent>
+   183→            </Card>
+   184→          );
+   185→        })}
+   186→      </div>
+   187→
+   188→      {/* toolbar */}
+   189→      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+   190→        <div className="relative flex-1">
+   191→          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+   192→          <Input value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="Search name, mobile or product…" className="pl-8" aria-label="Search leads" />
+   193→        </div>
+   194→        <Select value={status || "all"} onValueChange={(v) => { setStatus(v === "all" ? "" : v); setPage(1); }}>
+   195→          <SelectTrigger className="w-full sm:w-44" aria-label="Filter by status">
+   196→            <SelectValue placeholder="All statuses" />
+   197→          </SelectTrigger>
+   198→          <SelectContent>
+   199→            <SelectItem value="all">All statuses</SelectItem>
+   200→            {LEAD_STATUSES.map((s) => (
+   201→              <SelectItem key={s} value={s}>
+   202→                {s.replace("_", " ")}
+   203→              </SelectItem>
+   204→            ))}
+   205→          </SelectContent>
+   206→        </Select>
+   207→        <Button variant="outline" onClick={() => void exportCsv()} disabled={exporting}>
+   208→          <Download className="mr-1 h-4 w-4" /> Export CSV
+   209→        </Button>
+   210→      </div>
+   211→
+   212→      {isLoading ? (
+   213→        <div className="space-y-2">
+   214→          {Array.from({ length: 5 }).map((_, i) => (
+   215→            <Skeleton key={i} className="h-14 rounded-lg" />
+   216→          ))}
+   217→        </div>
+   218→      ) : items.length === 0 ? (
+   219→        <EmptyState icon={<Inbox className="h-8 w-8 text-muted-foreground/50" />} title="No inquiries found" hint="Every enquiry from the website contact forms lands here." />
+   220→      ) : (
+   221→        <>
+   222→          {/* desktop table */}
+   223→          <div className="hidden max-h-[70vh] overflow-auto custom-scroll rounded-lg border lg:block">
+   224→            <Table>
+   225→              <TableHeader className="sticky top-0 z-10 bg-background">
+   226→                <TableRow>
+   227→                  <TableHead>Customer</TableHead>
+   228→                  <TableHead>City</TableHead>
+   229→                  <TableHead className="min-w-52">Product / message</TableHead>
+   230→                  <TableHead className="w-36">Status</TableHead>
+   231→                  <TableHead className="w-24">Notes</TableHead>
+   232→                  <TableHead className="w-20">Sheet</TableHead>
+   233→                  <TableHead className="w-28">Received</TableHead>
+   234→                </TableRow>
+   235→              </TableHeader>
+   236→              <TableBody>
+   237→                {items.map((l) => (
+   238→                  <TableRow key={l.id} className="cursor-pointer" onClick={() => setDetail(l)}>
+   239→                    <TableCell>
+   240→                      <p className="font-medium">{l.name}</p>
+   241→                      <a href={`tel:${l.mobile}`} className="text-xs text-muted-foreground hover:text-primary hover:underline" onClick={(e) => e.stopPropagation()}>
+   242→                        {l.mobile}
+   243→                      </a>
+   244→                    </TableCell>
+   245→                    <TableCell>
+   246→                      <span className="text-sm text-muted-foreground inline-flex items-center gap-1">
+   247→                        {l.city ? <><MapPin className="h-3 w-3" /> {l.city}</> : "—"}
+   248→                      </span>
+   249→                    </TableCell>
+   250→                    <TableCell>
+   251→                      {l.product ? (
+   252→                        <div className="flex flex-wrap items-center gap-1">
+   253→                          <Badge variant="secondary" className="max-w-40 truncate">{l.product}</Badge>
+   254→                          {l.sourcePage ? (
+   255→                            <a href={l.sourcePage.startsWith("#") ? l.sourcePage : `#${l.sourcePage}`} target="_blank" rel="noreferrer" className="text-[11px] text-primary underline" onClick={(e) => e.stopPropagation()}>
+   256→                              source page
+   257→                            </a>
+   258→                          ) : null}
+   259→                        </div>
+   260→                      ) : null}
+   261→                      {l.message ? <p className="mt-0.5 line-clamp-2 max-w-96 text-xs text-muted-foreground">{l.message}</p> : null}
+   262→                      {l.utmSource || l.utmMedium || l.utmCampaign ? (
+   263→                        <div className="mt-0.5 flex flex-wrap gap-1">
+   264→                          {l.utmSource ? <Badge variant="outline" className="text-[10px]">src: {l.utmSource}</Badge> : null}
+   265→                          {l.utmMedium ? <Badge variant="outline" className="text-[10px]">med: {l.utmMedium}</Badge> : null}
+   266→                          {l.utmCampaign ? <Badge variant="outline" className="text-[10px]">cmp: {l.utmCampaign}</Badge> : null}
+   267→                        </div>
+   268→                      ) : null}
+   269→                    </TableCell>
+   270→                    <TableCell onClick={(e) => e.stopPropagation()}>
+   271→                      <Select value={l.status} onValueChange={(v) => setStatusOf(l, v)}>
+   272→                        <SelectTrigger className={`h-8 w-32 border text-xs font-medium ${leadStatusColor(l.status)}`} aria-label={`Status for ${l.name}`}>
+   273→                          <SelectValue />
+   274→                        </SelectTrigger>
+   275→                        <SelectContent>
+   276→                          {LEAD_STATUSES.map((s) => (
+   277→                            <SelectItem key={s} value={s}>
+   278→                              {s.replace("_", " ")}
+   279→                            </SelectItem>
+   280→                          ))}
+   281→                        </SelectContent>
+   282→                      </Select>
+   283→                    </TableCell>
+   284→                    <TableCell onClick={(e) => e.stopPropagation()}>
+   285→                      <NotesPopover lead={l} onSave={saveNotes} />
+   286→                    </TableCell>
+   287→                    <TableCell>
+   288→                      {l.sheetSynced ? (
+   289→                        <span title="Synced to Google Sheets" className="inline-flex items-center gap-1 text-xs text-green-700">
+   290→                          <CheckCheck className="h-3.5 w-3.5" /> synced
+   291→                        </span>
+   292→                      ) : (
+   293→                        <span title="Not synced to Google Sheets (local only)" className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+   294→                          <CloudOff className="h-3.5 w-3.5" />
+   295→                        </span>
+   296→                      )}
+   297→                    </TableCell>
+   298→                    <TableCell>
+   299→                      <p className="text-xs text-muted-foreground">{timeAgo(l.createdAt)}</p>
+   300→                    </TableCell>
+   301→                  </TableRow>
+   302→                ))}
+   303→              </TableBody>
+   304→            </Table>
+   305→          </div>
+   306→
+   307→          {/* mobile / tablet cards */}
+   308→          <div className="space-y-2 lg:hidden">
+   309→            {items.map((l) => (
+   310→              <Card key={l.id} role="button" tabIndex={0} onClick={() => setDetail(l)} onKeyDown={(e) => e.key === "Enter" && setDetail(l)} className="cursor-pointer">
+   311→                <CardContent className="p-3 space-y-1.5">
+   312→                  <div className="flex items-start justify-between gap-2">
+   313→                    <div className="min-w-0">
+   314→                      <p className="truncate font-medium">{l.name}</p>
+   315→                      <p className="text-xs text-muted-foreground">{l.mobile}{l.city ? ` · ${l.city}` : ""}</p>
+   316→                    </div>
+   317→                    <LeadStatusBadge status={l.status} />
+   318→                  </div>
+   319→                  {l.product ? <Badge variant="secondary" className="max-w-full truncate">{l.product}</Badge> : null}
+   320→                  {l.message ? <p className="line-clamp-2 text-xs text-muted-foreground">{l.message}</p> : null}
+   321→                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+   322→                    <span>{timeAgo(l.createdAt)}</span>
+   323→                    {l.sheetSynced ? <CheckCheck className="h-3 w-3 text-green-700" /> : <CloudOff className="h-3 w-3" />}
+   324→                    <span className="flex-1" />
+   325→                  </div>
+   326→                  <div onClick={(e) => e.stopPropagation()}>
+   327→                    <Select value={l.status} onValueChange={(v) => setStatusOf(l, v)}>
+   328→                      <SelectTrigger className={`h-8 border text-xs font-medium ${leadStatusColor(l.status)}`} aria-label={`Status for ${l.name}`}>
+   329→                        <SelectValue />
+   330→                      </SelectTrigger>
+   331→                      <SelectContent>
+   332→                        {LEAD_STATUSES.map((s) => (
+   333→                          <SelectItem key={s} value={s}>
+   334→                            {s.replace("_", " ")}
+   335→                          </SelectItem>
+   336→                        ))}
+   337→                      </SelectContent>
+   338→                    </Select>
+   339→                  </div>
+   340→                </CardContent>
+   341→              </Card>
+   342→            ))}
+   343→          </div>
+   344→
+   345→          <div className="flex items-center justify-between text-xs text-muted-foreground">
+   346→            <span>
+   347→              {data?.total ?? items.length} inquiries · page {data?.page ?? 1} of {data?.totalPages ?? 1}
+   348→            </span>
+   349→            <div className="flex gap-1">
+   350→              <Button variant="outline" size="sm" disabled={(data?.page ?? 1) <= 1} onClick={() => setPage((p) => p - 1)}>
+   351→                Previous
+   352→              </Button>
+   353→              <Button variant="outline" size="sm" disabled={(data?.page ?? 1) >= (data?.totalPages ?? 1)} onClick={() => setPage((p) => p + 1)}>
+   354→                Next
+   355→              </Button>
+   356→            </div>
+   357→          </div>
+   358→        </>
+   359→      )}
+   360→
+   361→      {/* detail sheet */}
+   362→      {detail ? <LeadDetailSheet lead={detail} onClose={() => setDetail(null)} onStatus={setStatusOf} onNotes={saveNotes} onDelete={() => setToDelete(detail)} /> : null}
+   363→
+   364→      <ConfirmDialog
+   365→        open={!!toDelete}
+   366→        onOpenChange={(o) => !o && setToDelete(null)}
+   367→        title={`Delete inquiry from “${toDelete?.name ?? ""}”?`}
+   368→        description="The inquiry and its notes will be permanently removed. Google Sheets rows already synced are not affected."
+   369→        confirmLabel="Delete inquiry"
+   370→        onConfirm={confirmDelete}
+   371→        pending={deleting}
+   372→      />
+   373→    </div>
+   374→  );
+   375→}
+   376→
+   377→// ============================================================
+   378→// Notes popover (inline)
+   379→// ============================================================
+   380→
+   381→function NotesPopover({ lead, onSave }: { lead: Lead; onSave: (lead: Lead, notes: string) => void }) {
+   382→  const [notes, setNotes] = useState(lead.notes);
+   383→  return (
+   384→    <Popover>
+   385→      <PopoverTrigger asChild>
+   386→        <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Notes for ${lead.name}`} title={lead.notes || "Add notes"}>
+   387→          <StickyNote className={`h-4 w-4 ${lead.notes ? "text-gold" : "text-muted-foreground/60"}`} fill={lead.notes ? "currentColor" : "none"} />
+   388→        </Button>
+   389→      </PopoverTrigger>
+   390→      <PopoverContent className="w-80" align="start">
+   391→        <div className="space-y-2">
+   392→          <p className="text-sm font-medium">Notes — {lead.name}</p>
+   393→          <Textarea rows={4} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Follow-up details, customisation discussed…" />
+   394→          <div className="flex justify-end">
+   395→            <Button size="sm" onClick={() => onSave(lead, notes)}>
+   396→              <Save className="mr-1 h-3.5 w-3.5" /> Save notes
+   397→            </Button>
+   398→          </div>
+   399→        </div>
+   400→      </PopoverContent>
+   401→    </Popover>
+   402→  );
+   403→}
+   404→
+   405→// ============================================================
+   406→// Lead detail sheet
+   407→// ============================================================
+   408→
+   409→function LeadDetailSheet({
+   410→  lead,
+   411→  onClose,
+   412→  onStatus,
+   413→  onNotes,
+   414→  onDelete,
+   415→}: {
+   416→  lead: Lead;
+   417→  onClose: () => void;
+   418→  onStatus: (lead: Lead, status: string) => void;
+   419→  onNotes: (lead: Lead, notes: string) => void;
+   420→  onDelete: () => void;
+   421→}) {
+   422→  const [notes, setNotes] = useState(lead.notes);
+   423→  const { toast } = useToast();
+   424→  const { data: siteSettings } = useSettings();
+   425→  const brand = siteSettings?.brandName || "Artistic by Khushi";
+   426→
+   427→  // Contextual WhatsApp follow-up — greets the customer by name and
+   428→  // references the piece they asked about (editable before sending).
+   429→  const firstName = lead.name.split(/\s+/)[0] || "there";
+   430→  const followUpText = lead.product
+   431→    ? `Hi ${firstName}! 👋 Thank you for your interest in "${lead.product}" from ${brand} 💛 I'd love to share more details, photos and customisation options — whenever you're ready!`
+   432→    : `Hi ${firstName}! 👋 Thank you for reaching out to ${brand} 💛 I'd love to help you find (or create) the perfect handcrafted piece — whenever you're ready!`;
+   433→  const whatsapp = lead.mobile
+   434→    ? `https://wa.me/${lead.mobile.replace(/\D/g, "")}?text=${encodeURIComponent(followUpText)}`
+   435→    : "";
+   436→  const cleanMobile = lead.mobile.replace(/\D/g, "");
+   437→
+   438→  function copyMobile() {
+   439→    void navigator.clipboard
+   440→      .writeText(lead.mobile)
+   441→      .then(() => toast({ title: "Mobile number copied" }))
+   442→      .catch(() => toast({ title: "Copy blocked by browser", description: "Long-press the number to copy manually." }));
+   443→  }
+   444→
+   445→  const rows: { label: string; value: string }[] = [
+   446→    { label: "Mobile", value: lead.mobile },
+   447→    { label: "City", value: lead.city || "—" },
+   448→    { label: "Product", value: lead.product || "—" },
+   449→    { label: "Category", value: lead.category || "—" },
+   450→    { label: "Preferred contact", value: lead.preferredContact || "—" },
+   451→    { label: "Source page", value: lead.sourcePage || "—" },
+   452→    { label: "UTM source", value: lead.utmSource || "—" },
+   453→    { label: "UTM medium", value: lead.utmMedium || "—" },
+   454→    { label: "UTM campaign", value: lead.utmCampaign || "—" },
+   455→    { label: "Referrer", value: lead.referrer || "—" },
+   456→    { label: "Received", value: fmtDate(lead.createdAt) },
+   457→    { label: "Google Sheets", value: lead.sheetSynced ? "✓ synced" : "not synced" },
+   458→  ];
+   459→
+   460→  return (
+   461→    <Sheet open onOpenChange={(o) => !o && onClose()}>
+   462→      <SheetContent side="right" className="w-full max-w-md overflow-y-auto custom-scroll p-0">
+   463→        <SheetHeader className="border-b p-4">
+   464→          <SheetTitle className="font-display flex items-center gap-2">
+   465→            {lead.name}
+   466→            <LeadStatusBadge status={lead.status} />
+   467→          </SheetTitle>
+   468→          <SheetDescription>Received {timeAgo(lead.createdAt)}</SheetDescription>
+   469→        </SheetHeader>
+   470→
+   471→        <div className="space-y-4 p-4">
+   472→          {/* quick contact */}
+   473→          <div className="grid grid-cols-3 gap-2">
+   474→            <a
+   475→              href={whatsapp}
+   476→              target="_blank"
+   477→              rel="noreferrer"
+   478→              title="Opens WhatsApp with a pre-filled follow-up message"
+   479→              className="flex flex-col items-center gap-1 rounded-lg border p-3 text-xs font-medium text-green-700 hover:bg-secondary"
+   480→            >
+   481→              <MessageCircle className="h-5 w-5" style={{ width: 20, height: 20 }} /> WhatsApp
+   482→            </a>
+   483→            <a
+   484→              href={`tel:${lead.mobile}`}
+   485→              className="flex flex-col items-center gap-1 rounded-lg border p-3 text-xs font-medium text-primary hover:bg-secondary"
+   486→            >
+   487→              <Phone className="h-5 w-5" style={{ width: 20, height: 20 }} /> Call
+   488→            </a>
+   489→            <button
+   490→              type="button"
+   491→              onClick={copyMobile}
+   492→              className="flex flex-col items-center gap-1 rounded-lg border p-3 text-xs font-medium text-muted-foreground hover:bg-secondary"
+   493→            >
+   494→              <Copy className="h-5 w-5" style={{ width: 20, height: 20 }} /> Copy no.
+   495→            </button>
+   496→          </div>
+   497→          <p className="-mt-1 text-[11px] text-muted-foreground">
+   498→            WhatsApp opens with a ready-made follow-up message about this piece — you can edit it before sending.
+   499→          </p>
+   500→
+   501→          {/* status */}
+   502→          <div>
+   503→            <p className="mb-1.5 text-sm font-medium">Status</p>
+   504→            <Select value={lead.status} onValueChange={(v) => onStatus(lead, v)}>
+   505→              <SelectTrigger className={`border font-medium ${leadStatusColor(lead.status)}`} aria-label="Lead status">
+   506→                <SelectValue />
+   507→              </SelectTrigger>
+   508→              <SelectContent>
+   509→                {LEAD_STATUSES.map((s) => (
+   510→                  <SelectItem key={s} value={s}>
+   511→                    {s.replace("_", " ")}
+   512→                  </SelectItem>
+   513→                ))}
+   514→              </SelectContent>
+   515→            </Select>
+   516→          </div>
+   517→
+   518→          {/* message */}
+   519→          {lead.message ? (
+   520→            <div className="rounded-lg border bg-muted/40 p-3">
+   521→              <p className="text-xs font-medium text-muted-foreground mb-1">Message</p>
+   522→              <p className="whitespace-pre-wrap text-sm">{lead.message}</p>
+   523→            </div>
+   524→          ) : null}
+   525→
+   526→          {/* fields */}
+   527→          <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
+   528→            {rows.map((r) => (
+   529→              <div key={r.label} className="min-w-0">
+   530→                <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">{r.label}</dt>
+   531→                <dd className="truncate" title={r.value}>{r.value}</dd>
+   532→              </div>
+   533→            ))}
+   534→            {lead.productUrl ? (
+   535→              <div className="col-span-2">
+   536→                <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">Product link</dt>
+   537→                <dd>
+   538→                  <a href={lead.productUrl.startsWith("#") ? lead.productUrl : `#${lead.productUrl}`} target="_blank" rel="noreferrer" className="text-xs text-primary underline break-all">
+   539→                    {lead.productUrl}
+   540→                  </a>
+   541→                </dd>
+   542→              </div>
+   543→            ) : null}
+   544→          </dl>
+   545→
+   546→          {/* notes */}
+   547→          <div>
+   548→            <p className="mb-1.5 text-sm font-medium">Notes</p>
+   549→            <Textarea rows={4} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Follow-up details…" />
+   550→            <div className="mt-2 flex justify-end">
+   551→              <Button size="sm" onClick={() => onNotes(lead, notes)}>
+   552→                <Save className="mr-1 h-3.5 w-3.5" /> Save notes
+   553→              </Button>
+   554→            </div>
+   555→          </div>
+   556→
+   557→          <div className="flex justify-end border-t pt-4">
+   558→            <Button variant="outline" className="text-destructive hover:text-destructive" onClick={onDelete}>
+   559→              <Trash2 className="mr-1 h-4 w-4" /> Delete inquiry
+   560→            </Button>
+   561→          </div>
+   562→          {cleanMobile && !cleanMobile.startsWith("91") ? (
+   563→            <p className="text-[11px] text-muted-foreground">Tip: WhatsApp needs the country code — if this number doesn&apos;t open WhatsApp, edit it with the country code (e.g. 91…).</p>
+   564→          ) : null}
+   565→        </div>
+   566→      </SheetContent>
+   567→    </Sheet>
+   568→  );
+   569→}
+   570→

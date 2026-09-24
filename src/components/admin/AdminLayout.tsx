@@ -2,9 +2,11 @@
 
 import { useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +22,9 @@ import {
   ChevronDown,
   DatabaseBackup,
   ExternalLink,
+  Eye,
+  EyeOff,
+  FileJson2,
   FileText,
   FolderTree,
   HelpCircle,
@@ -38,11 +43,14 @@ import {
   RefreshCw,
   Search,
   Settings as SettingsIcon,
+  UserCircle,
+  Users,
   X,
 } from "lucide-react";
 import type { AdminModuleKey, AdminUser } from "./admin-utils";
-import { initialsOf } from "./admin-utils";
+import { errMsg, initialsOf } from "./admin-utils";
 import { useAdminDashboard } from "./useAdminData";
+import { Field, Spinner } from "./shared";
 
 // ============================================================
 // Console shell — collapsible sidebar (desktop), tab bar (mobile),
@@ -63,6 +71,8 @@ const NAV: { key: AdminModuleKey; label: string; icon: typeof LayoutDashboard }[
   { key: "landing", label: "Landing Pages", icon: Megaphone },
   { key: "backup", label: "Backup & Sync", icon: DatabaseBackup },
   { key: "settings", label: "Site Settings", icon: SettingsIcon },
+  { key: "users", label: "Users & Roles", icon: Users },
+  { key: "schemas", label: "Schema Manager", icon: FileJson2 },
 ];
 
 const TITLES: Record<AdminModuleKey, string> = {
@@ -79,6 +89,8 @@ const TITLES: Record<AdminModuleKey, string> = {
   landing: "Landing Pages",
   backup: "Backup & Sync",
   settings: "Site Settings",
+  users: "Users & Roles",
+  schemas: "Schema Manager",
 };
 
 const MOBILE_TABS: { key: AdminModuleKey; label: string; icon: typeof LayoutDashboard }[] = [
@@ -110,11 +122,15 @@ export function AdminLayout({
   const [searchQ, setSearchQ] = useState("");
   const [searchMenu, setSearchMenu] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const qc = useQueryClient();
   const { toast } = useToast();
   const { data: stats } = useAdminDashboard();
   const newLeads = stats?.newLeads ?? 0;
   const pendingReviews = stats?.pendingReviews ?? 0;
+
+  // Users & Roles is an OWNER-only module — hide it from everyone else.
+  const navItems = user.role === "OWNER" ? NAV : NAV.filter((i) => i.key !== "users");
 
   function navigate(module: AdminModuleKey) {
     onNavigate(module);
@@ -138,7 +154,7 @@ export function AdminLayout({
 
   const navContent = (opts: { compact?: boolean } = {}) => (
     <nav aria-label="Admin navigation" className="flex flex-1 flex-col gap-0.5 overflow-y-auto custom-scroll p-2">
-      {NAV.map((item) => {
+      {navItems.map((item) => {
         const Icon = item.icon;
         const isActive = active === item.key;
         const badge =
@@ -181,7 +197,12 @@ export function AdminLayout({
 
   const userBlock = (compact = false) => (
     <div className="border-t p-2">
-      <div className={`flex items-center gap-2.5 rounded-lg p-2 ${compact ? "" : "bg-muted/50"}`}>
+      <button
+        type="button"
+        onClick={() => setAccountOpen(true)}
+        className={`flex w-full items-center gap-2.5 rounded-lg p-2 text-left transition-colors hover:bg-secondary ${compact ? "" : "bg-muted/50"}`}
+        title="My Account — name, email & password"
+      >
         <Avatar className="h-8 w-8 shrink-0">
           <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
             {initialsOf(user.name)}
@@ -193,8 +214,19 @@ export function AdminLayout({
             <p className="truncate text-xs text-muted-foreground">{user.email}</p>
           </div>
         ) : null}
-      </div>
+        {!collapsed ? <UserCircle className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" /> : null}
+      </button>
       <div className={`flex gap-1 ${collapsed ? "flex-col" : ""}`}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex-1 justify-center"
+          onClick={() => setAccountOpen(true)}
+          title="My Account"
+        >
+          <UserCircle className="h-4 w-4" />
+          {!collapsed ? <span className="ml-1.5">My Account</span> : null}
+        </Button>
         <Button
           variant="ghost"
           size="sm"
@@ -435,7 +467,149 @@ export function AdminLayout({
           More
         </button>
       </nav>
+
+      {/* My Account — name, login email & password (every role) */}
+      {accountOpen ? <MyAccountDialog user={user} onClose={() => setAccountOpen(false)} /> : null}
     </div>
+  );
+}
+
+// ============================================================
+// My Account dialog — update your own name, login email and
+// password. Available to every role (viewers too).
+// ============================================================
+
+const ACCOUNT_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+function MyAccountDialog({ user, onClose }: { user: AdminUser; onClose: () => void }) {
+  const [name, setName] = useState(user.name);
+  const [email, setEmail] = useState(user.email);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPasswords, setShowPasswords] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const qc = useQueryClient();
+  const { toast } = useToast();
+
+  const emailChanged = email.trim().toLowerCase() !== user.email.toLowerCase();
+  const passwordChanged = newPassword.length > 0;
+  const needsCurrent = emailChanged || passwordChanged;
+
+  const nameError = submitted && name.trim().length < 2 ? "Please enter your name (at least 2 characters)." : undefined;
+  const emailError =
+    submitted && !ACCOUNT_EMAIL_RE.test(email.trim()) ? "Please enter a valid email — this is your login ID." : undefined;
+  const currentError =
+    submitted && needsCurrent && !currentPassword
+      ? "Enter your current password to change your email or password."
+      : undefined;
+  const newError =
+    submitted && passwordChanged && newPassword.length < 8 ? "New password must be at least 8 characters." : undefined;
+  const confirmError =
+    submitted && newPassword !== confirmPassword ? "The two new passwords don't match." : undefined;
+
+  async function save() {
+    setSubmitted(true);
+    if (nameError || emailError || currentError || newError || confirmError) return;
+    setSaving(true);
+    try {
+      const body: { name: string; email: string; currentPassword?: string; newPassword?: string } = {
+        name: name.trim(),
+        email: email.trim(),
+      };
+      if (needsCurrent) body.currentPassword = currentPassword;
+      if (passwordChanged) body.newPassword = newPassword;
+      await api.put("/api/admin/account", body);
+      toast({
+        title: "Account updated",
+        description: passwordChanged
+          ? "Use your new password next time you log in."
+          : emailChanged
+            ? "Your login ID is now the new email — other devices were logged out."
+            : "Your display name was updated.",
+      });
+      // refreshes the logged-in name shown in the sidebar
+      void qc.invalidateQueries({ queryKey: ["admin", "me"] });
+      onClose();
+    } catch (e) {
+      toast({ title: "Update failed", description: errMsg(e), variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const passwordInput = (value: string, onChange: (v: string) => void, id: string, placeholder: string) => (
+    <div className="relative">
+      <Input
+        id={id}
+        type={showPasswords ? "text" : "password"}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="pr-10"
+        autoComplete={id === "acct-current" ? "current-password" : "new-password"}
+      />
+      <button
+        type="button"
+        onClick={() => setShowPasswords((s) => !s)}
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+        aria-label={showPasswords ? "Hide passwords" : "Show passwords"}
+        title={showPasswords ? "Hide passwords" : "Show passwords"}
+      >
+        {showPasswords ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+      </button>
+    </div>
+  );
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-h-[92vh] max-w-md overflow-y-auto custom-scroll">
+        <DialogHeader>
+          <DialogTitle className="font-display">My Account</DialogTitle>
+          <DialogDescription>
+            Your Studio Console login. Changing the email or password logs out your other devices — this one stays
+            signed in.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <Field label="Display name" required error={nameError}>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" aria-required />
+          </Field>
+          <Field label="Email (login ID)" required error={emailError} hint="You use this to sign in.">
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" aria-required autoComplete="username" />
+          </Field>
+
+          <div className="rounded-lg border bg-muted/30 p-3">
+            <p className="mb-2 text-xs font-medium text-muted-foreground">
+              Change password <span className="font-normal">— leave blank to keep your current one</span>
+            </p>
+            <div className="space-y-3">
+              <Field label="Current password" error={currentError} hint={needsCurrent ? undefined : "Only needed when changing your email or password."}>
+                {passwordInput(currentPassword, setCurrentPassword, "acct-current", "••••••••")}
+              </Field>
+              <Field label="New password" error={newError}>
+                {passwordInput(newPassword, setNewPassword, "acct-new", "minimum 8 characters")}
+              </Field>
+              <Field label="Confirm new password" error={confirmError}>
+                {passwordInput(confirmPassword, setConfirmPassword, "acct-confirm", "repeat the new password")}
+              </Field>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={saving}>
+            Cancel
+          </Button>
+          <Button onClick={() => void save()} disabled={saving}>
+            {saving ? <Spinner className="mr-1" /> : <UserCircle className="mr-1 h-4 w-4" />}
+            {saving ? "Saving…" : "Save account"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

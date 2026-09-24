@@ -51,6 +51,14 @@ export interface SiteSettings {
   // Google Business Profile reviews (Places API) — shown on the site when both are set.
   googlePlacesApiKey: string;
   googlePlaceId: string;
+  // Custom code injection — raw HTML the owner pastes once and it renders on
+  // every page. Server-side rendered (visible in View Source). Typical use:
+  // extra verification meta tags (Bing/Pinterest/Facebook), GTM / pixel
+  // snippets, chat widgets, anything. "" = nothing injected.
+  customHeadCode: string;
+  customBodyCode: string;
+  // Google Merchant Center shopping feed (/api/shopping-feed) — "1"/"0".
+  shoppingFeedEnabled: string;
 }
 
 export interface ProductImage {
@@ -67,6 +75,8 @@ export interface PublicProduct {
   name: string;
   slug: string;
   sku: string;
+  price: string;
+  compareAtPrice: string;
   categoryId: string;
   categoryName: string;
   categorySlug: string;
@@ -468,11 +478,42 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   footerExploreLinks: "",
   googlePlacesApiKey: "",
   googlePlaceId: "",
+  customHeadCode: "",
+  customBodyCode: "",
+  shoppingFeedEnabled: "1",
 };
 
 export interface NavLink {
   label: string;
   href: string;
+}
+
+// ---------------- PER-PAGE CUSTOM SCHEMA (JSON-LD) ----------------
+
+/** Owner-managed structured data entry (admin panel → Schema Manager). */
+export interface PageSchemaEntry {
+  id: string;
+  name: string;
+  /** Exact path ("/products") or prefix ending with "/*" ("/product/*"). */
+  path: string;
+  /** JSON-LD object or array of objects (validated JSON). */
+  schemaJson: string;
+  enabled: boolean;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Admin-managed team member (admin panel → Users & Roles). */
+export interface AdminUserRow {
+  id: string;
+  email: string;
+  name: string;
+  role: "OWNER" | "ADMIN" | "VIEWER";
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+  sessionCount?: number;
 }
 
 /** Parses a settings JSON link list — falls back to the built-in defaults. */

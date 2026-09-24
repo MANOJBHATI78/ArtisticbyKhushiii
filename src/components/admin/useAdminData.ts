@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
 import type {
   AdminLandingPage,
+  AdminUserRow,
   BlogCategory,
   DashboardStats,
   Faq,
@@ -11,6 +12,7 @@ import type {
   Lead,
   LeadStats,
   MediaAsset,
+  PageSchemaEntry,
   Paginated,
   PublicBlogPost,
   PublicCategory,
@@ -53,7 +55,13 @@ export interface LeadListParams {
 export function useAdminMe() {
   return useQuery<AdminUser>({
     queryKey: ["admin", "me"],
-    queryFn: () => api.get<AdminUser>("/api/admin/me"),
+    // /api/admin/me returns { user: … } — unwrap so consumers get the
+    // real { id, email, name, role } object (drives the sidebar card and
+    // the OWNER-only "Users & Roles" navigation gate).
+    queryFn: async () => {
+      const res = await api.get<{ user: AdminUser }>("/api/admin/me");
+      return res.user;
+    },
     staleTime: Infinity,
     retry: false,
     refetchOnWindowFocus: true,
@@ -180,7 +188,7 @@ export function useAdminFaqs(entityType = "") {
 
 // ---------------- leads ----------------
 
-export function useAdminLeads(params: LeadListParams) {
+export function useAdminLeads(params: LeadListParams, refetchIntervalMs = 0) {
   const sp = new URLSearchParams({
     page: String(params.page),
     pageSize: String(params.pageSize),
@@ -191,6 +199,9 @@ export function useAdminLeads(params: LeadListParams) {
     queryKey: ["admin", "leads", params.page, params.pageSize, params.q, params.status],
     queryFn: () => api.get<Paginated<Lead>>(`/api/admin/leads?${sp.toString()}`),
     placeholderData: (prev) => prev,
+    // LIVE mode (Leads table) — silently re-fetch so new enquiries appear
+    // without the owner pressing refresh.
+    ...(refetchIntervalMs > 0 ? { refetchInterval: refetchIntervalMs } : {}),
   });
 }
 
@@ -236,6 +247,25 @@ export function useAdminTestimonials(q = "") {
   return useQuery<Testimonial[]>({
     queryKey: ["admin", "testimonials", q],
     queryFn: () => api.get<Testimonial[]>(q ? `/api/admin/testimonials?q=${encodeURIComponent(q)}` : "/api/admin/testimonials"),
+  });
+}
+
+// ---------------- users & roles (OWNER only endpoint) ----------------
+
+export function useAdminUsers() {
+  return useQuery<AdminUserRow[]>({
+    queryKey: ["admin", "users"],
+    queryFn: async () => (await api.get<{ users: AdminUserRow[] }>("/api/admin/users")).users,
+    retry: false, // 403 for non-owners is expected — no point retrying
+  });
+}
+
+// ---------------- per-page JSON-LD schemas ----------------
+
+export function useAdminPageSchemas() {
+  return useQuery<PageSchemaEntry[]>({
+    queryKey: ["admin", "schemas"],
+    queryFn: async () => (await api.get<{ schemas: PageSchemaEntry[] }>("/api/admin/page-schemas")).schemas,
   });
 }
 

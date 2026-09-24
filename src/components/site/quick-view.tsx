@@ -8,6 +8,7 @@ import { Img } from "@/components/site/img";
 import { useProduct } from "@/lib/queries";
 import { navigate } from "@/lib/router";
 import { useSiteStore } from "@/lib/store";
+import { formatINR, hasDiscount, hasPrice } from "@/lib/format";
 import { splitList } from "@/lib/types";
 import { track } from "@/lib/track";
 
@@ -95,6 +96,15 @@ export function QuickView({ slug, onClose }: QuickViewProps) {
               <div className="flex flex-col gap-4 p-5 sm:p-7">
                 <div>
                   <h2 className="font-display text-2xl leading-snug text-foreground">{product.name}</h2>
+                  {/* Price — enquiry-only pieces render nothing and keep the old look. */}
+                  {hasPrice(product) ? (
+                    <p className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                      <span className="text-lg font-semibold text-espresso">{formatINR(product.price)}</span>
+                      {hasDiscount(product) ? (
+                        <s className="text-sm text-muted-foreground">{formatINR(product.compareAtPrice)}</s>
+                      ) : null}
+                    </p>
+                  ) : null}
                   <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{product.shortDescription}</p>
                 </div>
 

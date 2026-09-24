@@ -56,7 +56,7 @@ export function toDateOrNull(v: unknown): Date | null | "invalid" {
 // ---------------- products ----------------
 
 const PRODUCT_TEXT_FIELDS = [
-  "sku", "subcategory", "shortDescription", "highlights", "customizationOptions",
+  "sku", "price", "compareAtPrice", "subcategory", "shortDescription", "highlights", "customizationOptions",
   "size", "material", "colour", "occasion", "careInstructions", "tags",
   "seoTitle", "metaDescription", "focusKeyword", "secondaryKeywords",
   "ogTitle", "ogDescription", "canonicalUrl",

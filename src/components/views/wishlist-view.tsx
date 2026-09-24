@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function WishlistView() {
   const wishlistSlugs = useSiteStore((s) => s.wishlistSlugs);
   const clearWishlist = useSiteStore((s) => s.clearWishlist);
+  const openLeadGate = useSiteStore((s) => s.openLeadGate);
   const settings = useSiteStore((s) => s.settings);
   const { data, isLoading } = useAllProducts();
   const { toast } = useToast();
@@ -61,7 +62,8 @@ export default function WishlistView() {
     const message = `Hello! I'm interested in these pieces from Artistic by Khushiii:\n\n${names}${saved.length > 10 ? `\n…+${saved.length - 10} more` : ""}\n\nPlease share details and pricing.`;
     track("wishlist_share_whatsapp", { count: saved.length });
     const url = `https://wa.me/${settings.whatsappNumber.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+    // Routed through the lead gate — the owner captures name + mobile first.
+    openLeadGate(url, "whatsapp", { product: `Wishlist (${saved.length} pieces)` });
   };
 
   return (

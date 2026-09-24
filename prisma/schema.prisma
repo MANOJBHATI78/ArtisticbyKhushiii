@@ -19,7 +19,11 @@ model AdminUser {
   email        String         @unique
   name         String         @default("Admin")
   passwordHash String
+  // OWNER = full access incl. user management; ADMIN = everything except
+  // user management; VIEWER = read-only (dashboard + lists, no edits).
   role         String         @default("OWNER")
+  // Disabled accounts keep their rows but can no longer log in / stay logged in.
+  active       Boolean        @default(true)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   sessions     AdminSession[]
@@ -70,6 +74,11 @@ model Product {
   name                 String
   slug                 String         @unique
   sku                  String         @default("")
+  // Optional selling price in INR (digits only, e.g. "1499"). Feeds the
+  // website price display, Product schema offers and the Google Merchant
+  // Center shopping feed (/api/shopping-feed). Empty = enquiry-only piece.
+  price                String         @default("")
+  compareAtPrice       String         @default("")
   categoryId           String
   category             Category       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   subcategory          String         @default("")
@@ -235,6 +244,24 @@ model Testimonial {
   source       String   @default("admin")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+// ---------------- PER-PAGE CUSTOM SCHEMA (JSON-LD) ----------------
+// Owner-managed structured data per page path. "path" is an exact URL path
+// ("/products") or a prefix when it ends with "/*" ("/product/*" matches all
+// product pages; "/*" matches the whole site). Injected server-side by the
+// root layout, so it is visible in View Source and in the raw HTML Google
+// sees — unlike JS-injected JSON-LD.
+
+model PageSchema {
+  id          String   @id @default(cuid())
+  name        String
+  path        String   @default("/")
+  schemaJson  String   @default("{}")
+  enabled     Boolean  @default(true)
+  displayOrder Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model SiteSetting {

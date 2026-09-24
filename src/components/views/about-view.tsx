@@ -9,6 +9,7 @@ import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { Img } from "@/components/site/img";
 import { FadeIn } from "@/components/site/fade-in";
 import { EmptyState, ErrorState } from "@/components/site/empty-state";
+import { GoogleReviewsSection } from "@/components/site/google-reviews-section";
 import { siteOrigin } from "@/components/site/seo-helpers";
 import { useHome, usePage } from "@/lib/queries";
 import { navigate } from "@/lib/router";
@@ -127,6 +128,9 @@ export default function AboutView() {
           </Container>
         </section>
       ) : null}
+
+      {/* Real Google reviews — self-hides until the owner connects the Places API. */}
+      <GoogleReviewsSection variant="compact" />
 
       {/* CTA band */}
       <section aria-label="Get in touch" className="bg-espresso py-16 md:py-20">

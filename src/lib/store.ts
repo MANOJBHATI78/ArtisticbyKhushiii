@@ -11,6 +11,32 @@ export interface InquiryContext {
   category: string;
 }
 
+/** Extra product context a gated WhatsApp/call link can carry (data-lead-* attributes). */
+export interface LeadGateContext {
+  product?: string;
+  productUrl?: string;
+  category?: string;
+}
+
+/** "WhatsApp / call" lead gate — the owner wants name + mobile before connecting. */
+export interface LeadGateState {
+  open: boolean;
+  href: string;
+  kind: "whatsapp" | "call";
+  product: string;
+  productUrl: string;
+  category: string;
+}
+
+const EMPTY_LEAD_GATE: LeadGateState = {
+  open: false,
+  href: "",
+  kind: "whatsapp",
+  product: "",
+  productUrl: "",
+  category: "",
+};
+
 interface SiteState {
   settings: SiteSettings;
   settingsLoaded: boolean;
@@ -20,6 +46,10 @@ interface SiteState {
   inquiryContext: InquiryContext | null;
   openInquiry: (ctx?: InquiryContext | null) => void;
   closeInquiry: () => void;
+
+  leadGate: LeadGateState;
+  openLeadGate: (href: string, kind: "whatsapp" | "call", ctx?: LeadGateContext) => void;
+  closeLeadGate: () => void;
 
   lastLeadRef: string;
   setLastLeadRef: (ref: string) => void;
@@ -70,6 +100,20 @@ export const useSiteStore = create<SiteState>((set) => ({
   openInquiry: (ctx) =>
     set({ inquiryOpen: true, inquiryContext: ctx ?? null }),
   closeInquiry: () => set({ inquiryOpen: false }),
+
+  leadGate: EMPTY_LEAD_GATE,
+  openLeadGate: (href, kind, ctx) =>
+    set({
+      leadGate: {
+        open: true,
+        href,
+        kind,
+        product: ctx?.product ?? "",
+        productUrl: ctx?.productUrl ?? "",
+        category: ctx?.category ?? "",
+      },
+    }),
+  closeLeadGate: () => set((state) => ({ leadGate: { ...state.leadGate, open: false } })),
 
   lastLeadRef: "",
   setLastLeadRef: (ref) => set({ lastLeadRef: ref }),

@@ -113,6 +113,8 @@ async function ensureSchema() {
     ["HomepageSection", { mobileImageUrl: "TEXT NOT NULL DEFAULT ''" }],
     ["Category", { mobileImageUrl: "TEXT NOT NULL DEFAULT ''" }],
     ["Testimonial", { source: "TEXT NOT NULL DEFAULT 'admin'" }],
+    ["Product", { price: "TEXT NOT NULL DEFAULT ''", compareAtPrice: "TEXT NOT NULL DEFAULT ''" }],
+    ["AdminUser", { active: "BOOLEAN NOT NULL DEFAULT 1" }],
   ];
   for (const [table, cols] of migrations) {
     if (!(await tableExists(table))) continue;
@@ -212,6 +214,9 @@ async function copySeedData() {
     "MediaAsset",
     "SiteSetting",
     "HomepageSection",
+    "Testimonial",
+    "LandingPage",
+    "PageSchema",
     "MediaBlob",
   ];
   for (const table of order) {

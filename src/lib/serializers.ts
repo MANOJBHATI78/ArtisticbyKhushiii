@@ -22,6 +22,8 @@ type PrismaProduct = {
   name: string;
   slug: string;
   sku: string;
+  price?: string | null;
+  compareAtPrice?: string | null;
   categoryId: string;
   subcategory: string;
   shortDescription: string;
@@ -81,6 +83,8 @@ export function toPublicProduct(
     name: p.name,
     slug: p.slug,
     sku: p.sku,
+    price: p.price ?? "",
+    compareAtPrice: p.compareAtPrice ?? "",
     categoryId: p.categoryId,
     categoryName: p.category?.name ?? "",
     categorySlug: p.category?.slug ?? "",

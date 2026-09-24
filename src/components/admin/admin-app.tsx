@@ -21,6 +21,8 @@ import { HomepageManager } from "./HomepageManager";
 import { LandingManager } from "./LandingManager";
 import { BackupManager } from "./BackupManager";
 import { SettingsManager } from "./SettingsManager";
+import { UsersManager } from "./UsersManager";
+import { SchemaManager } from "./SchemaManager";
 import type { AdminModuleKey } from "./admin-utils";
 
 /**
@@ -57,7 +59,9 @@ function AdminGate() {
   const [module, setModule] = useState<AdminModuleKey>(() => {
     if (typeof window === "undefined") return "dashboard";
     const saved = window.sessionStorage.getItem("abk_admin_module");
-    const keys: AdminModuleKey[] = ["dashboard", "products", "categories", "blogs", "pages", "faqs", "testimonials", "leads", "media", "homepage", "landing", "backup", "settings"];
+    const keys: AdminModuleKey[] = [
+      "dashboard", "products", "categories", "blogs", "pages", "faqs", "testimonials", "leads", "media", "homepage", "landing", "backup", "settings", "users", "schemas",
+    ];
     return keys.includes(saved as AdminModuleKey) ? (saved as AdminModuleKey) : "dashboard";
   });
   const [jump, setJump] = useState<JumpSignal | undefined>();
@@ -111,14 +115,18 @@ function AdminGate() {
 
   const user = me.data;
 
+  // Users & Roles is OWNER-only — if a non-owner somehow lands on it
+  // (stale sessionStorage from a previous login), show the dashboard.
+  const activeModule: AdminModuleKey = module === "users" && user.role !== "OWNER" ? "dashboard" : module;
+
   return (
-    <AdminLayout user={user} active={module} onNavigate={navigate} onQuickAdd={quickAdd} onSearch={search} onLogout={() => void logout()}>
+    <AdminLayout user={user} active={activeModule} onNavigate={navigate} onQuickAdd={quickAdd} onSearch={search} onLogout={() => void logout()}>
       <DbModeBanner />
-      {module === "dashboard" ? (
+      {activeModule === "dashboard" ? (
         <Dashboard onNavigate={navigate} onQuickAdd={quickAdd} onEditProduct={(id) => editEntity("products", id)} onEditBlog={(id) => editEntity("blogs", id)} />
       ) : null}
 
-      {module === "products" ? (
+      {activeModule === "products" ? (
         <ProductsManager
           key={`products|c${createSig?.module === "products" ? createSig.n : 0}|j${jump?.module === "products" ? jump.n : 0}|e${editSig?.module === "products" ? editSig.n : 0}`}
           jump={jump?.module === "products" ? jump : undefined}
@@ -127,14 +135,14 @@ function AdminGate() {
         />
       ) : null}
 
-      {module === "categories" ? (
+      {activeModule === "categories" ? (
         <CategoriesManager
           key={`categories|c${createSig?.module === "categories" ? createSig.n : 0}`}
           createSignal={createSig?.module === "categories" ? createSig.n : 0}
         />
       ) : null}
 
-      {module === "blogs" ? (
+      {activeModule === "blogs" ? (
         <BlogsManager
           key={`blogs|c${createSig?.module === "blogs" ? createSig.n : 0}|j${jump?.module === "blogs" ? jump.n : 0}|e${editSig?.module === "blogs" ? editSig.n : 0}`}
           jump={jump?.module === "blogs" ? jump : undefined}
@@ -143,29 +151,31 @@ function AdminGate() {
         />
       ) : null}
 
-      {module === "pages" ? (
+      {activeModule === "pages" ? (
         <PagesManager key={`pages|c${createSig?.module === "pages" ? createSig.n : 0}`} createSignal={createSig?.module === "pages" ? createSig.n : 0} />
       ) : null}
 
-      {module === "faqs" ? (
+      {activeModule === "faqs" ? (
         <FaqsManager key={`faqs|c${createSig?.module === "faqs" ? createSig.n : 0}`} createSignal={createSig?.module === "faqs" ? createSig.n : 0} />
       ) : null}
 
-      {module === "testimonials" ? (
+      {activeModule === "testimonials" ? (
         <TestimonialsManager key={`testimonials|c${createSig?.module === "testimonials" ? createSig.n : 0}`} createSignal={createSig?.module === "testimonials" ? createSig.n : 0} />
       ) : null}
 
-      {module === "leads" ? (
+      {activeModule === "leads" ? (
         <LeadsManager key={`leads|j${jump?.module === "leads" ? jump.n : 0}`} jump={jump?.module === "leads" ? jump : undefined} />
       ) : null}
 
-      {module === "media" ? <MediaLibrary /> : null}
-      {module === "homepage" ? <HomepageManager /> : null}
-      {module === "landing" ? (
+      {activeModule === "media" ? <MediaLibrary /> : null}
+      {activeModule === "homepage" ? <HomepageManager /> : null}
+      {activeModule === "landing" ? (
         <LandingManager key={`landing|c${createSig?.module === "landing" ? createSig.n : 0}`} createSignal={createSig?.module === "landing" ? createSig.n : 0} />
       ) : null}
-      {module === "backup" ? <BackupManager /> : null}
-      {module === "settings" ? <SettingsManager /> : null}
+      {activeModule === "backup" ? <BackupManager /> : null}
+      {activeModule === "settings" ? <SettingsManager /> : null}
+      {activeModule === "users" ? <UsersManager /> : null}
+      {activeModule === "schemas" ? <SchemaManager /> : null}
     </AdminLayout>
   );
 }

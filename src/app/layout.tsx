@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Jost } from "next/font/google";
+import { headers } from "next/headers";
 import { cache } from "react";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { db } from "@/lib/db";
+import { parseCustomCode, schemaPathMatches, type CustomCodeNode } from "@/lib/custom-code";
 import { getSettings } from "@/lib/server-utils";
 import { DEFAULT_SETTINGS, type SiteSettings } from "@/lib/types";
 
@@ -50,13 +53,6 @@ function normalizeSiteUrl(raw: string): string {
   return url;
 }
 
-/**
- * The HTML shell (SEO meta, GA4 tag, Search Console verification) is driven by
- * the database, so it is revalidated periodically AND flushed instantly when
- * settings are saved (see api/admin/settings → revalidatePath).
- */
-export const revalidate = 300;
-
 /** Per-request memoised settings read shared by generateMetadata + RootLayout. */
 const loadSettings = cache(async (): Promise<SiteSettings> => {
   try {
@@ -65,6 +61,33 @@ const loadSettings = cache(async (): Promise<SiteSettings> => {
     // Database hiccup — keep the site online with safe defaults
     // (analytics tags simply won't render until the DB is reachable again).
     return DEFAULT_SETTINGS;
+  }
+});
+
+/**
+ * Owner-managed per-page JSON-LD (Admin → Schema Manager). Matched against
+ * the current URL path and rendered into the raw HTML — visible in
+ * View Source, exactly like Google's crawler reads it.
+ */
+const loadPageSchemas = cache(async (pathname: string): Promise<string[]> => {
+  try {
+    const rows = await db.pageSchema.findMany({
+      where: { enabled: true },
+      orderBy: [{ displayOrder: "asc" }, { createdAt: "asc" }],
+    });
+    return rows
+      .filter((r) => schemaPathMatches(r.path, pathname))
+      .map((r) => r.schemaJson)
+      .filter((json) => {
+        try {
+          const parsed = JSON.parse(json);
+          return parsed !== null && typeof parsed === "object";
+        } catch {
+          return false;
+        }
+      });
+  } catch {
+    return []; // never let a schema entry take the site down
   }
 });
 
@@ -137,19 +160,89 @@ function gaBootstrap(gaId: string): string {
   );
 }
 
+/** React expects camelCase for a handful of HTML attributes. */
+const ATTR_RENAMES: Record<string, string> = {
+  charset: "charSet",
+  class: "className",
+  "http-equiv": "httpEquiv",
+  crossorigin: "crossOrigin",
+  referrerpolicy: "referrerPolicy",
+  acceptcharset: "acceptCharset",
+};
+
+function reactAttrs(attrs: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(attrs)) {
+    out[ATTR_RENAMES[k] ?? k] = v;
+  }
+  return out;
+}
+
+/**
+ * Renders the owner's custom code snippet (parsed from raw HTML) as React
+ * nodes. React 19 hoists <meta>/<link>/<title> into <head> automatically;
+ * scripts execute where they render (body end — exactly how the GA tag works).
+ */
+function CustomCodeNodes({ nodes }: { nodes: CustomCodeNode[] }) {
+  return (
+    <>
+      {nodes.map((n, i) => {
+        switch (n.kind) {
+          case "meta":
+            return <meta key={i} {...reactAttrs(n.attrs)} />;
+          case "link":
+            return <link key={i} {...reactAttrs(n.attrs)} />;
+          case "script-src":
+            return <script key={i} {...reactAttrs(n.attrs)} async />;
+          case "script-inline":
+            return <script key={i} {...reactAttrs(n.attrs)} dangerouslySetInnerHTML={{ __html: n.content }} />;
+          case "style":
+            return <style key={i} dangerouslySetInnerHTML={{ __html: n.content }} />;
+          case "title":
+            return <title key={i}>{n.content}</title>;
+          case "noscript":
+            return <noscript key={i} dangerouslySetInnerHTML={{ __html: n.content }} />;
+          default:
+            return null;
+        }
+      })}
+    </>
+  );
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Current URL path (set by src/middleware.ts) — drives the per-page schemas.
+  const h = await headers();
+  const pathname = (h.get("x-abk-path") || "/").split("?")[0];
+
   const s = await loadSettings();
+  const schemaJsons = await loadPageSchemas(pathname);
+
   const gaId = s.googleAnalyticsId.trim();
   const gaLive = GA_ID_RE.test(gaId);
+  const headNodes = parseCustomCode(s.customHeadCode);
+  const bodyNodes = parseCustomCode(s.customBodyCode);
 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${playfair.variable} ${jost.variable} antialiased bg-background text-foreground`}>
         {children}
+
+        {/* Owner's custom code — Admin → Site Settings → Custom Code.
+            Server-rendered (View Source visible) so verification meta tags,
+            GTM snippets, pixels and chat widgets work for every crawler. */}
+        <CustomCodeNodes nodes={headNodes} />
+        <CustomCodeNodes nodes={bodyNodes} />
+
+        {/* Owner's per-page JSON-LD — Admin → Schema Manager (server-rendered). */}
+        {schemaJsons.map((json, i) => (
+          <script key={`ps-${i}`} type="application/ld+json" dangerouslySetInnerHTML={{ __html: json }} />
+        ))}
+
         {gaLive && (
           <>
             {/* Google Analytics 4 — rendered on the server (View Source visible) */}

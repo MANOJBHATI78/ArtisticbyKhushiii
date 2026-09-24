@@ -5,6 +5,7 @@ CREATE TABLE "AdminUser" (
     "name" TEXT NOT NULL DEFAULT 'Admin',
     "passwordHash" TEXT NOT NULL,
     "role" TEXT NOT NULL DEFAULT 'OWNER',
+    "active" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );
@@ -53,6 +54,8 @@ CREATE TABLE "Product" (
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "sku" TEXT NOT NULL DEFAULT '',
+    "price" TEXT NOT NULL DEFAULT '',
+    "compareAtPrice" TEXT NOT NULL DEFAULT '',
     "categoryId" TEXT NOT NULL,
     "subcategory" TEXT NOT NULL DEFAULT '',
     "shortDescription" TEXT NOT NULL DEFAULT '',
@@ -218,6 +221,18 @@ CREATE TABLE "Testimonial" (
 );
 
 -- CreateTable
+CREATE TABLE "PageSchema" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "path" TEXT NOT NULL DEFAULT '/',
+    "schemaJson" TEXT NOT NULL DEFAULT '{}',
+    "enabled" BOOLEAN NOT NULL DEFAULT true,
+    "displayOrder" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- CreateTable
 CREATE TABLE "SiteSetting" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "key" TEXT NOT NULL,
@@ -319,6 +334,8 @@ CREATE UNIQUE INDEX "SiteSetting_key_key" ON "SiteSetting"("key");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "HomepageSection_sectionKey_key" ON "HomepageSection"("sectionKey");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "LandingPage_slug_key" ON "LandingPage"("slug");
 
 -- CreateIndex

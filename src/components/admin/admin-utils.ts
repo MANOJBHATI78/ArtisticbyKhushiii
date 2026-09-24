@@ -27,7 +27,9 @@ export type AdminModuleKey =
   | "homepage"
   | "landing"
   | "backup"
-  | "settings";
+  | "settings"
+  | "users"
+  | "schemas";
 
 /** Extracts a human readable message from an error (ApiError or anything). */
 export function errMsg(e: unknown): string {

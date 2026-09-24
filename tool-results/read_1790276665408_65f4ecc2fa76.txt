@@ -1,0 +1,245 @@
+   366→Task ID: 12
+   367→Agent: lead (Z.ai Code main) — periodic webDevReview round
+   368→Task: Full QA assessment via agent-browser, then feature + styling round: wishlist, recently-viewed, image lightbox, reading progress, sticky mobile CTA, styling polish
+   369→
+   370→Work Log:
+   371→- Read full worklog (Tasks 1–11-c); verified dev server health (mode:file, 17 cats/23 products/6 blogs), lint 0 problems
+   372→- agent-browser QA sweep BEFORE changes: home (44 headings/24 imgs/0 broken/no error states), products (36 links, chips), landing #/lp/diwali-gifting (custom SEO title + 2 JSON-LD + FAQ accordion), admin login → dashboard live stats, 404 view for bogus slug, product page (h1/breadcrumbs/gallery), blog (6 posts), search "earrings" → 4 results, mobile 375px hero object-fit:contain + product cards contain + no horizontal scroll → NO BUGS FOUND, phase stable
+   373→- NEW FEATURE — Wishlist ("My Favourites"): store.ts gained wishlistSlugs/toggleWishlist/removeFromWishlist/clearWishlist persisted in localStorage (abk_wishlist); WishlistButton component (floating heart on every ProductCard + inline pill on product detail, heart-pop animation, aria-pressed, GA events wishlist_add/remove); #/wishlist route + WishlistView (breadcrumbs, count copy, Share List on WhatsApp with pre-filled product names, two-step Clear All confirm, HeartCrack empty state with Explore CTAs, ghost-slug count note, noindex SEO); header heart icon with live terracotta count badge (desktop + mobile Sheet row); footer Explore link
+   374→- NEW FEATURE — Recently viewed: store recentSlugs/trackRecent/removeRecent/clearRecent (abk_recent, cap 12); ProductView tracks on load; RecentlyViewed strip component (scroll-snap x, per-card remove X, category label, hover lift) rendered on home ("Recently Admired by You", before final CTA) + products listing (after pagination); new useAllProducts query walks API pages (pageSize cap 48, max 5 pages) so it stays correct as the catalogue grows
+   375→- NEW FEATURE — Image Lightbox: click gallery image → full-screen Dialog (espresso/95 + backdrop blur), prev/next buttons, ← → Esc keyboard nav, counter "n / total", caption, ZoomHint affordance on hover; main gallery + lightbox stay synced
+   376→- NEW FEATURE — Reading progress bar (ReadingProgress): slim gold→terracotta gradient bar fixed top on blog posts, aria-valuenow, reduced-motion aware, advances with scroll (verified 76% at 2000px)
+   377→- NEW FEATURE — Sticky mobile CTA on product pages (ProductStickyCta): sm:hidden bottom bar with product name/category, Enquire (opens inquiry modal w/ product context — verified), WhatsApp quick button; spacer div so footer never covered; leaves pr-20 room for WhatsApp float (same proven pattern as landing view)
+   378→- STYLING POLISH: ProductCard/CategoryCard/BlogCard hover veils (espresso gradient overlays), deeper image zoom (scale-1.06, duration-700 ease-out), stronger lift (-translate-y-1.5 + shadow-xl), badge micro-motion; SectionHeading gained gold ornament divider (gold lines + diamond w/ soft shimmer); globals.css added heart-pop + gold-shimmer keyframes, ::selection brand color, .snap-x-strip scroll-snap helper, .ornament-divider CSS; product gallery thumbnails hover:scale-105; header right-action gap tightened for 3 icons
+   379→- Fixed during round: missing @/ import prefixes (2 typos), removed unused group/main, removeRecent store action added after spotting that trackRecent would re-front instead of remove
+   380→- Verification: full lint 0 problems; tsc — only pre-existing errors in examples/skills/old API routes (none in touched files, ignoreBuildErrors set per prior rounds); browser-verified every feature end-to-end: heart click → badge "1" → localStorage persisted → wishlist page renders card → clear-all flow → empty state; lightbox open/arrow-nav (2/2 counter)/Esc close; reading progress 0→76%; sticky bar geometry (375×77 @ bottom) + Enquire opens modal w/ "Custom Resin Gift Hamper" chip; recently-viewed strip 2 items on home + products, remove X works (2→1); mobile 375px hearts/strip/no h-scroll; all test localStorage/sessionStorage cleaned after; dev.log clean
+   381→
+   382→Stage Summary:
+   383→- Phase was stable (0 bugs found in QA) → delivered a visitor-engagement + polish round: 5 new features (wishlist, recently viewed, lightbox, reading progress, sticky mobile CTA) + styling polish across all card types & section headings — all client-side (zero backend/schema changes, deploy-safe for live Turso data, owner needs NO re-entry of anything)
+   384→- Wishlist/recent are per-device localStorage (privacy-safe, noindex) — new GA events (wishlist_add/remove/clear_all/share_whatsapp) flow into existing analytics when GA ID is set
+   385→- Open items (unchanged from Task 11-c): owner should set siteUrl in live settings (sitemap absolute URLs) + change admin password; LandingManager quick-add not in global Add menu (minor); VLM visual review unavailable this round (CLI 401 missing X-Token) — relied on DOM-geometry verification instead
+   386→- Next-phase candidates: Quick View modal on product cards, product image zoom-on-hover magnifier, admin wishlist/export analytics if GA fills, testimonials section, font-display polish pass on long titles
+   387→
+   388→---
+   389→Task ID: 13
+   390→Agent: lead (Z.ai Code main) — periodic webDevReview round
+   391→Task: QA assessment, then feature round: Quick View modal, full-stack Testimonials system, styling polish
+   392→
+   393→Work Log:
+   394→- Read worklog (Tasks 1–12); verified health (file mode, 23 products/17 cats/6 blogs), lint 0, dev.log clean
+   395→- QA regression sweep BEFORE changes: home, wishlist badge + hearts + recently-viewed strip, product page (lightbox zoom btn, saved-state aria-pressed), blog reading progress, admin login → dashboard, mobile 375px (hearts, no h-scroll, sticky CTA) → ALL Task 12 features intact, 0 bugs
+   396→- NEW FEATURE — Quick View modal (src/components/site/quick-view.tsx): image + category badge + name + short description + top-4 highlights + material/occasion chips + Enquire (opens inquiry modal w/ context) + Full Details (navigates); uses cached useProduct query; loading spinner + graceful error state; GA events quick_view_open/full_details/enquire; ProductCard restructured — image area now its own relative wrapper (heart self-anchors, Quick View pill bottom-center: hover-revealed on desktop via sm:opacity-0 group-hover:opacity-100, ALWAYS visible on touch devices); mobile dialog = 353px single-column with object-contain image
+   397→- NEW FEATURE — Testimonials (full stack, admin-managed social proof):
+   398→  * Prisma Testimonial model (name, location, rating 1-5, quote, avatarUrl, productName, featured, published, displayOrder) + db:push
+   399→  * Migration-safe: db.ts TABLE_MIGRATIONS += CREATE TABLE IF NOT EXISTS Testimonial (live Turso auto-migrates on next deploy cold start); scripts/schema.sql updated for netlify-init
+   400→  * Public API GET /api/public/testimonials?featured&limit (published, display-ordered, capped 24)
+   401→  * Admin API /api/admin/testimonials (GET list w/ search, POST) + [id] (GET/PUT/DELETE) + parseTestimonialFields in _lib.ts (rating 1-5 validation)
+   402→  * TestimonialsManager.tsx: table (desktop) + cards (mobile), optimistic published/featured toggles w/ rollback, star ratings, confirm-delete, form dialog with interactive 5-star picker (role=radiogroup), MediaPickField avatar picker, product-name chip, display order, featured/published switches
+   403→  * Module registered: AdminModuleKey + NAV + TITLES (MessageSquareQuote icon) + admin-app render + useAdminTestimonials hook
+   404→  * Public: TestimonialsSection ("Words from happy hearts / Loved by Customers Everywhere") — gold stars, oversized Quote mark flourish, avatar-or-initials circles, product chips, hover lift, FadeIn stagger; renders between Why-Choose-Us and Custom-Orders on home; self-hides when empty
+   405→  * Seeded 6 realistic testimonials (scripts/seed-testimonials.ts, idempotent)
+   406→  * Backup & Sync integration: SyncCounts + ContentSnapshot + export + apply (rebuild) + pullFromLive (/api/admin/testimonials) + BackupManager counts grid
+   407→- BUG FOUND + FIXED DURING ROUND: admin panel crashed client-side ("Application error") — root cause: MessageSquareQuote used in AdminLayout NAV but NOT imported from lucide-react (tsc caught it: TS2304). Also fixed 2 pre-existing content-sync bugs uncovered by tsc: (1) ogTitle: s(s.ogTitle) → s(c.ogTitle) typo in category restore (og titles silently lost on sync), (2) landingRes?.items type error on array response. Required dev server restart to pick up regenerated Prisma client (stale client = db.testimonial undefined → 500s)
+   408→- STYLING POLISH: thank-you view celebration (dual gold sparkle-ring ripples around check icon, motion-safe, staggered 0.8s + reassurance row "Handmade to order · worldwide shipping · Surat studio"); inquiry modal warm gradient strip (gold-soft→gold→terracotta) at top; InquiryForm trust bar upgraded ("✦ Replies within a few hours · ✦ Details stay private · ✦ Made by hand in Surat" — appears in both modal + contact page); sparkle-ring keyframes added to globals.css
+   409→- VERIFICATION (agent-browser): Quick View — 12 buttons on products grid, opens w/ 4 highlights + both CTAs, Enquire → inquiry modal w/ product chip + trust bar + gradient strip, mobile 353px works; Testimonials — home renders 6 cards w/ stars + ornaments, admin module full CRUD cycle (create "QA Test Customer" → 7 rows → edit city persisted → confirm-delete → 6 rows), published/featured toggles optimistic, backup JSON includes testimonials:6; thank-you sparkle-ring animationName verified + trust row; final sweeps: home 45 headings/0 broken/no errors, mobile no h-scroll, admin loads clean, health ok, lint 0, tsc 0 in all touched files, dev.log clean; all QA artifacts cleaned (testimonials back to 6 seed rows, localStorage cleared)
+   410→
+   411→Stage Summary:
+   412→- Delivered 2 major features (Quick View e-commerce UX + admin-managed Testimonials social proof) + styling polish round — testimonials is the first new DB-backed entity since Landing Pages, fully wired into the owner's "easy solution" (auto-migrates on live deploy, included in backup/restore/pull-from-live, zero re-entry needed)
+   413→- Testimonial seeding means the homepage shows social proof immediately after deploy; owner can edit/replace with real customer WhatsApp messages from the Testimonials admin module
+   414→- Quick View + wishlist + recently-viewed now form a complete browsing layer over the catalogue
+   415→- Open items (unchanged): owner should set siteUrl in live settings + change admin password; LandingManager quick-add not in global Add menu; testimonials not yet shown on product pages (future: filter by productName match)
+   416→- Next-phase candidates: product-page testimonials ("Reviews for this piece"), testimonial submission form w/ moderation, image zoom-on-hover magnifier, GA4 dashboard for wishlist/quick-view events, offers/festive banner with countdown
+   417→
+   418→---
+   419→Task ID: 14
+   420→Agent: lead (Z.ai Code main) — periodic webDevReview round
+   421→Task: QA assessment, then feature round: product-page reviews with moderation, festive offer banner with countdown, SEO aggregate-rating rich results, styling polish
+   422→
+   423→Work Log:
+   424→- Read worklog (Tasks 1–13); health ok (file mode, 17 cats/23 products/6 blogs), lint 0, dev.log clean
+   425→- QA regression sweep BEFORE changes (agent-browser, desktop 1366 + mobile 375): home (45 headings/24 imgs/0 broken), products grid (12 cards, Quick View + hearts), Quick View modal (highlights + Enquire + Full Details + Esc close), product detail (breadcrumbs/gallery/wishlist pill), wishlist empty state, home testimonials section, admin login → dashboard, mobile no-h-scroll + hamburger → ALL Task 12/13 features intact, 0 bugs found
+   426→- DATA CLEANUP: deleted 2 stale local-only seed categories (lippan-art, mantra-frames — 0 products, superseded by live-renamed duplicates from sync) → 15 categories now, matches live
+   427→- NEW FEATURE — Product-page reviews ("Reviews for this Piece" on every product page):
+   428→  * API: GET /api/public/testimonials?product=<name> — two-way contains matching ("Family Nameplate" review ↔ "Personalized Family Nameplate" product), piece-specific first, general studio notes (no piece chip) fill up
+   429→  * ProductTestimonials component: aggregate rating summary (avg + count), ornament-divider heading, review cards, "Write a Review" CTA; elegant "Be the first to review" empty state when none
+   430→  * Wired into product-view between FAQs and final CTA
+   431→- NEW FEATURE — Public review submission with moderation:
+   432→  * Testimonial.source column added ("admin" | "public") — schema.prisma + db:push + migrateSchema COLUMN_MIGRATIONS + netlify-init migrations + schema.sql + db-snapshot regenerated (live Turso auto-migrates on deploy)
+   433→  * POST /api/public/testimonials: honeypot field, rate limit 3/10min/IP, control-char cleaning, creates UNPUBLISHED row (source: public, displayOrder 500)
+   434→  * ReviewFormDialog (reusable): interactive star picker with hover labels ("Loved it!"), name/city/quote/piece fields, validation, product name pre-fill, warm gradient strip, GA event review_submit; placed on product pages, homepage testimonials section ("Received a piece? Share your experience"), and thank-you page (framed for past customers)
+   435→  * Admin TestimonialsManager moderation UX: status filter tabs (All/Live/Pending with counts), Approve button (optimistic + toast), pending rows highlighted gold, "From website form" source badge (desktop + mobile)
+   436→- NEW FEATURE — Festive offer banner with live countdown (100% admin-managed, the "easy solution" pattern):
+   437→  * 5 new settings: offerBannerEnabled/Text/Code/EndsAt/LinkUrl (SiteSettings + DEFAULT_SETTINGS — auto-flows to admin API, bootstrap, backup/sync)
+   438→  * OfferBanner component: terracotta gradient + animated light sweep (offer-sweep keyframe), message, live DD:HH:MM:SS countdown boxes (ticks every second, tabular-nums), tap-to-copy coupon chip (Copied! feedback), CTA button, session dismiss, auto-hide at zero, SR-friendly static deadline text, countdown hidden below 420px
+   439→  * Header: renders offer banner INSTEAD of the normal announcement while active; normal bar returns after expiry/disable
+   440→  * SettingsManager "Festive Offer Banner" card: enable switch, message/code/datetime-local deadline/link inputs, LIVE PREVIEW of the banner (sample 3-day timer when unset), Hinglish hint, ISO↔datetime-local conversion on save/load, fixed dirty-check comparison
+   441→- NEW FEATURE — SEO aggregate rating: Product JSON-LD now includes aggregateRating (ratingValue/reviewCount/best/worst) computed from published per-product reviews → star ratings eligible for Google rich results; omitted cleanly when no reviews (shared query with reviews section — single cached fetch)
+   442→- Sync system: testimonials carry source through export/restore/pull; settings (incl. offer banner) included in backup (verified: 6 testimonials with source + 5 offer keys in backup JSON)
+   443→- STYLING POLISH: ornament divider on reviews heading, gradient strip on review dialog (matches inquiry modal), offer-sweep shimmer keyframe, gold-soft pending-row highlight in admin, star-picker hover labels + scale animation
+   444→- Fixed during round: stale Prisma client after db:push (POST 500 PrismaClientValidationError on source field) → dev server restart (known issue pattern from Task 13); react-hooks/set-state-in-effect lint error → lazy useState initializer for session dismissal
+   445→- VERIFICATION: lint 0 problems; tsc 0 errors in touched files (pre-existing errors only in old routes); browser-verified end-to-end: review form submit → toast + pending row → admin Pending tab (2 rows) → Approve → live on product page (4.5 · 2 reviews + JSON-LD aggregateRating); empty state on review-less product (no aggregateRating in JSON-LD); offer banner: admin config UI + live preview → public banner (message/countdown ticking 39→35s/copy check-icon/CTA #/products/dismiss session flag) → expired deadline → banner gone + announcement restored; mobile 375px (banner 84px wraps cleanly, countdown hidden, no h-scroll, empty states); backup JSON includes everything; QA rows cleaned up (6 seed testimonials, 0 pending); dev.log clean; health ok (15 cats/23 products/34 settings)
+   446→
+   447→Stage Summary:
+   448→- Phase was stable (0 bugs in QA) → delivered social-proof + marketing round: 4 features (per-product reviews, public review collection with moderation queue, festive offer banner with countdown, Google rich-results aggregate rating) + styling polish — all DB-driven (owner changes campaigns/reviews from admin, zero code changes, live Turso auto-migrates + syncs)
+   449→- DEMO STATE LEFT ON: offer banner enabled locally with "✨ Diwali Dhamaka — flat 15% off on everything!", code DIWALI15, ends +2 days, link #/products — owner can edit/disable in Admin → Site Settings → Festive Offer Banner (live site unaffected until settings saved there)
+   450→- Review flow: visitors submit → owner approves in Testimonials module (Pending tab) → reviews appear on product pages + homepage + Google-eligible star ratings
+   451→- Open items (unchanged): owner should set siteUrl in live settings + change admin password; LandingManager quick-add not in global Add menu; VLM visual review unavailable (CLI 401 X-Token — environment issue, used DOM-geometry verification instead)
+   452→- Next-phase candidates: admin dashboard pending-reviews badge count, review reminder WhatsApp message template, product image zoom-on-hover magnifier, GA4 dashboard for review_submit/offer events, blog tag pages, lead analytics charts
+   453→
+   454→---
+   455→Task ID: 15
+   456→Agent: lead (Z.ai Code main) — periodic webDevReview round
+   457→Task: QA assessment, then feature round: product image hover magnifier, social ShareRow (WhatsApp/FB/Pinterest/X/copy), admin pending-reviews awareness (badge + dashboard alert + stat), Landing quick-add, lead WhatsApp follow-up template, print styles + polish
+   458→
+   459→Work Log:
+   460→- Read worklog (Tasks 1–14); health ok (file mode, 15 cats/23 products/6 blogs/34 settings), lint 0, dev.log clean
+   461→- QA regression sweep BEFORE changes (agent-browser): home (46 headings/26 imgs/0 broken, offer banner countdown ticking), products grid (12 cards + Quick View + hearts), product detail (title/h1/breadcrumbs/reviews/JSON-LD/sticky CTA; bogus slug → correct 404 view), blog (6 posts; tag chips verified ALREADY functional → #/blog?tag=home+decor filters to 1 post), admin (session persisted → dashboard + Inquiry Analytics charts render) → 0 bugs found; discovered Dashboard lead analytics already existed since Sep 9 commit → feature list adjusted
+   462→- NEW FEATURE — Product image hover magnifier (desktop): pointer-fine devices get 2× cursor-following zoom on the main gallery image (transform-origin tracks pointer %, 200ms ease-out transition, pointerType==="mouse" guard so touch never zooms); replaced old subtle scale-1.04 hover; Img component gained style prop; "Hover to magnify · click for full screen" hint paragraph shown only on real hover-capable devices ([@media(hover:hover)_and_(pointer:fine)]:flex — verified compiled; headless reports hover:none so hint hidden there, zoom itself works via CDP mouse = matrix(2,0,0,2)); click→lightbox still opens while zoomed
+   463→- NEW FEATURE — ShareRow component (src/components/site/share-row.tsx): circular brand-hover icon buttons for WhatsApp, Facebook, Pinterest (rich pin w/ image), X + copy-link (Check feedback + toast); GA share_click event per network (trackShareClick in track.ts); wired into product page (replaced inline copy-link row, sits beside wishlist pill; Pinterest pin uses featuredImageUrl) and blog post (replaced old WhatsApp+copy pair, "Share this story:" row)
+   464→- NEW FEATURE — Admin pending-reviews awareness (full moderation visibility):
+   465→  * DashboardStats.pendingReviews added (types.ts) + dashboard API counts unpublished testimonials
+   466→  * AdminLayout sidebar: Testimonials nav item shows terracotta "N PENDING" badge (distinct from gold leads NEW); collapsed-mode dot; relative positioning fixed on nav buttons
+   467→  * Dashboard: warm gold-gradient "Needs your attention" card (Sparkles icon) listing pending reviews + new enquiries with direct "Approve reviews"/"Open leads" buttons — appears only when something actually needs action
+   468→  * TestimonialsManager now invalidates ["admin","dashboard"] after approve/toggle/delete/save (badge + attention card update instantly — bug found during QA: stale 60s cache left badge after approval)
+   469→- NEW FEATURE — Lead WhatsApp follow-up template: lead detail Sheet's WhatsApp button now opens wa.me with a pre-filled contextual message (customer's first name + the piece they asked about + live brand name from settings — "Artistic by Khushiii" verified); explanatory hint added; product-aware and generic variants
+   470→- FIX (open item from Task 11-c): global Add menu now includes Testimonial + Landing page items → quick-add verified end-to-end (Add → Landing page → editor opens with "New landing page" 7-tab form → cancel → list intact)
+   471→- STYLING POLISH: admin stat cards hover lift (-translate-y-0.5 + gold border + shadow); print stylesheet added (@media print: hides header/footer/floating chrome incl. print-hide class on WhatsApp float/back-to-top/sticky CTA, white background, page-break-inside avoid for images/sections) → product pages print as clean quote sheets; ShareRow buttons get per-network brand hover colors + lift
+   472→- VERIFICATION: full browser E2E — magnifier scale(2)+origin follow on real hover, lightbox during zoom; ShareRow 5 networks on product (Pinterest pin URL w/ image) + blog; pending flow: public review POST → reload → sidebar "1 PENDING" + dashboard attention card "1 review waiting for approval · 2 new enquiries" → Approve via UI → badge + card clear instantly; WhatsApp template href decodes with name/product/brand; Add menu 7 items incl. Landing; lint 0 problems; tsc 0 errors in touched files (pre-existing old-route errors unchanged); mobile: no h-scroll, share row wraps; QA artifacts cleaned (testimonials back to 6 seed rows, both test reviews deleted); dev.log clean; health ok
+   473→
+   474→Stage Summary:
+   475→- Phase was stable (0 bugs in QA) → delivered customer-sharing + moderation-workflow round: 5 features (hover magnifier, social share row, pending-reviews awareness system, landing quick-add closing an old open item, contextual WhatsApp follow-up for leads) + print styles + polish — one schema-free backend addition (pendingReviews stat, backward-compatible; live Turso auto-migrates nothing since no new columns) + one client cache bug fixed (badge staleness)
+   476→- All sharing flows fire GA share_click events (network + context params) once owner sets GA ID
+   477→- Print styles mean customers/owner can print product pages as clean quote sheets (header/footer/floating buttons hidden)
+   478→- Open items (unchanged): owner should set siteUrl in live settings + change admin password; VLM visual review unavailable (CLI 401 — used DOM/CSS verification instead)
+   479→- Next-phase candidates: announcement bar scheduling (startsAt), review reminder email/WhatsApp digests, product QR codes for physical displays, admin GA4 dashboard once events accumulate, sitemap priority hints, blog author profiles
+   480→
+   481→---
+   482→Task ID: 16
+   483→Agent: lead (Z.ai Code main) — user advisory round
+   484→Task: User asked "project already live hai — changes kaise karu bina live pe effect ke?" — document + explain the zero-risk change workflow
+   485→
+   486→Work Log:
+   487→- Verified current state: dev server healthy (port 3000, file mode, 15 cats/23 products/6 blogs/34 settings), lint 0 problems, git clean through Task 15, 15-min webDevReview cron active (job 392093)
+   488→- Re-read DEPLOYMENT.md (v7.2) + worklog Tasks 11–15 to ground the answer in the actual deployed architecture (Netlify + Turso, auto-migrate, seed-on-empty-only, backup/sync system)
+   489→- Explained to user the 3-tier safe change workflow: (1) content changes = live admin panel only, zero code/risk; (2) code changes = build+QA in this sandbox (live untouched) → download backup → git push → auto-migrate (additive only, data never overwritten); (3) emergency rollback = Netlify previous deploy publish (instant, no rebuild)
+   490→- Reiterated owner action items: set siteUrl in live settings, change default admin password
+   491→
+   492→Stage Summary:
+   493→- No code changes this round — advisory only; all safety mechanisms (auto-migrate, seed-on-empty, backup/restore/pull-from-live, /api/health) already built and verified in Tasks 11–15
+   494→- 15-min auto QA/dev cron confirmed active; project stable
+   495→
+   496→---
+   497→Task ID: 17
+   498→Agent: lead (Z.ai Code main) — user-requested fixes round
+   499→Task: User reported 4 live-site issues: (1) # appearing after domain name, (2) Netlify "hosted by" badge, (3) "Khushi" appearing 3x with old spelling on loading screen, (4) how to deploy mobile-image fixes without losing live content
+   500→
+   501→Work Log:
+   502→- Investigated live site (curl https://artisticbykhushiii.com/): found 11x hardcoded "Artistic by Khushi" (OLD spelling) in static HTML — title, og:site_name, splash — while live DB brandName = "Artistic by Khushiii" → inconsistent spellings stacked during load (tab title + splash + header = the "3 baar Khushi" user saw)
+   503→- Root cause of "#": page.tsx useEffect forced replaceState to append "#/" to the clean root URL on every visit
+   504→- FIX #1 (clean root URL): removed forced "#/" append from page.tsx (parseHash("") already resolves to home); router.ts navigate() now special-cases home targets ("#", "#/") — pushState to pathname+search (hash dropped) + dispatch hashchange, preserving history integrity (verified back/forward both work)
+   505→- FIX #2 (all home links): header logo, desktop nav Home, mobile sheet Home, footer logo, footer Explore Home, breadcrumbs Home crumb, 404 view Home — all now href="/" + onClick preventDefault + navigate("/") → clean URL; admin "View Website"/"Preview site" links changed from target=_blank href="#/" to href="/"
+   506→- FIX #3 (brand spelling Khushiii): layout.tsx metadata (title default+template, description, og:title/siteName/description), DEFAULT_SETTINGS in types.ts (brandName, logoText, footerAbout, copyrightText, defaultSeoTitle, defaultMetaDescription), all 16 view useSeo titles, WhatsApp contextProduct message (now reads settings.brandName dynamically), admin login/admin-app/AdminLayout branding, footer social aria-labels, BlogsManager/ProductsManager/LandingManager fallbacks, content-sync fallback — ~50 replacements total; remaining "by Khushi" hits are code comments + author name only
+   507→- FIX #4 (splash): loading fallback is now brand-agnostic (gold ornament ◆ divider + shimmer bar + "Preparing handcrafted goodness…") — no brand text that could go stale/duplicated; role=status + aria-label added
+   508→- Netlify badge: NOT a code issue — instructions given (Netlify dashboard → site → Site configuration → Domains → scroll to "Netlify status badge" → toggle off)
+   509→- VERIFIED via agent-browser: root URL stays exactly "http://localhost:3000/" after full load (no #); nav link → #/products renders; logo click → clean /; browser Back → #/products; Forward → clean /; desktop nav Home click → clean /; mobile (375px) hamburger → Home → clean / + no horizontal scroll; 0 elements with old "Artistic by Khushi" text; server HTML title/og:site_name = "Artistic by Khushiii"; splash HTML has no brand text; categories/products/admin-login titles show Khushiii; Home nav aria-current=page on home; console + page errors clean; lint 0 problems; dev.log clean; committed (967f24c)
+   510→
+   511→Stage Summary:
+   512→- All 3 code-fixable issues resolved: clean root URL (no # after domain), correct brand spelling everywhere (Khushiii), decluttered brand-agnostic splash; Netlify badge = dashboard toggle (instructions provided to user)
+   513→- Mobile-image fixes + all Task 12-16 features are in this codebase ready to deploy; live Turso data is safe (seed-on-empty-only + additive auto-migrate + backup/restore system built in Task 11)
+   514→- User given step-by-step deploy guide: (1) live admin → Backup & Sync → Download Backup, (2) push this code to GitHub repo, (3) Netlify auto-rebuilds (~3-5 min), (4) verify /api/health + homepage, (5) rollback plan = Netlify previous deploy Publish (instant) + backup JSON restore
+   515→- Open items (unchanged): owner should set siteUrl in live settings + change admin password; siteUrl still empty on live
+   516→
+   517→---
+   518→Task ID: 18
+   519→Agent: lead (Z.ai Code main) — user advisory round
+   520→Task: User asked how to push code from GitHub to Netlify — prepared deploy-ready ZIP + step-by-step guide
+   521→
+   522→Work Log:
+   523→- Created artistic-khushiii-deploy.zip (8.6MB, 369 files) at project root — includes ALL deploy-critical files (netlify.toml, package.json, bun.lock, prisma/schema.prisma, scripts/netlify-init.mjs, src/lib/db.ts + db-snapshot.json, public images, .gitignore); excludes sandbox junk (node_modules, .next, .git, db/, skills/, tool-results/, upload/, agent-ctx, tests, examples, Caddyfile, dev.log)
+   524→- Verified zip contents: build command chain (npx prisma generate && node scripts/netlify-init.mjs && npm run build) fully covered
+   525→- Gave user step-by-step Hinglish guide: find repo via Netlify Deploys tab → download ZIP from sandbox file browser → GitHub Desktop (recommended) or git CLI push → Netlify auto-build → /api/health verify → rollback = Publish previous deploy
+   526→- Reiterated: backup first via live admin Backup & Sync module
+   527→
+   528→Stage Summary:
+   529→- No code changes — deployment logistics round; deploy artifact ready at /home/z/my-project/artistic-khushiii-deploy.zip
+   530→- Live data safety guaranteed by existing systems (seed-on-empty-only, additive auto-migrate, backup/restore)
+   531→
+   532→---
+   533→Task ID: 19
+   534→Agent: lead (Z.ai Code main) — user-requested feature round
+   535→Task: (1) no # in any page URL, (2) admin panel blank-space fix, (3) header/footer fully admin-editable, (4) footer admin button removed, (5) Next.js/Netlify branding gone, (6) call button above WhatsApp, (7) splash logo with black→colour reveal, (8) Google reviews fetch, (9) fresh deploy ZIP + VS Code→GitHub→Netlify guide
+   536→
+   537→Work Log:
+   538→- CLEAN URL REFACTOR (biggest change): router.ts rewritten — pathname-first routing with legacy "#/…" fallback (old bookmarks auto-convert via replaceState); navigate() now pushState/replaceState + manual PopStateEvent dispatch; useHashRoute() kept its name/signature so all 8 consumer files needed zero changes
+   539→- Global link interceptor added to page.tsx: catches ALL internal link clicks (both legacy "#/…" hrefs AND clean "/…" hrefs), preventDefault + pushState — SPA navigation without page reload, address bar never shows "#". Filters out /api/, /uploads/, /images/, /_next/, favicon/robots/sitemap, target=_blank, downloads
+   540→- next.config.ts: SPA fallback rewrite "/:path*" → "/" in the FALLBACK phase (after static AND dynamic routes) — first attempt in afterFiles broke dynamic API routes ([slug] handlers returned HTML); fallback phase fixed it: deep links + refresh work everywhere (sandbox + Netlify), APIs unaffected
+   541→- All "#/" hrefs converted to clean paths across 20+ files (script + manual): nav links, footer, cards, breadcrumbs, search results, admin previews/placeholders/QR URLs
+   542→- analytics.tsx: GA page_view now fires on popstate too (pushState fires no event) and sends clean page_path without hash
+   543→- Sitemap already used clean URLs; JSON-LD/canonicals already clean — verified
+   544→- ADMIN LAYOUT BUG FIXED (user-reported "blank space + scrolling on laptop"): root div was missing `flex` — the sticky sidebar stacked VERTICALLY above the content (main started at 824px on a 768px viewport!). Fixed: flex row root + main column flex-1 min-w-0 (removed stale md:pl-64 padding). Verified: mainTop 824px → 56px at 1366×768 across dashboard/products/settings
+   545→- DYNAMIC NAVIGATION (admin-editable): new settings headerNavLinks/footerExploreLinks (JSON link lists) + parseNavLinks() with defaults fallback; header desktop+mobile nav and footer Explore column render from settings; SettingsManager gained "Website Navigation" card with LinkListEditor (label+URL rows, move up/down, delete, add, "Start from the current links" prefill, "Reset to defaults"). E2E verified: add Services link → save → public header shows it → reset → defaults back
+   546→- Footer "Admin" link removed (user request); owner reaches /admin directly
+   547→- FAVICON: public/favicon.ico generated from brand logo (16/32/48 via PIL) + apple-touch-icon.png 180px; metadata icons updated — Next.js default logo can never appear after deploy. Netlify badge = dashboard toggle (re-explained)
+   548→- CALL BUTTON: whatsapp-float.tsx now a floating stack — terracotta phone button (tel: + trackCallClick) above the green WhatsApp button, tooltips, safe-area aware, print-hide; phone from settings (hides if empty)
+   549→- SPLASH: loading screen shows logo twice — base layer brightness-0 (black silhouette) + overlay with splash-reveal keyframes (clip-path inset wipe top→bottom, 2.6s infinite alternate, reduced-motion aware) — the "black image converting to original colours" effect the user asked for
+   550→- GOOGLE REVIEWS: new /api/public/google-reviews route (Places API New; 6h in-process cache; graceful degrade; never breaks site) + settings googlePlacesApiKey/googlePlaceId (password field + hints + links in SettingsManager "Google Reviews" card) + GoogleReviewsSection on home (G mark, rating pill, review cards with author photos, "See all on Google" + "Write a Google review" CTAs) — self-hides until configured; useGoogleReviews hook (staleTime 1h, no retry)
+   551→- QA (agent-browser): clean URLs verified across ALL flows — home `/`, nav clicks → /products (SPA, marker test proved no reload), product card → /product/slug, back/forward, REFRESH on deep paths works (rewrite), legacy /#/blog → auto-converts to /blog, search ?q=, wishlist, contact, faq, thank-you, /lp/diwali-gifting, /admin, 404 view for bogus paths; mobile 375px no h-scroll, call+WA floats stacked correctly; admin mobile tabs ok; console + page errors clean; lint 0 problems; dev.log clean
+   552→- Rebuilt artistic-khushiii-deploy.zip (8.6MB) with everything; committed
+   553→
+   554→Stage Summary:
+   555→- Big UX round: site URLs are now 100% clean paths everywhere (# gone forever, old links still work), admin panel usable on laptops (layout bug fixed), owner can edit header/footer menus from admin, direct-call button added, brand favicon + animated logo splash, and real Google reviews ready to switch on (needs API key + place id from owner)
+   556→- Deploy-safety unchanged: seed-on-empty-only, additive auto-migrate, backup/restore — live data safe
+   557→- Owner to-dos after deploy: disable Netlify badge in dashboard (Domains → scroll → toggle), optionally set Google reviews key+place id in Site Settings, set siteUrl, change admin password
+   558→- Open: GA events for call button already flow; Google reviews section hidden until configured (by design)
+   559→
+   560→---
+   561→Task ID: 20
+   562→Agent: lead (Z.ai Code main) — user-reported Google Analytics / Search Console round
+   563→Task: User reported (Hinglish): (1) "G-48RD3ZZYF2 save pe unauthorized field" error with Google Analytics, (2) Google Search Console error, (3) "mera code view source me nahi dikhta, inspect me head section me dikhta hai" — diagnose & fix all three
+   564→
+   565→Work Log:
+   566→- DIAGNOSIS: (3) explained — the site is a client-rendered SPA; the GA4 tag + GSC meta were injected by JavaScript (SiteAnalytics component) AFTER hydration, so Inspect (live DOM) showed them but View Source (raw server HTML) did not. This also makes GSC "HTML tag" verification unreliable and GA tag invisible to tools that read raw HTML
+   567→- ROOT CAUSE for GSC errors: verification meta was client-side injected + robots.txt had NO Sitemap line + sitemap <loc> URLs were RELATIVE when settings.siteUrl was empty (Google rejects such sitemaps)
+   568→- src/app/layout.tsx REWRITTEN: now a settings-driven server component — generateMetadata() reads DB (React cache()-memoised per request): title/description/OG from defaultSeoTitle/defaultMetaDescription/defaultOgImage, metadataBase from siteUrl (fallback https://artisticbykhushiii.com), og:image absolute (WhatsApp preview fix), verification.google from googleSearchConsoleToken (full tag / key=value / bare token all accepted via extractGscToken). GA4 tag now SERVER-RENDERED into the HTML: <script id="abk-ga-script" async src=googletagmanager.com/gtag/js?id=…> + inline bootstrap with send_page_view:false and hostname//admin guards (localhost + /admin never ping). revalidate=300 on the shell
+   569→- src/components/site/analytics.tsx UPDATED to co-exist with the server tag: detects #abk-ga-script already in DOM with matching src → skips re-inject + re-config (no double page_view); stale/missing → full client fallback (remove + re-create). GSC meta effect reuses existing <meta name=google-site-verification"> (by id OR by name) instead of creating a duplicate. page_view now skips /admin paths (owner console never tracked)
+   570→- api/admin/settings PUT: revalidatePath("/","page") + ("/","layout") after save — settings changes (GA id, GSC token, SEO text) go live INSTANTLY, no 5-min wait, no redeploy
+   571→- next.config.ts: /sitemap.xml → /api/sitemap rewrite (standard URL for Search Console)
+   572→- public/robots.txt: + Disallow /admin, /api/ + Sitemap: https://artisticbykhushiii.com/sitemap.xml
+   573→- api/sitemap + api/robots: base URL falls back to https://artisticbykhushiii.com when settings.siteUrl is empty (absolute <loc> guaranteed)
+   574→- SettingsManager: save() catch now detects ApiError 401 → friendly "Session expired — log in again in a new tab, form keeps values" toast (the raw "Unauthorized" the user saw); Site URL field placeholder/hint updated to the real domain; GA + GSC field hints rewritten; added collapsible "How to connect Google (Analytics + Search Console) — step by step" guide (GSC: URL prefix → HTML tag → paste content → Save → Verify; then submit /sitemap.xml)
+   575→- QA: test values injected in sandbox DB → curl / confirms RAW HTML now contains gtag script (id=abk-ga-script), inline bootstrap, <meta name="google-site-verification">, absolute og:image — i.e. visible in View Source. agent-browser on network URL (production-like): exactly 1 GA script + 1 GSC meta (no duplicates), 1 page_view on load, +1 per SPA navigation (2 after /products), window.__abkAnalytics.ga synced. /robots.txt + /sitemap.xml + /api/sitemap all 200 with absolute URLs. No console/page errors, homepage renders fully (VLM-verified), lint clean. Test values then removed from sandbox DB (siteUrl kept = real domain)
+   576→
+   577→Stage Summary:
+   578→- "View Source" now shows the GA4 tag + Search Console verification meta (server-rendered) — fixes Google tools not seeing the code
+   579→- Search Console verification via HTML tag is now reliable; save → verify instantly (revalidatePath)
+   580→- robots.txt now advertises the sitemap; /sitemap.xml standard URL works; sitemap always has absolute URLs even without siteUrl setting
+   581→- Admin save 401 no longer shows raw "Unauthorized" — clear session-expired guidance instead
+   582→- Owner action needed after deploy: re-save settings once is NOT needed (GA id already in DB); just Verify in Search Console with the HTML-tag method and submit /sitemap.xml
+   583→- Open: none blocking; next round can continue feature/QA work
+   584→
+   585→---
+   586→Task ID: 21
+   587→Agent: lead (Z.ai Code main) — cron webDevReview round
+   588→Task: Scheduled QA + independently selected work focus. QA passed clean (all pages, mobile, admin — 0 errors), so this round delivered a major new feature + styling polish: DARK MODE + page transitions + detail refinements
+   589→
+   590→Work Log:
+   591→- QA PASS (pre-work): 11 public routes + /admin swept via agent-browser — all 0 console/page errors, titles correct, mobile 375px no horizontal scroll, /api/health ok (db ready, 1 admin, 15 categories)
+   592→- DARK MODE — full implementation:
+   593→  • Providers.tsx: added next-themes ThemeProvider (attribute="class", defaultTheme="light", enableSystem=false, disableTransitionOnChange) — light stays the brand default, dark is opt-in per visitor, persisted in localStorage
+   594→  • globals.css .dark block: previously only base shadcn vars existed; added brand-token overrides so all ~50 bg-cream/text-espresso/terracotta usages flip automatically: --cream (dark brown panel), --espresso (light ink), --chocolate, --terracotta (brighter for contrast), --terracotta-deep, chart colors; --gold-soft → deep warm tone (was near-white, jarring as bg); --muted-foreground raised 0.72→0.78 lightness (VLM-flagged borderline breadcrumb/caption contrast)
+   595→  • NEW components/site/theme-toggle.tsx: animated sun↔moon button (rotate/scale/opacity transitions, active:scale-95, focus-visible ring, a11y labels, neutral shell until mounted). Lint-clean hydration pattern: uses resolvedTheme===undefined as the mounted signal (no setState-in-effect)
+   596→  • site-header.tsx: ThemeToggle in desktop actions cluster (size-11, before search) + "Appearance" row at the top of the mobile nav sheet (size-9); announcement bar given dark: variant (espresso bg + gold text instead of bright terracotta — VLM flagged clash)
+   597→  • FOOTER BUG (found via VLM in dark): footer uses bg-espresso/text-cream — these vars flip in dark (correct for page ink), which turned the footer into a light block. Fixed with .site-footer scoped var re-declaration in globals.css (footer keeps signature espresso+cream treatment in BOTH themes; .dark just deepens it) + site-footer class on <footer>
+   598→- PAGE TRANSITIONS: site-app.tsx main content wrapped in <div key={route.path} class="page-transition"> — every SPA navigation replays a 0.32s fade+rise (CSS @keyframes page-in, prefers-reduced-motion aware); query-param-only changes don't remount (filters preserved)
+   599→- STYLING DETAILS: themed page scrollbar (global *::-webkit-scrollbar, rounded thumb with background border, dark variants) + dark variants for .custom-scroll and .animate-shimmer; product-card.tsx title line-clamp-1 → line-clamp-2 with min-h-11 (long names no longer cut, cards stay aligned; description min-h removed, flex-1 handles it)
+   600→- theme_toggle GA event added to track() on every switch
+   601→- QA (post-work): dark sweep of 11 routes — 0 errors, theme persists across navigations AND reload; toggle both ways works; VLM reviews: dark homepage "very polished, luxury feel", dark product+products pages "Clean" after fixes, mobile dark nav sheet "readable and polished", light-mode regression "Clean" (no changes vs before); lint 0 problems; dev.log clean; final smoke 5 routes 0 errors
+   602→
+   603→Stage Summary:
+   604→- Major visitor-facing feature: full dark mode with a cosy chocolate-dark palette faithful to the brand (terracotta/gold accents), animated toggle in header (desktop + mobile sheet), localStorage persistence, GA event tracking
+   605→- Footer dark-mode contrast bug fixed via scoped vars; announcement bar, scrollbars, shimmer skeletons all theme-aware
+   606→- SPA route changes now animate with a gentle fade-and-rise
+   607→- Product cards show full 2-line titles
+   608→- No API/schema changes — zero deploy risk; live data untouched
+   609→- Open/next-round ideas: per-view dark polish if VLM ever flags more spots; admin panel inherits the theme (acceptable, owner preference); could add "theme" to admin branding preview later
+   610→
