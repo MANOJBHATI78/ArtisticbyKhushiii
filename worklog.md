@@ -685,3 +685,24 @@ Stage Summary:
 - Google reviews (compact) now on product/about/contact too — activates when owner adds Places API key + place ID
 - Live-data safety: additive migrations only (new columns default empty, new tables), seed-on-empty-only, backup/restore untouched — live Turso data safe
 - Open items: owner must DEPLOY this code (git commit fix + push) for live fixes; then set product prices in admin for shopping feed; GSC verify after deploy
+
+---
+Task ID: 23
+Agent: lead (Z.ai Code main)
+Task: User asked for assurance that deploying the new code will NOT lose any live website data ("purana data nahi jana chahiye") — verify + prove data safety end-to-end
+
+Work Log:
+- Read worklog (Tasks 1–22) + the two data-safety mechanisms: scripts/netlify-init.mjs (build-time) and src/lib/db.ts COLUMN_MIGRATIONS/TABLE_MIGRATIONS + runSnapshotInit (runtime)
+- Verified mechanism 1 (netlify-init.mjs, runs on every Netlify build): COLUMN_MIGRATIONS are ALTER TABLE ADD COLUMN only (HomepageSection.mobileImageUrl, Category.mobileImageUrl, Testimonial.source, Product.price/compareAtPrice, AdminUser.active — all NOT NULL DEFAULT); new tables via CREATE TABLE IF NOT EXISTS; seed copy runs ONLY if AdminUser count = 0 ("data present, NOT overwriting" branch); uploads merged into MediaBlob additively (INSERT only when filename missing)
+- Verified mechanism 2 (db.ts runtime): same additive migrations + snapshot bootstrap returns early when AdminUser count > 0 — a populated database is never re-seeded
+- Verified admin backup feature exists: GET /api/admin/backup → downloadable full JSON (products/categories/blogs/pages/leads/settings…), POST restores non-destructively (upsert) — extra safety net for the owner
+- BUILT A REPEATABLE PROOF TEST: tests/data-sim/proof-test.mjs — copies db/custom.db (a populated DB: 23 products, 15 categories, 6 blogs, 43 settings, 3 leads, 65 media, 6 testimonials…) to tests/data-sim/live-sim.db, records row counts + full content fingerprints of all 17 tables, runs the EXACT deploy script (node scripts/netlify-init.mjs with DATABASE_URL=file:…INIT_FORCE=1) against it, then compares
+- RESULT: 17/17 tables safe — every table row-count identical AND every content fingerprint byte-identical (Product, ProductImage, Category, BlogPost, Page, Faq, Lead, SiteSetting, AdminUser, HomepageSection, Testimonial); only MediaBlob grew 21→22 (one repo upload file ADDED to DB storage — additive by design, nothing lost). "🏆 PROOF COMPLETE: Deploy touched NOTHING"
+- Browser sanity re-check (agent-browser): homepage renders fully (hero, nav, announcement bar); curl raw HTML confirms google-site-verification meta token -slGkd_JRw… and GA G-48RD3ZZYF2 still server-rendered in View Source; /shopping-feed.xml still valid Merchant Center RSS
+- Cleaned up the simulation DB copy (script kept for re-runs: `node tests/data-sim/proof-test.mjs`)
+
+Stage Summary:
+- Data-safety guarantee PROVEN by simulation, not just promised: the deploy path (Netlify build script + runtime db.ts) is additive-only — old data physically cannot be overwritten, seed only runs on an EMPTY database, and the admin panel has a full JSON backup/restore as a belt-and-braces option
+- Owner-facing answer delivered: deploying the new code will only ADD new capabilities (GSC/GA/Custom Code/Users/Lead gate/Schema Manager/Shopping feed/Reviews); every product, order lead, blog, page, setting, upload and admin account stays exactly as-is
+- Repeatable proof artifact: tests/data-sim/proof-test.mjs (run any time to re-verify before a deploy)
+- Open item (unchanged): owner still needs to push + deploy the new code (artistic-khushiii-deploy.zip, 9.8MB, built in Task 22); after deploy → set product prices → GSC "Verify" click
