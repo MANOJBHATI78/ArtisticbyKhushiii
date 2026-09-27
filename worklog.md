@@ -706,3 +706,28 @@ Stage Summary:
 - Owner-facing answer delivered: deploying the new code will only ADD new capabilities (GSC/GA/Custom Code/Users/Lead gate/Schema Manager/Shopping feed/Reviews); every product, order lead, blog, page, setting, upload and admin account stays exactly as-is
 - Repeatable proof artifact: tests/data-sim/proof-test.mjs (run any time to re-verify before a deploy)
 - Open item (unchanged): owner still needs to push + deploy the new code (artistic-khushiii-deploy.zip, 9.8MB, built in Task 22); after deploy → set product prices → GSC "Verify" click
+
+---
+Task ID: 24
+Agent: lead (Z.ai Code main) — user-reported: category/blog/product pages NOT indexing in Google + homepage title confusion
+Task: Fix "Duplicate without user-selected canonical" — every URL returned IDENTICAL raw HTML (same title, NO canonical tag)
+
+Work Log:
+- LIVE DIAGNOSIS (curl on artisticbykhushiii.com): /, /category/resin-nameplates, /products all returned the SAME <title> ("Artistic by Khushiii | Best Resin Art, Nameplates & Custom Gifts") and ZERO canonical tags in raw HTML — because SEO was applied client-side only (src/lib/seo.ts after SPA hydration). Google clustered every deep link as a duplicate of the homepage → GSC "Duplicate without user-selected canonical" → not indexed. Sitemap/robots verified fine (all URLs present, lastmod dates valid — sandbox clock cross-checked against Google's HTTP Date header, both 2026-09-27, so no future-date issue).
+- FIX — src/app/layout.tsx: NEW resolvePathSeo() + path-aware generateMetadata(): reads x-abk-path (set by src/proxy.ts), looks up the entity in the DB and server-renders UNIQUE per-URL metadata that exactly mirrors the client-side useSeo() strings:
+  - /category/[slug] → Category.seoTitle || "Name | Artistic by Khushiii" + metaDescription/shortDescription + canonicalUrl fallback + focus/secondary keywords
+  - /product/[slug] → Product fields + featured image og:image (isFeatured desc, displayOrder asc) + published check
+  - /blog/[slug] → BlogPost fields + coverImage og + og:type=article + PUBLISHED/SCHEDULED visibility check
+  - /page/[slug] → Page fields; /lp/[slug] → LandingPage fields (metaTitle/metaDescription/canonical/og/hero image/noindex honoured)
+  - Static listings (/products /categories /blog /contact /faq) and DB pages (/about /services) → same strings the client views use
+  - noindex server-rendered for: /admin*, /search, /wishlist, /thank-you, unknown slugs (soft-404 → "Page Not Found" title), and any unmatched path
+  - generateMetadata now sets alternates.canonical for EVERY URL; og:title/description/type/image per page; robots {index:false,follow:true} for noindex paths
+- VERIFIED locally (curl): /category/resin-nameplates → "Resin Nameplates | Artistic by Khushiii" + canonical to itself + unique meta description; product page → unique title + canonical + og:image (product photo absolute URL); blog post → og:type article; /admin + unknown path → noindex, follow; homepage unchanged (owner's defaultSeoTitle). Browser (agent-browser): category page renders fully, 0 console errors, title persists after hydration (client SEO matches server strings). bun run lint → 0 problems; dev.log clean.
+- Homepage "wrong title" explanation for owner: live title comes from Admin → Settings → defaultSeoTitle ("Artistic by Khushiii | Best Resin Art, Nameplates & Custom Gifts"); Google search results may show the pre-deploy cached title for days — owner can edit the setting + use GSC "Request indexing" to refresh.
+- Updated artistic-khushiii-deploy.zip (in place: src/app/layout.tsx + worklog.md).
+
+Stage Summary:
+- Root cause of non-indexing FIXED: every URL now returns unique server-rendered title + description + canonical + og tags (View Source visible) — Google no longer sees duplicates; category/product/blog/page URLs become individually indexable
+- Soft-404s, /admin, /search, /wishlist, /thank-you now carry noindex (keeps index clean)
+- After deploy: owner should submit sitemap + "Request indexing" for key pages in GSC; indexing typically follows within days
+- Home title is owner-editable in Admin → Settings; Google cache lag is normal
