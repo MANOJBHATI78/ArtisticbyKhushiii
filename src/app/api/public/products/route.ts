@@ -1,6 +1,6 @@
 import { db, describeDbError } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
-import { fail, ok } from "@/lib/server-utils";
+import { fail, ok, okCached } from "@/lib/server-utils";
 import { paginated, pagination, toPublicProduct } from "@/lib/serializers";
 
 export const dynamic = "force-dynamic";
@@ -41,7 +41,7 @@ export async function GET(request: Request) {
       }),
     ]);
 
-    return ok(paginated(products.map((p) => toPublicProduct(p)), total, page, pageSize));
+    return okCached(paginated(products.map((p) => toPublicProduct(p)), total, page, pageSize));
   } catch (e) {
     console.error("[api/public/products]", e);
     return fail(`Server error — database not reachable. Detail: ${describeDbError(e)} (open /api/health for full diagnostics)`, 500);

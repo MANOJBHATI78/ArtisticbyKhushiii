@@ -1,4 +1,4 @@
-import { getSettings } from "@/lib/server-utils";
+import { getSettings, okCached } from "@/lib/server-utils";
 
 export const dynamic = "force-dynamic";
 

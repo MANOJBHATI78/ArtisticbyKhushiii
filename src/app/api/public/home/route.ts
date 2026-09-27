@@ -1,5 +1,5 @@
 import { db, describeDbError } from "@/lib/db";
-import { fail, ok } from "@/lib/server-utils";
+import { fail, ok, okCached } from "@/lib/server-utils";
 import {
   POST_ORDER,
   toFaq,
@@ -70,7 +70,7 @@ export async function GET() {
       };
     };
 
-    return ok({
+    return okCached({
       hero: toSection("hero"),
       brandIntro: toSection("brand_intro"),
       featuredCategories: cats.map((c) => toPublicCategory(c, countMap.get(c.id) ?? 0)),

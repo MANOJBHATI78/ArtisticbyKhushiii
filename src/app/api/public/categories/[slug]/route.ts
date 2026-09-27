@@ -1,5 +1,5 @@
 import { db, describeDbError } from "@/lib/db";
-import { fail, ok } from "@/lib/server-utils";
+import { fail, ok, okCached } from "@/lib/server-utils";
 import {
   POST_ORDER,
   toFaq,
@@ -89,7 +89,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
 
     const countMap = new Map(productCounts.map((c) => [c.categoryId, c._count._all]));
 
-    return ok({
+    return okCached({
       category: toPublicCategory(category, countMap.get(category.id) ?? 0),
       products: products.map((p) => toPublicProduct(p)),
       faqs: faqRows.map(toFaq),

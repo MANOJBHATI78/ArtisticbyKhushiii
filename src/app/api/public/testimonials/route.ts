@@ -1,6 +1,6 @@
 import { db, describeDbError } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
-import { fail, ok, rateLimit } from "@/lib/server-utils";
+import { fail, ok, rateLimit, okCached } from "@/lib/server-utils";
 import { toTestimonial } from "@/lib/serializers";
 
 export const dynamic = "force-dynamic";
@@ -43,7 +43,7 @@ export async function GET(request: Request) {
       });
       const general = rows.filter((r) => !r.productName);
       const merged = [...forPiece, ...general].slice(0, limit);
-      return ok(merged.map(toTestimonial));
+      return okCached(merged.map(toTestimonial));
     }
 
     const where: Prisma.TestimonialWhereInput = { published: true };
@@ -54,7 +54,7 @@ export async function GET(request: Request) {
       orderBy: [{ displayOrder: "asc" }, { createdAt: "desc" }],
       take: limit,
     });
-    return ok(rows.map(toTestimonial));
+    return okCached(rows.map(toTestimonial));
   } catch (e) {
     console.error("[api/public/testimonials GET]", e);
     return fail(`Server error — database not reachable. Detail: ${describeDbError(e)} (open /api/health for full diagnostics)`, 500);
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
     if (!body) return fail("Invalid request body.", 400);
 
     // Honeypot — real visitors never fill this hidden field.
-    if (cleanText(body.company, 100)) return ok({ received: true });
+    if (cleanText(body.company, 100)) return okCached({ received: true });
 
     // Rate limit: 3 submissions / 10 min per IP.
     const ip =
@@ -109,7 +109,7 @@ export async function POST(request: Request) {
       },
     });
 
-    return ok({ received: true, id: row.id });
+    return okCached({ received: true, id: row.id });
   } catch (e) {
     console.error("[api/public/testimonials POST]", e);
     return fail("Something went wrong while saving your review. Please try again.", 500);

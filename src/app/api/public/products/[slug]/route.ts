@@ -1,6 +1,6 @@
 import { db, describeDbError } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
-import { fail, ok } from "@/lib/server-utils";
+import { fail, ok, okCached } from "@/lib/server-utils";
 import {
   POST_ORDER,
   toFaq,
@@ -118,7 +118,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
 
     const countMap = new Map(productCounts.map((c) => [c.categoryId, c._count._all]));
 
-    return ok({
+    return okCached({
       product: toPublicProduct(product),
       faqs: faqRows.map(toFaq),
       relatedProducts: relatedProducts.map((p) => toPublicProduct(p)),

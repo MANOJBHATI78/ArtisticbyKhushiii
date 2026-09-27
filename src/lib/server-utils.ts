@@ -8,6 +8,20 @@ export function ok<T>(data: T, init?: ResponseInit) {
   return NextResponse.json({ ok: true, data }, init);
 }
 
+/**
+ * Public GET data with CDN caching — Netlify's edge caches the response for
+ * `s-maxage` seconds and serves a stale copy while refreshing in the
+ * background. Cuts the Turso cold-start latency (1.5-4s) to near-zero for
+ * repeat visitors AND for Google's rendering live-test.
+ */
+export function okCached<T>(data: T, sMaxAgeSeconds = 120) {
+  return NextResponse.json({ ok: true, data }, {
+    headers: {
+      "cache-control": `public, max-age=0, s-maxage=${sMaxAgeSeconds}, stale-while-revalidate=600`,
+    },
+  });
+}
+
 export function fail(error: string, status = 400) {
   return NextResponse.json({ ok: false, error }, { status });
 }

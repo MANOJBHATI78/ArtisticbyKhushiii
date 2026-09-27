@@ -1,6 +1,6 @@
 import { db, describeDbError } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
-import { fail, ok } from "@/lib/server-utils";
+import { fail, ok, okCached } from "@/lib/server-utils";
 import { POST_ORDER, toFaq, toPublicBlogPost, toPublicProduct, visiblePostWhere } from "@/lib/serializers";
 
 export const dynamic = "force-dynamic";
@@ -72,7 +72,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
       relatedBlogs = [...relatedBlogs, ...fill];
     }
 
-    return ok({
+    return okCached({
       post: toPublicBlogPost(post),
       faqs: faqRows.map(toFaq),
       relatedProducts: relatedProducts.map((p) => toPublicProduct(p)),

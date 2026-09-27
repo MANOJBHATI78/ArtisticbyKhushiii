@@ -1,5 +1,5 @@
 import { db, describeDbError } from "@/lib/db";
-import { fail, ok } from "@/lib/server-utils";
+import { fail, ok, okCached } from "@/lib/server-utils";
 import { toPublicCategory } from "@/lib/serializers";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +18,7 @@ export async function GET() {
       }),
     ]);
     const countMap = new Map(productCounts.map((c) => [c.categoryId, c._count._all]));
-    return ok(cats.map((c) => toPublicCategory(c, countMap.get(c.id) ?? 0)));
+    return okCached(cats.map((c) => toPublicCategory(c, countMap.get(c.id) ?? 0)));
   } catch (e) {
     console.error("[api/public/categories]", e);
     return fail(`Server error — database not reachable. Detail: ${describeDbError(e)} (open /api/health for full diagnostics)`, 500);

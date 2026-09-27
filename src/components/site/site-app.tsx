@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Providers } from "@/components/providers";
 import { SiteHeader } from "@/components/site/site-header";
@@ -143,6 +143,12 @@ function SiteShell() {
   const route = useHashRoute();
   const { data: settings } = useSettings();
   const setSettings = useSiteStore((s) => s.setSettings);
+
+  // Remove the server-rendered SEO fallback block BEFORE the browser paints —
+  // the real SPA content takes over (raw-HTML crawlers keep the fallback).
+  useLayoutEffect(() => {
+    document.getElementById("abk-ssr-fallback")?.remove();
+  }, []);
 
   useEffect(() => {
     if (settings) setSettings(settings);
