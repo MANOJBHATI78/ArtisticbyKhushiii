@@ -731,3 +731,17 @@ Stage Summary:
 - Soft-404s, /admin, /search, /wishlist, /thank-you now carry noindex (keeps index clean)
 - After deploy: owner should submit sitemap + "Request indexing" for key pages in GSC; indexing typically follows within days
 - Home title is owner-editable in Admin → Settings; Google cache lag is normal
+
+---
+Task ID: 25
+Agent: lead (Z.ai Code main)
+Task: User Q&A verification round — (1) do admin-panel SEO edits (meta title/keywords/description) reflect on the site? (2) will live products/images survive deploys?
+
+Work Log:
+- Q1 PROOF (live test): logged in via /api/admin/login, PUT /api/admin/products/[id] with seoTitle "TEST SEO Title Change | Khushi QA" → curl of the product page IMMEDIATELY returned <title>TEST SEO Title Change | Khushi QA</title> in raw server HTML; cleared the field → instantly reverted to "Terracotta Swirl Statement Earrings | Artistic by Khushiii". Confirms the Task-24 server-side generateMetadata() reads admin-managed DB fields live (products/categories/blogs/pages all carry seoTitle/metaDescription/focusKeyword/secondaryKeywords/canonicalUrl/og fields — verified present in admin/_lib.ts parsers).
+- Q2 PROOF (re-run tests/data-sim/proof-test.mjs with current code): 17/17 tables row-count identical + 11 content fingerprints byte-identical after a full deploy-script simulation; only MediaBlob 21→22 (uploads ADD-only). Backup endpoint re-verified working (full JSON snapshot with settings/products/categories/blogs/pages/faqs/testimonials).
+- Cleaned up: test seoTitle reverted to "", admin cookie jar + live-sim.db removed.
+
+Stage Summary:
+- Admin SEO edits reflect INSTANTLY in server-rendered HTML (what Google reads) — no deploy needed for SEO text changes
+- Live products/images safety re-proven with the current code: deploys never delete data; MediaBlob uploads are additive-only; admin Backup download available as an extra safety net before any deploy
