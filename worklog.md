@@ -745,3 +745,29 @@ Work Log:
 Stage Summary:
 - Admin SEO edits reflect INSTANTLY in server-rendered HTML (what Google reads) — no deploy needed for SEO text changes
 - Live products/images safety re-proven with the current code: deploys never delete data; MediaBlob uploads are additive-only; admin Backup download available as an extra safety net before any deploy
+
+---
+Task ID: 26
+Agent: lead (Z.ai Code main)
+Task: Complete technical SEO QA (user: "technical SEO main koi issue nahi aana chahiye — complete QA karo")
+
+Work Log:
+- QA SUITE RUN (all curl/agent-browser on dev, cross-checked against live where relevant):
+  1. Trailing slash: /products/ → 308 → /products (Next default) ✅ no duplicate
+  2. Query params: ?page=2 correctly NOT in canonical ✅
+  3. Soft-404 FIXED: unknown paths returned 200 before → now GENUINE 404 status. Implementation: src/app/page.tsx rewritten as server component (validates x-abk-path against the SPA route map: statics products/categories/blog/about/services/contact/faq/search/wishlist/thank-you + admin/* + param routes product/category/blog/page/lp/[slug] → notFound() otherwise); client shell moved intact to NEW src/components/site/spa-shell.tsx; NEW src/app/not-found.tsx branded 404 page (cream bg, 404 mark, Home/Products/Contact links). Verified: /nonsense, /random/junk/page, /old-url → 404; all real routes → 200.
+  4. Duplicate content FIXED: sitemap listed BOTH /about AND /page/about (same content, different URL). Fixes: (a) sitemap route skips page slugs "about"/"services"; (b) /page/about + /page/services now permanentRedirect (308) to /about + /services; (c) layout.tsx canonicalises them defensively too. Sitemap 58 → 56 URLs, zero duplicates. /page/privacy-policy etc. unaffected (200, own canonical).
+  5. Sitemap deep-check: ALL 56 URLs return 200 (home/listings/15 categories/23 products/6 blogs/3 pages/1 landing); no noindex page is listed ✅
+  6. robots.txt: Allow / + Disallow /admin + /api/ + sitemap pointer ✅
+  7. Images: /images/og-default.jpg 200 (image/jpeg), favicon 200, apple-touch-icon in head ✅
+  8. JSON-LD (browser-verified post-hydration): home = Organization+LocalBusiness+WebSite+FAQPage; product = Product+BreadcrumbList; category = CollectionPage+BreadcrumbList; /faq = FAQPage+BreadcrumbList ✅
+  9. Shopping feed: valid XML, 0 items (expected — prices not set yet; admin sets prices → items appear)
+  10. noindex verified on /search /wishlist /thank-you /admin + unknown paths; index,follow on all content pages ✅
+  11. GSC verification meta + GA G-48RD3ZZYF2 server-rendered in raw HTML ✅ (live, post-deploy)
+  12. Browser: category page renders fully, document.title = "Resin Nameplates | Artistic by Khushiii", canonical present, 0 console errors; lint 0 problems; dev.log clean
+- Updated artistic-khushiii-deploy.zip with all 6 changed/new files (9.4MB) and verified the zip contents.
+
+Stage Summary:
+- Technical SEO QA COMPLETE — 12 checks, 2 real issues found (soft-404, /page/about duplicate) and FIXED in code; everything else already green
+- User-facing deliverable: step-by-step VS Code → GitHub → Netlify deploy guide with the updated zip
+- After deploy, owner actions: GSC sitemap resubmit + Request indexing on key pages; set product prices for shopping feed

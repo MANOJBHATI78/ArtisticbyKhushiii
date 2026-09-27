@@ -277,6 +277,22 @@ async function resolvePathSeo(
   // --- /page/[slug] (privacy, terms, disclaimer, …) ---
   m = p.match(new RegExp(`^/page/${SLUG}$`, "i"));
   if (m) {
+    // /page/about and /page/services 301-redirect to their dedicated routes —
+    // canonicalise defensively in case a redirect is ever bypassed.
+    if (m[1].toLowerCase() === "about") {
+      return {
+        title: "About Us | Artistic by Khushiii",
+        description: fallbackDescription,
+        canonical: `${siteUrl}/about`,
+      };
+    }
+    if (m[1].toLowerCase() === "services") {
+      return {
+        title: "Our Services | Artistic by Khushiii",
+        description: fallbackDescription,
+        canonical: `${siteUrl}/services`,
+      };
+    }
     try {
       const page = await db.page.findUnique({ where: { slug: m[1] } });
       if (page) {

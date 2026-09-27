@@ -42,7 +42,12 @@ export async function GET() {
     for (const c of categories) entries.push({ loc: `${base}/category/${c.slug}`, lastmod: c.updatedAt });
     for (const p of products) entries.push({ loc: `${base}/product/${p.slug}`, lastmod: p.updatedAt });
     for (const b of blogs) entries.push({ loc: `${base}/blog/${b.slug}`, lastmod: b.updatedAt });
-    for (const p of pages) entries.push({ loc: `${base}/page/${p.slug}`, lastmod: p.updatedAt });
+    // "about" and "services" have dedicated routes (/about, /services) already
+    // listed above — emitting /page/about too would create duplicate URLs.
+    for (const p of pages) {
+      if (p.slug === "about" || p.slug === "services") continue;
+      entries.push({ loc: `${base}/page/${p.slug}`, lastmod: p.updatedAt });
+    }
     for (const l of landings) entries.push({ loc: `${base}/lp/${l.slug}`, lastmod: l.updatedAt });
 
     const xml =

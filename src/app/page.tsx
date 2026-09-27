@@ -1,70 +1,72 @@
-"use client";
+import { headers } from "next/headers";
+import { notFound, permanentRedirect } from "next/navigation";
+import SpaShell from "@/components/site/spa-shell";
 
-import dynamic from "next/dynamic";
-import { useHashRoute, navigate } from "@/lib/router";
-import { useEffect } from "react";
+/**
+ * Server-side route validation for the SPA.
+ *
+ * The whole site is a client-rendered SPA served from one page, so by default
+ * ANY unknown URL returned 200 + the homepage HTML — a "soft 404" that Google
+ * flags in Search Console. This server component checks the real URL path
+ * (forwarded by src/proxy.ts in "x-abk-path") against the SPA's known route
+ * map and throws notFound() for everything else → genuine 404 status code
+ * with the branded 404 page (src/app/not-found.tsx).
+ *
+ * The route list below mirrors src/components/site/site-app.tsx exactly.
+ */
+const STATIC_ROUTES = new Set([
+  "products",
+  "categories",
+  "blog",
+  "about",
+  "services",
+  "contact",
+  "faq",
+  "search",
+  "wishlist",
+  "thank-you",
+]);
 
-const SiteApp = dynamic(() => import("@/components/site/site-app"), {
-  ssr: false,
-  loading: () => (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-5 bg-background" role="status" aria-label="Loading website">
-      {/* Logo with black → colour reveal (top-to-bottom wipe) */}
-      <div className="relative h-20 w-20" aria-hidden="true">
-        <img src="/images/logo.png" alt="" className="absolute inset-0 h-full w-full object-contain brightness-0 opacity-30" />
-        <img src="/images/logo.png" alt="" className="absolute inset-0 h-full w-full object-contain splash-reveal" />
-      </div>
-      <div className="h-1 w-40 overflow-hidden rounded-full bg-secondary">
-        <div className="h-full w-1/2 animate-shimmer rounded-full" />
-      </div>
-      <p className="text-sm text-muted-foreground">Preparing handcrafted goodness…</p>
-    </div>
-  ),
-});
+/** Routes rendered as /[root]/[slug] by the SPA router. */
+const PARAM_ROUTES = new Set(["product", "category", "blog", "page", "lp"]);
 
-const AdminApp = dynamic(() => import("@/components/admin/admin-app"), {
-  ssr: false,
-  loading: () => (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="font-display text-2xl text-primary">Loading Studio Console…</div>
-    </div>
-  ),
-});
+/** One URL segment: non-empty, no slashes (query string already stripped). */
+const SEGMENT_RE = /^[^/]+$/;
 
-export default function Page() {
-  const route = useHashRoute();
+function isKnownSpaRoute(path: string): boolean {
+  // Normalise: strip trailing slashes + leading slash, drop query.
+  let p = path.split("?")[0].replace(/\/+$/, "");
+  if (p === "" || p === "/") return true; // homepage
 
-  // Global interceptor: converts every internal link click into a clean
-  // pushState navigation (no page reload, no "#" in the address bar).
-  // Handles BOTH legacy "#/…" hrefs and clean "/…" hrefs. Real asset/API
-  // paths, new-tab links and downloads are left to the browser.
-  useEffect(() => {
-    const isSpaPath = (href: string) =>
-      href.startsWith("#/") ||
-      (href.startsWith("/") &&
-        !href.startsWith("//") &&
-        !/^(\/api\/|\/uploads\/|\/images\/|\/_next\/|\/favicon|\/logo|\/robots|\/sitemap)/i.test(href));
-    const onClick = (e: MouseEvent) => {
-      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-      const anchor = (e.target as HTMLElement | null)?.closest?.("a");
-      if (!anchor || anchor.target === "_blank" || anchor.hasAttribute("download")) return;
-      const href = anchor.getAttribute("href");
-      if (!href || !isSpaPath(href) || href === "/") {
-        // "/" (home) is handled by the anchor's own navigate() wiring; other
-        // non-SPA links fall through to the browser.
-        if (href === "/") {
-          e.preventDefault();
-          navigate("/");
-        }
-        return;
-      }
-      e.preventDefault();
-      navigate(href.startsWith("#") ? href.slice(1) : href);
-    };
-    document.addEventListener("click", onClick);
-    return () => document.removeEventListener("click", onClick);
-  }, []);
+  const segments = p.replace(/^\//, "").split("/");
+  const [root, param] = segments;
 
-  const isAdmin = route.segments[0] === "admin";
+  // /admin and /admin/… → the studio console (client-rendered login).
+  if (root === "admin") return true;
 
-  return isAdmin ? <AdminApp /> : <SiteApp key="site" />;
+  if (segments.length === 1) return STATIC_ROUTES.has(root.toLowerCase());
+
+  if (segments.length === 2 && SEGMENT_RE.test(param)) {
+    return PARAM_ROUTES.has(root.toLowerCase());
+  }
+
+  return false;
+}
+
+export default async function Page() {
+  const h = await headers();
+  const pathname = h.get("x-abk-path") || "/";
+
+  // /page/about and /page/services duplicate the dedicated /about and
+  // /services routes — permanently redirect instead of serving duplicates.
+  const p = pathname.split("?")[0].replace(/\/+$/, "");
+  if (p === "/page/about") permanentRedirect("/about");
+  if (p === "/page/services") permanentRedirect("/services");
+
+  if (!isKnownSpaRoute(pathname)) {
+    // Genuine 404 — correct HTTP status for crawlers, branded page for people.
+    notFound();
+  }
+
+  return <SpaShell />;
 }
